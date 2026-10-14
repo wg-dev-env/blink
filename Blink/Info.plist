@@ -8,6 +8,10 @@
 	<array>
 		<string>app-font-regular.ttf</string>
 		<string>app-font-bold.ttf</string>
+		<string>IBMPlexSansJP-Regular.ttf</string>
+		<string>IBMPlexSansJP-Medium.ttf</string>
+		<string>IBMPlexSansJP-Bold.ttf</string>
+		<string>JetBrainsMono-Medium.ttf</string>
 	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>

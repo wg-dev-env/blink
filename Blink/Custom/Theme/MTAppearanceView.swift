@@ -45,7 +45,7 @@ struct MTAppearanceView: View {
 
         if let theme = store.selectedTheme {
           Text(theme.summary)
-            .font(.footnote)
+            .font(MTFont.ui(13, relativeTo: .footnote))
             .foregroundColor(.secondary)
         }
       } header: {
@@ -79,7 +79,7 @@ private struct MTThemeCard: View {
           .fill(theme.bg.color)
         VStack(spacing: 5) {
           Text("Aあ")
-            .font(.system(size: 15, weight: .medium))
+            .font(MTFont.ui(15, .medium))
             .foregroundColor(theme.text.color)
           HStack(spacing: 4) {
             Circle().fill(theme.ok.color).frame(width: 6, height: 6)
@@ -99,7 +99,7 @@ private struct MTThemeCard: View {
       )
 
       Text(theme.name)
-        .font(.system(size: 12))
+        .font(MTFont.ui(12, relativeTo: .caption))
         .foregroundColor(.primary)
     }
     .contentShape(Rectangle())

@@ -104,6 +104,13 @@
 		4D540001000000000000B001 /* MTTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A001 /* MTTheme.swift */; };
 		4D540001000000000000B002 /* MTThemeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A002 /* MTThemeStore.swift */; };
 		4D540001000000000000B003 /* MTAppearanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A003 /* MTAppearanceView.swift */; };
+		4D540001000000000000B004 /* MTFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A004 /* MTFont.swift */; };
+		4D540001000000000000B011 /* IBMPlexSansJP-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */; };
+		4D540001000000000000B012 /* IBMPlexSansJP-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */; };
+		4D540001000000000000B013 /* IBMPlexSansJP-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */; };
+		4D540001000000000000B014 /* JetBrainsMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A014 /* JetBrainsMono-Medium.ttf */; };
+		4D540001000000000000B015 /* OFL-IBMPlexSansJP.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A015 /* OFL-IBMPlexSansJP.txt */; };
+		4D540001000000000000B016 /* OFL-JetBrainsMono.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A016 /* OFL-JetBrainsMono.txt */; };
 		BD55D69A2F7D743500EE80EA /* TerminalStyleBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD55D6962F7D743400EE80EA /* TerminalStyleBundle.swift */; };
 		BD55D69C2F7D744B00EE80EA /* TerminalStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD55D69B2F7D744B00EE80EA /* TerminalStyleTests.swift */; };
 		BD55D6A02F8D000100EE80EA /* StyleCustomizationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD55D69E2F8D000100EE80EA /* StyleCustomizationView.swift */; };
@@ -878,6 +885,13 @@
 		4D540001000000000000A001 /* MTTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTTheme.swift; sourceTree = "<group>"; };
 		4D540001000000000000A002 /* MTThemeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTThemeStore.swift; sourceTree = "<group>"; };
 		4D540001000000000000A003 /* MTAppearanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTAppearanceView.swift; sourceTree = "<group>"; };
+		4D540001000000000000A004 /* MTFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTFont.swift; sourceTree = "<group>"; };
+		4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Regular.ttf"; sourceTree = "<group>"; };
+		4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Medium.ttf"; sourceTree = "<group>"; };
+		4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Bold.ttf"; sourceTree = "<group>"; };
+		4D540001000000000000A014 /* JetBrainsMono-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Medium.ttf"; sourceTree = "<group>"; };
+		4D540001000000000000A015 /* OFL-IBMPlexSansJP.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "OFL-IBMPlexSansJP.txt"; sourceTree = "<group>"; };
+		4D540001000000000000A016 /* OFL-JetBrainsMono.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "OFL-JetBrainsMono.txt"; sourceTree = "<group>"; };
 		BD55D69B2F7D744B00EE80EA /* TerminalStyleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalStyleTests.swift; sourceTree = "<group>"; };
 		BD55D69E2F8D000100EE80EA /* StyleCustomizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StyleCustomizationView.swift; sourceTree = "<group>"; };
 		BD55D69F2F8D000100EE80EA /* DisplaySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplaySettingsView.swift; sourceTree = "<group>"; };
@@ -1523,6 +1537,7 @@
 			isa = PBXGroup;
 			children = (
 				4D540001000000000000C002 /* Theme */,
+				4D540001000000000000C003 /* Fonts */,
 			);
 			path = Custom;
 			sourceTree = "<group>";
@@ -1533,8 +1548,22 @@
 				4D540001000000000000A001 /* MTTheme.swift */,
 				4D540001000000000000A002 /* MTThemeStore.swift */,
 				4D540001000000000000A003 /* MTAppearanceView.swift */,
+				4D540001000000000000A004 /* MTFont.swift */,
 			);
 			path = Theme;
+			sourceTree = "<group>";
+		};
+		4D540001000000000000C003 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */,
+				4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */,
+				4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */,
+				4D540001000000000000A014 /* JetBrainsMono-Medium.ttf */,
+				4D540001000000000000A015 /* OFL-IBMPlexSansJP.txt */,
+				4D540001000000000000A016 /* OFL-JetBrainsMono.txt */,
+			);
+			path = Fonts;
 			sourceTree = "<group>";
 		};
 		0732F0481D062B9A00AB5438 /* Resources */ = {
@@ -3222,6 +3251,12 @@
 				D2F30EAD205009CD008C5F35 /* base64js.min.js in Resources */,
 				D29FE54A208DC860004679D0 /* commandDictionary.plist in Resources */,
 				D2BB5E142A1F718300BB0520 /* app-font-bold.ttf in Resources */,
+				4D540001000000000000B011 /* IBMPlexSansJP-Regular.ttf in Resources */,
+				4D540001000000000000B012 /* IBMPlexSansJP-Medium.ttf in Resources */,
+				4D540001000000000000B013 /* IBMPlexSansJP-Bold.ttf in Resources */,
+				4D540001000000000000B014 /* JetBrainsMono-Medium.ttf in Resources */,
+				4D540001000000000000B015 /* OFL-IBMPlexSansJP.txt in Resources */,
+				4D540001000000000000B016 /* OFL-JetBrainsMono.txt in Resources */,
 				D21A3FD821943BE200269705 /* dark-notification-ipad-20pt.png in Resources */,
 				C94437601D831CD30096F84E /* Themes in Resources */,
 				D29FE54B208DC860004679D0 /* extraCommandsDictionary.plist in Resources */,
@@ -3643,6 +3678,7 @@
 				4D540001000000000000B001 /* MTTheme.swift in Sources */,
 				4D540001000000000000B002 /* MTThemeStore.swift in Sources */,
 				4D540001000000000000B003 /* MTAppearanceView.swift in Sources */,
+				4D540001000000000000B004 /* MTFont.swift in Sources */,
 				BD55D69A2F7D743500EE80EA /* TerminalStyleBundle.swift in Sources */,
 				D2D8DD9023C84A6E00BFF223 /* StuckView.swift in Sources */,
 				B7A487651DC7BD65007BA809 /* BKDefaultUserViewController.m in Sources */,
