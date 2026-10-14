@@ -79,6 +79,9 @@ enum BKAgentForward {
 @property (nonatomic, strong) NSString *fpDomainsJSON;
 @property (nonatomic, strong) NSNumber *agentForwardPrompt;
 @property (nonatomic, strong) NSArray<NSString *> *agentForwardKeys;
+// 64_MoshTerm カスタム: 接続時に tmux セッションへ自動アタッチする（TmuxAutoAttach.swift 参照）
+@property (nonatomic, strong) NSNumber *tmuxAutoAttach;
+@property (nonatomic, strong) NSString *tmuxSessionName;
 
 + (instancetype)withHost:(NSString *)ID;
 + (void)loadHosts NS_SWIFT_NAME(loadHosts());

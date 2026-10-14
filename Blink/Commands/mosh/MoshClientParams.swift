@@ -31,6 +31,7 @@
 
 
 import Foundation
+import BlinkConfig
 
 struct MoshClientParams {
   let predictionMode: BKMoshPrediction
@@ -50,7 +51,8 @@ struct MoshClientParams {
     self.predictionMode = cmd.predict ?? BKMoshPrediction(UInt32(truncating: bkHost?.prediction ?? 0))
     self.predictOverwrite = cmd.predictOverwrite ? "yes" : bkHost?.moshPredictOverwrite
     self.experimentalRemoteIP = cmd.experimentalRemoteIP ?? BKMoshExperimentalIP(UInt32(truncating: bkHost?.moshExperimentalIP ?? 0))
-    let remoteExecCommand: String? = if let command = bkHost?.moshStartup, !command.isEmpty { command } else { nil }
+    // 64_MoshTerm カスタム: Command 未指定で tmux 自動アタッチが有効なら、そのコマンドを使う
+    let remoteExecCommand: String? = if let command = bkHost?.moshStartup, !command.isEmpty { command } else { TmuxAutoAttach.command(for: bkHost) }
     self.remoteExecCommand = !cmd.remoteExecCommand.isEmpty ? cmd.remoteExecCommand.joined(separator: " ") : remoteExecCommand
   }
 }

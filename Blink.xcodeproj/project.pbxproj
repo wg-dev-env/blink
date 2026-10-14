@@ -187,6 +187,7 @@
 		BDCB7165268E1577007D7047 /* BlinkConfig.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDCB715E268E1577007D7047 /* BlinkConfig.framework */; };
 		BDCB7166268E1577007D7047 /* BlinkConfig.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = BDCB715E268E1577007D7047 /* BlinkConfig.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		BDCB7178268E15A2007D7047 /* BKHosts.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCB716B268E15A0007D7047 /* BKHosts.swift */; };
+		C064A00000000000000000B1 /* TmuxAutoAttach.swift in Sources */ = {isa = PBXBuildFile; fileRef = C064A00000000000000000F1 /* TmuxAutoAttach.swift */; };
 		BDCB7179268E15A2007D7047 /* BKHosts.m in Sources */ = {isa = PBXBuildFile; fileRef = BDCB716C268E15A1007D7047 /* BKHosts.m */; };
 		BDCB717A268E15A2007D7047 /* UICKeyChainStore.h in Headers */ = {isa = PBXBuildFile; fileRef = BDCB716D268E15A1007D7047 /* UICKeyChainStore.h */; };
 		BDCB717B268E15A2007D7047 /* UICKeyChainStore.m in Sources */ = {isa = PBXBuildFile; fileRef = BDCB716E268E15A1007D7047 /* UICKeyChainStore.m */; };
@@ -946,6 +947,7 @@
 		BDCB715E268E1577007D7047 /* BlinkConfig.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = BlinkConfig.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDCB7161268E1577007D7047 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BDCB716B268E15A0007D7047 /* BKHosts.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BKHosts.swift; sourceTree = "<group>"; };
+		C064A00000000000000000F1 /* TmuxAutoAttach.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TmuxAutoAttach.swift; sourceTree = "<group>"; };
 		BDCB716C268E15A1007D7047 /* BKHosts.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BKHosts.m; sourceTree = "<group>"; };
 		BDCB716D268E15A1007D7047 /* UICKeyChainStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UICKeyChainStore.h; sourceTree = "<group>"; };
 		BDCB716E268E15A1007D7047 /* UICKeyChainStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UICKeyChainStore.m; sourceTree = "<group>"; };
@@ -1917,6 +1919,7 @@
 				BDCB7171268E15A1007D7047 /* BKHosts.h */,
 				BDCB716C268E15A1007D7047 /* BKHosts.m */,
 				BDCB716B268E15A0007D7047 /* BKHosts.swift */,
+				C064A00000000000000000F1 /* TmuxAutoAttach.swift */,
 				BDD6D14427594E6500E76F1F /* BKSSHHost.swift */,
 				BDCB716F268E15A1007D7047 /* BKPubKey.h */,
 				BDCB7174268E15A2007D7047 /* BKPubKey.m */,
@@ -3373,6 +3376,7 @@
 				BDCB7179268E15A2007D7047 /* BKHosts.m in Sources */,
 				BDCB7182268E15A2007D7047 /* SEKey.swift in Sources */,
 				BDCB7178268E15A2007D7047 /* BKHosts.swift in Sources */,
+				C064A00000000000000000B1 /* TmuxAutoAttach.swift in Sources */,
 				D2AE682828D05FD0003E4338 /* WebAuthnKey.swift in Sources */,
 				D22378FF27A7B8DA002D5C6D /* XCConfig.m in Sources */,
 				BDCB7181268E15A2007D7047 /* BKPubKey.m in Sources */,

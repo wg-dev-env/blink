@@ -79,6 +79,9 @@ static UICKeyChainStore *__get_keychain() {
   _fpDomainsJSON = [coder decodeObjectOfClasses:strings forKey:@"fpDomainsJSON"];
   _agentForwardPrompt = [coder decodeObjectOfClasses:numbers forKey:@"agentForwardPrompt"];
   _agentForwardKeys = [coder decodeArrayOfObjectsOfClass:NSString.class forKey:@"agentForwardKeys"];
+  // 64_MoshTerm カスタム
+  _tmuxAutoAttach = [coder decodeObjectOfClasses:numbers forKey:@"tmuxAutoAttach"];
+  _tmuxSessionName = [coder decodeObjectOfClasses:strings forKey:@"tmuxSessionName"];
   return self;
 }
 
@@ -106,6 +109,9 @@ static UICKeyChainStore *__get_keychain() {
   [encoder encodeObject:_fpDomainsJSON forKey:@"fpDomainsJSON"];
   [encoder encodeObject:_agentForwardPrompt forKey:@"agentForwardPrompt"];
   [encoder encodeObject:_agentForwardKeys forKey:@"agentForwardKeys"];
+  // 64_MoshTerm カスタム
+  [encoder encodeObject:_tmuxAutoAttach forKey:@"tmuxAutoAttach"];
+  [encoder encodeObject:_tmuxSessionName forKey:@"tmuxSessionName"];
 }
 
 - (id)initWithAlias:(NSString *)alias

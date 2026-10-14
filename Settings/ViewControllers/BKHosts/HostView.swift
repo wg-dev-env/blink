@@ -33,6 +33,7 @@ import CloudKit
 import Combine
 import SwiftUI
 
+import BlinkConfig
 import BlinkFileProvider
 
 struct FileDomainView: View {
@@ -464,6 +465,10 @@ struct HostView: View {
   @State private var _agentForwardPrompt: BKAgentForward = BKAgentForwardNo
   @State private var _agentForwardKeys: [String] = []
 
+  // 64_MoshTerm カスタム: tmux 自動アタッチ（仮置き UI。フェーズ B で作り直す）
+  @State private var _tmuxAutoAttach: Bool = false
+  @State private var _tmuxSessionName: String = ""
+
   @State private var _errorMessage: String = ""
 
   private var _iCloudVersion: Bool
@@ -563,6 +568,17 @@ struct HostView: View {
         )
       }.disabled(!_enabled)
 
+      // 64_MoshTerm カスタム: tmux 自動アタッチ（仮置き UI。フェーズ B で作り直す）
+      Section(
+        header: Text("TMUX"),
+        footer: Text("Runs `tmux new -A -s <session>` on connect (Mosh & SSH). Explicit commands take precedence.")
+      ) {
+        Toggle("Auto Attach", isOn: $_tmuxAutoAttach)
+        if _tmuxAutoAttach {
+          Field("Session", $_tmuxSessionName, next: "Alias", placeholder: TmuxAutoAttach.defaultSessionName)
+        }
+      }.disabled(!_enabled)
+
       Section(
         header: Text("SSH AGENT")
       ) {
@@ -660,6 +676,9 @@ struct HostView: View {
     _moshCommand = host.moshStartup ?? ""
     _agentForwardPrompt.rawValue = UInt32(host.agentForwardPrompt?.intValue ?? 0)
     _agentForwardKeys = host.agentForwardKeys ?? []
+    // 64_MoshTerm カスタム
+    _tmuxAutoAttach = host.tmuxAutoAttach?.boolValue ?? false
+    _tmuxSessionName = host.tmuxSessionName ?? ""
     _enabled = !( _conflictedICloudHost != nil || _iCloudVersion)
 
     if _duplicatedHost == nil {
@@ -731,6 +750,11 @@ struct HostView: View {
     guard let host = savedHost else {
       return
     }
+
+    // 64_MoshTerm カスタム: saveHost のシグネチャを変えずに専用フィールドを保存する
+    host.tmuxAutoAttach = NSNumber(value: _tmuxAutoAttach)
+    host.tmuxSessionName = _tmuxSessionName.trimmingCharacters(in: .whitespacesAndNewlines)
+    BKHosts.save()
 
     BKHosts.updateHost(host.host, withiCloudId: host.iCloudRecordId, andLastModifiedTime: Date())
     BKiCloudSyncHandler.shared()?.check(forReachabilityAndSync: nil)

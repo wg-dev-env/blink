@@ -74,7 +74,10 @@ extension BKHosts {
           }
         }
       }
-      
+      // 64_MoshTerm カスタム: tmux 自動アタッチ。attachment より後ろに置き、
+      // ユーザーの明示設定（先勝ち）を優先させる
+      cfg.append(contentsOf: TmuxAutoAttach.sshConfigEntries(for: h))
+
       try config.add(alias: h.host, cfg: cfg)
     }
     
