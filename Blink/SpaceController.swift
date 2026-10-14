@@ -218,7 +218,12 @@ class SpaceController: UIViewController {
   }
 
   @objc private func _setupAppearance() {
-    self.view.tintColor = .cyan
+    // MoshTerm: MTTheme 選択中はその外観モードと accent を優先する
+    self.view.tintColor = MTThemeStore.shared.selectedTheme?.accent.uiColor ?? .cyan
+    if let style = MTThemeStore.shared.overrideInterfaceStyle {
+      overrideUserInterfaceStyle = style
+      return
+    }
     switch BLKDefaults.keyboardStyle() {
     case .light:
       overrideUserInterfaceStyle = .light

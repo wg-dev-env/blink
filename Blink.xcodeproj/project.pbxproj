@@ -101,6 +101,9 @@
 		BD4F7A072CBC9FD300FE67EA /* FileTranslatorConnectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4F7A062CBC9FD300FE67EA /* FileTranslatorConnectionTests.swift */; };
 		BD55D6982F7D743500EE80EA /* TerminalStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD55D6952F7D743400EE80EA /* TerminalStyle.swift */; };
 		BD55D6992F7D743500EE80EA /* TerminalStyleStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD55D6972F7D743400EE80EA /* TerminalStyleStore.swift */; };
+		4D540001000000000000B001 /* MTTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A001 /* MTTheme.swift */; };
+		4D540001000000000000B002 /* MTThemeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A002 /* MTThemeStore.swift */; };
+		4D540001000000000000B003 /* MTAppearanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A003 /* MTAppearanceView.swift */; };
 		BD55D69A2F7D743500EE80EA /* TerminalStyleBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD55D6962F7D743400EE80EA /* TerminalStyleBundle.swift */; };
 		BD55D69C2F7D744B00EE80EA /* TerminalStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD55D69B2F7D744B00EE80EA /* TerminalStyleTests.swift */; };
 		BD55D6A02F8D000100EE80EA /* StyleCustomizationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD55D69E2F8D000100EE80EA /* StyleCustomizationView.swift */; };
@@ -872,6 +875,9 @@
 		BD55D6952F7D743400EE80EA /* TerminalStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalStyle.swift; sourceTree = "<group>"; };
 		BD55D6962F7D743400EE80EA /* TerminalStyleBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalStyleBundle.swift; sourceTree = "<group>"; };
 		BD55D6972F7D743400EE80EA /* TerminalStyleStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalStyleStore.swift; sourceTree = "<group>"; };
+		4D540001000000000000A001 /* MTTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTTheme.swift; sourceTree = "<group>"; };
+		4D540001000000000000A002 /* MTThemeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTThemeStore.swift; sourceTree = "<group>"; };
+		4D540001000000000000A003 /* MTAppearanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTAppearanceView.swift; sourceTree = "<group>"; };
 		BD55D69B2F7D744B00EE80EA /* TerminalStyleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalStyleTests.swift; sourceTree = "<group>"; };
 		BD55D69E2F8D000100EE80EA /* StyleCustomizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StyleCustomizationView.swift; sourceTree = "<group>"; };
 		BD55D69F2F8D000100EE80EA /* DisplaySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplaySettingsView.swift; sourceTree = "<group>"; };
@@ -1466,6 +1472,7 @@
 		0716B5231CFFAB9300268B5B /* Blink */ = {
 			isa = PBXGroup;
 			children = (
+				4D540001000000000000C001 /* Custom */,
 				D22277F02A26200B00D4C708 /* Snippets */,
 				D25DE9C32939EB63008246EB /* NonStdIO */,
 				D264D2AE28F8457A002B1B14 /* WhatsNew */,
@@ -1510,6 +1517,24 @@
 				D231F5062A54478800ED82B0 /* BlinkMenu.m */,
 			);
 			path = Blink;
+			sourceTree = "<group>";
+		};
+		4D540001000000000000C001 /* Custom */ = {
+			isa = PBXGroup;
+			children = (
+				4D540001000000000000C002 /* Theme */,
+			);
+			path = Custom;
+			sourceTree = "<group>";
+		};
+		4D540001000000000000C002 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				4D540001000000000000A001 /* MTTheme.swift */,
+				4D540001000000000000A002 /* MTThemeStore.swift */,
+				4D540001000000000000A003 /* MTAppearanceView.swift */,
+			);
+			path = Theme;
 			sourceTree = "<group>";
 		};
 		0732F0481D062B9A00AB5438 /* Resources */ = {
@@ -3615,6 +3640,9 @@
 				BD98AC84260BD8DC00B4E6A1 /* SSHAgentAdd.swift in Sources */,
 				BD55D6982F7D743500EE80EA /* TerminalStyle.swift in Sources */,
 				BD55D6992F7D743500EE80EA /* TerminalStyleStore.swift in Sources */,
+				4D540001000000000000B001 /* MTTheme.swift in Sources */,
+				4D540001000000000000B002 /* MTThemeStore.swift in Sources */,
+				4D540001000000000000B003 /* MTAppearanceView.swift in Sources */,
 				BD55D69A2F7D743500EE80EA /* TerminalStyleBundle.swift in Sources */,
 				D2D8DD9023C84A6E00BFF223 /* StuckView.swift in Sources */,
 				B7A487651DC7BD65007BA809 /* BKDefaultUserViewController.m in Sources */,

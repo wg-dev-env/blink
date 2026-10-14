@@ -972,7 +972,10 @@ static NSString * _sanitizeTextForClipboard(NSString *text) {
   [commands addObject:term_setBoldEnabled(termUIState.enableBold)];
   [commands addObject:term_setBoldAsBright(termUIState.boldAsBright)];
 
-  NSString *themeContent = [[BKTheme withName: termUIState.themeName ?: [BLKDefaults selectedThemeName]] content];
+  // MoshTerm: MTTheme（Swift のトークン定義）を先に引き、無ければ従来の BKTheme
+  NSString *themeName = termUIState.themeName ?: [BLKDefaults selectedThemeName];
+  NSString *themeContent = [MTThemeBridge htermJSForName:themeName]
+    ?: [[BKTheme withName:themeName] content];
   if (themeContent) {
     [commands addObject:themeContent];
   }
@@ -1001,7 +1004,10 @@ static NSString * _sanitizeTextForClipboard(NSString *text) {
 }
 
 - (void)applyTheme:(NSString *)themeName {
-  NSString *themeContent = [[BKTheme withName: themeName ?: [BLKDefaults selectedThemeName]] content];
+  // MoshTerm: MTTheme を先に引き、無ければ従来の BKTheme
+  NSString *name = themeName ?: [BLKDefaults selectedThemeName];
+  NSString *themeContent = [MTThemeBridge htermJSForName:name]
+    ?: [[BKTheme withName:name] content];
   if (themeContent) {
     NSString *script = [NSString stringWithFormat:@"(function(){%@})();", themeContent];
     [_webView evaluateJavaScript:script completionHandler:nil];

@@ -46,6 +46,20 @@ class SettingsHostingController: UIHostingController<NavView<SettingsView>>, UIA
     super.init(rootView: rootView)
 
     navController.presentationController?.delegate = self
+
+    // MoshTerm: MTTheme の外観モードを設定画面にも適用する
+    _applyMTAppearance()
+    NotificationCenter.default.addObserver(
+      self, selector: #selector(_mtAppearanceChanged),
+      name: NSNotification.Name(BKAppearanceChanged), object: nil)
+  }
+
+  @objc private func _mtAppearanceChanged() {
+    _applyMTAppearance()
+  }
+
+  private func _applyMTAppearance() {
+    overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
   }
 
   @MainActor @objc required dynamic init?(coder aDecoder: NSCoder) {

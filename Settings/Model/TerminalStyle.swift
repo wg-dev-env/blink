@@ -111,12 +111,18 @@ extension TerminalStyle {
     var warnings: [Resolved.Warning] = []
 
     // Theme resolution
-    let themeResource = BKTheme.withName(themeName)
-    if themeResource == nil && themeName != "Default" {
-      warnings.append(.themeNotFound(name: themeName))
+    // MoshTerm: MTTheme（Swift のトークン定義）は BKTheme を介さず JS を生成する
+    let themeContent: String?
+    if let mtTheme = MTTheme.named(themeName) {
+      themeContent = mtTheme.htermJS
+    } else {
+      let themeResource = BKTheme.withName(themeName)
+      if themeResource == nil && themeName != "Default" {
+        warnings.append(.themeNotFound(name: themeName))
+      }
+      let effectiveTheme = themeResource ?? BKTheme.withName("Default")
+      themeContent = effectiveTheme?.content()
     }
-    let effectiveTheme = themeResource ?? BKTheme.withName("Default")
-    let themeContent = effectiveTheme?.content()
 
     // Font resolution
     let fontResource = BKFont.withName(fontName) as? BKFont

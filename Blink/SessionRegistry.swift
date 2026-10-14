@@ -93,6 +93,11 @@ protocol SuspendableSession: class {
   func sessionFromIndexWith<T: SuspendableSession>(key: UUID) -> T? {
     _sessionsIndex[key] as? T
   }
+
+  // MoshTerm: 全セッションへの一括適用（テーマの即時反映など）に使う
+  func forEachSession(_ body: (SuspendableSession) -> Void) {
+    _sessionsIndex.values.forEach(body)
+  }
   
   subscript<T: SuspendableSession>(key: UUID) -> T {
     // 1. we already have it (same type)
