@@ -80,6 +80,7 @@
 		4D540001000000000000B007 /* MTConnectivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A007 /* MTConnectivity.swift */; };
 		4D540001000000000000B008 /* MTLifelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A008 /* MTLifelineView.swift */; };
 		4D540001000000000000B009 /* MTInputMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A009 /* MTInputMode.swift */; };
+		4D540001000000000000B010 /* MTSessionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A010 /* MTSessionsView.swift */; };
 		4D540001000000000000B011 /* IBMPlexSansJP-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */; };
 		4D540001000000000000B012 /* IBMPlexSansJP-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */; };
 		4D540001000000000000B013 /* IBMPlexSansJP-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */; };
@@ -840,6 +841,7 @@
 		4D540001000000000000A007 /* MTConnectivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTConnectivity.swift; sourceTree = "<group>"; };
 		4D540001000000000000A008 /* MTLifelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTLifelineView.swift; sourceTree = "<group>"; };
 		4D540001000000000000A009 /* MTInputMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTInputMode.swift; sourceTree = "<group>"; };
+		4D540001000000000000A010 /* MTSessionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTSessionsView.swift; sourceTree = "<group>"; };
 		4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Regular.ttf"; sourceTree = "<group>"; };
 		4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Medium.ttf"; sourceTree = "<group>"; };
 		4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Bold.ttf"; sourceTree = "<group>"; };
@@ -1770,6 +1772,7 @@
 				4D540001000000000000A007 /* MTConnectivity.swift */,
 				4D540001000000000000A008 /* MTLifelineView.swift */,
 				4D540001000000000000A009 /* MTInputMode.swift */,
+				4D540001000000000000A010 /* MTSessionsView.swift */,
 			);
 			path = Tabs;
 			sourceTree = "<group>";
@@ -3690,6 +3693,7 @@
 				4D540001000000000000B007 /* MTConnectivity.swift in Sources */,
 				4D540001000000000000B008 /* MTLifelineView.swift in Sources */,
 				4D540001000000000000B009 /* MTInputMode.swift in Sources */,
+				4D540001000000000000B010 /* MTSessionsView.swift in Sources */,
 				BD55D69A2F7D743500EE80EA /* TerminalStyleBundle.swift in Sources */,
 				D2D8DD9023C84A6E00BFF223 /* StuckView.swift in Sources */,
 				B7A487651DC7BD65007BA809 /* BKDefaultUserViewController.m in Sources */,

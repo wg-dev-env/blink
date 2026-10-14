@@ -41,6 +41,7 @@ struct MTTabBarView: View {
   @ObservedObject var model: MTTabBarModel
   @ObservedObject private var themeStore = MTThemeStore.shared
   @ObservedObject private var stateCenter = MTSessionStateCenter.shared
+  @ObservedObject private var sessionsStore = MTSessionsStore.shared
 
   let onSelect: (UUID) -> Void
   let onNew: () -> Void
@@ -64,7 +65,8 @@ struct MTTabBarView: View {
       ScrollViewReader { proxy in
         ScrollView(.horizontal, showsIndicators: false) {
           HStack(spacing: 6) {
-            ForEach(model.items) { item in
+            // 非表示セッション（06 §6.2）はタブにも出さない
+            ForEach(model.items.filter { !sessionsStore.hiddenKeys.contains($0.key) }) { item in
               MTTabView(
                 item: item,
                 state: stateCenter.state(for: item.key),

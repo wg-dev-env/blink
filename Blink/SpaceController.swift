@@ -509,7 +509,7 @@ Please go to your subscriptions and cancel one of them!
     let host = MTTabBarHost(
       onSelect: { [weak self] key in self?._moveToShell(key: key) },
       onNew: { [weak self] in self?.newShellAction() },
-      onList: { [weak self] in self?._displayHUD() }  // セッション一覧画面は S7 で置き換え
+      onList: { [weak self] in self?._mtShowSessionsList() }
     )
     addChild(host)
     host.view.translatesAutoresizingMaskIntoConstraints = false
@@ -542,6 +542,24 @@ Please go to your subscriptions and cancel one of them!
 
     // 回線状態の監視を開始（圏外・回線切替をセッション状態へ変換）
     MTConnectivityMonitor.shared.startIfNeeded()
+  }
+
+  /// セッション一覧（06 §6.2）をシートで表示する
+  private func _mtShowSessionsList() {
+    let items = _viewportsKeys.map { key -> MTTabItem in
+      let term: TermController = SessionRegistry.shared[key]
+      let title = term.title ?? ""
+      return MTTabItem(key: key, title: title.isEmpty ? "shell" : title)
+    }
+    let view = MTSessionsView(
+      items: items,
+      currentKey: _currentKey,
+      onSelect: { [weak self] key in self?._moveToShell(key: key) },
+      onNew: { [weak self] in self?.newShellAction() }
+    )
+    let vc = UIHostingController(rootView: view)
+    vc.modalPresentationStyle = .pageSheet
+    present(vc, animated: true)
   }
 
   private func _mtTabBarUpdate() {
