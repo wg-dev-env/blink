@@ -196,6 +196,13 @@ struct MTStatusOverlayView: View {
           .transition(.opacity)
       }
       Spacer(minLength: 0)
+
+      // 入力モードピル（06 §5.2、ターミナル右下）
+      HStack {
+        Spacer()
+        MTInputModePill()
+      }
+      .padding(.bottom, 8)
     }
     .padding(.horizontal, 12)
     .padding(.top, 8)

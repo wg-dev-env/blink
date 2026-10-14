@@ -105,6 +105,7 @@ import Combine
   func reportLang() {
     let lang = self.textInputMode?.primaryLanguage ?? ""
     kbView.lang = lang
+    MTInputModeCenter.shared.setLang(lang)  // MoshTerm: 入力モードピル（06 §5.2）
     reportLang(lang, isHardwareKB: kbView.traits.isHKBAttached)
   }
   
@@ -378,8 +379,10 @@ extension SmarterTermInput {
     if event == "compositionstart" && data.isEmpty {
     } else if event == "compositionend" {
       kbView.traits.isIME = false
+      MTInputModeCenter.shared.setComposing(false)  // MoshTerm: 変換終了
     } else { // "compositionupdate"
       kbView.traits.isIME = true
+      MTInputModeCenter.shared.setComposing(true)   // MoshTerm: 変換中
     }
   }
   
