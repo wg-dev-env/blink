@@ -553,6 +553,8 @@ extension TermController: SuspendableSession {
       _sessionPayload = payload
       payload.start(in: _termDevice, sessionKey: _meta.key.uuidString)
       _session!.delegate = self
+      // MoshTerm: kill 後の復元（06 §4「復元済み」）
+      MTSessionStateCenter.shared.set(.restored, for: _meta.key)
     } else {
       _sessionPayload!.resumeFromSuspended()
     }

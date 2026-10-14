@@ -95,7 +95,7 @@ struct MTTabBarView: View {
     }
     .padding(.horizontal, 8)
     .padding(.vertical, 4)
-    .frame(height: MTTabBarHost.height)
+    .frame(height: 44)
     .frame(maxWidth: .infinity)
     .background(theme.bg.color.ignoresSafeArea(edges: .horizontal))
   }
@@ -158,16 +158,32 @@ struct MTStateBadge: View {
 // MARK: - UIKit ホスト（SpaceController から使う）
 
 final class MTTabBarHost: UIViewController {
-  static let height: CGFloat = 44  // 36pt タブ + 上下 4pt
+  static let height: CGFloat = 64  // タブ 44（36pt + 上下 4pt）+ ライフライン 20
 
   private let model = MTTabBarModel()
+
+  /// タブバー＋直下のライフライン（06 §2）
+  private struct ChromeView: View {
+    @ObservedObject var model: MTTabBarModel
+    let onSelect: (UUID) -> Void
+    let onNew: () -> Void
+    let onList: () -> Void
+
+    var body: some View {
+      VStack(spacing: 0) {
+        MTTabBarView(model: model, onSelect: onSelect, onNew: onNew, onList: onList)
+        MTLifelineView()
+          .frame(height: 20)
+      }
+    }
+  }
 
   init(onSelect: @escaping (UUID) -> Void,
        onNew: @escaping () -> Void,
        onList: @escaping () -> Void) {
     super.init(nibName: nil, bundle: nil)
     let hosting = UIHostingController(
-      rootView: MTTabBarView(model: model, onSelect: onSelect, onNew: onNew, onList: onList))
+      rootView: ChromeView(model: model, onSelect: onSelect, onNew: onNew, onList: onList))
     addChild(hosting)
     hosting.view.backgroundColor = .clear
     hosting.view.translatesAutoresizingMaskIntoConstraints = false

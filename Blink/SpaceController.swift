@@ -450,6 +450,7 @@ Please go to your subscriptions and cancel one of them!
     }
     currentTerm()?.delegate = nil
     SessionRegistry.shared.remove(forKey: currentKey)
+    MTSessionStateCenter.shared.clear(for: currentKey)
     _viewportsKeys.remove(at: idx)
     if _viewportsKeys.isEmpty {
       _newShellAction(animated: false)
@@ -523,15 +524,35 @@ Please go to your subscriptions and cancel one of them!
     _mtTabBar = host
     // 端末ビューの上インセットに加算される（LayoutConstraintManager）
     MTChrome.tabBarTopInset = MTTabBarHost.height
+
+    // 状態バナー・トースト（表示専用、_overlay はタッチを通す）
+    let statusHost = UIHostingController(rootView: MTStatusOverlayView())
+    statusHost.view.backgroundColor = .clear
+    statusHost.view.isUserInteractionEnabled = false
+    addChild(statusHost)
+    statusHost.view.translatesAutoresizingMaskIntoConstraints = false
+    _overlay.addSubview(statusHost.view)
+    NSLayoutConstraint.activate([
+      statusHost.view.topAnchor.constraint(equalTo: _overlay.topAnchor, constant: MTTabBarHost.height),
+      statusHost.view.leadingAnchor.constraint(equalTo: _overlay.leadingAnchor),
+      statusHost.view.trailingAnchor.constraint(equalTo: _overlay.trailingAnchor),
+      statusHost.view.bottomAnchor.constraint(equalTo: _overlay.bottomAnchor),
+    ])
+    statusHost.didMove(toParent: self)
+
+    // 回線状態の監視を開始（圏外・回線切替をセッション状態へ変換）
+    MTConnectivityMonitor.shared.startIfNeeded()
   }
 
   private func _mtTabBarUpdate() {
     guard _mtTabBar != nil else { return }
     let items = _viewportsKeys.map { key -> MTTabItem in
+      MTSessionStateCenter.shared.track(key)
       let term: TermController = SessionRegistry.shared[key]
       let title = term.title ?? ""
       return MTTabItem(key: key, title: title.isEmpty ? "shell" : title)
     }
+    MTSessionStateCenter.shared.currentKey = _currentKey
     _mtTabBar?.update(items: items, current: _currentKey)
   }
 

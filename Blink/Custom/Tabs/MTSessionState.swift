@@ -41,12 +41,47 @@ enum MTSessionState {
   }
 }
 
-/// セッション状態の置き場（セッションキー → 状態）。
-/// S3 では表示側のみ。実際の状態遷移（SSH/Mosh の接続イベントとの配線）は S4 で行う。
+/// セッション 1 本の状態履歴。ライフライン（06 §2）の描画元。
+final class MTSessionTimeline {
+  let start: Date
+  private(set) var events: [(date: Date, state: MTSessionState)]
+
+  init(start: Date = Date()) {
+    self.start = start
+    self.events = [(start, .connected)]
+  }
+
+  func append(_ state: MTSessionState, at date: Date = Date()) {
+    guard events.last?.state != state else { return }
+    events.append((date, state))
+    if events.count > 200 {
+      events.removeFirst(events.count - 200)
+    }
+  }
+
+  /// 回線切替の回数（再接続中に入った回数）
+  var switchCount: Int {
+    events.filter { $0.state == .reconnecting }.count
+  }
+
+  /// 最後に「接続中」だった時刻（保持中の「最終応答」表示に使う）
+  var lastConnectedDate: Date? {
+    events.last { $0.state == .connected }?.date
+  }
+}
+
+/// セッション状態の置き場（セッションキー → 状態・履歴）。
+/// 回線イベントは MTConnectivityMonitor が、復元イベントは TermController が流し込む。
 final class MTSessionStateCenter: ObservableObject {
   static let shared = MTSessionStateCenter()
 
   @Published private(set) var states: [UUID: MTSessionState] = [:]
+  /// 表示中セッション（SpaceController が更新。ライフライン・バナーの対象）
+  @Published var currentKey: UUID? = nil
+  /// 直近の回線切替の説明（例 "モバイル回線 → Wi-Fi"）
+  @Published var networkChange: String? = nil
+
+  private(set) var timelines: [UUID: MTSessionTimeline] = [:]
 
   private init() {}
 
@@ -54,12 +89,55 @@ final class MTSessionStateCenter: ObservableObject {
     states[key] ?? .connected
   }
 
+  func timeline(for key: UUID) -> MTSessionTimeline {
+    if let t = timelines[key] { return t }
+    let t = MTSessionTimeline()
+    timelines[key] = t
+    return t
+  }
+
+  /// セッションを追跡対象に登録する（既知なら何もしない）
+  func track(_ key: UUID) {
+    guard states[key] == nil else { return }
+    states[key] = .connected
+    _ = timeline(for: key)
+  }
+
   func set(_ state: MTSessionState, for key: UUID) {
+    timeline(for: key).append(state)
     states[key] = state
+    if state == .restored {
+      scheduleRestoredDecay(for: key)
+    }
   }
 
   func clear(for key: UUID) {
     states.removeValue(forKey: key)
+    timelines.removeValue(forKey: key)
+  }
+
+  /// 回線イベントは全セッション共通で適用する
+  func transitionAll(to state: MTSessionState) {
+    for key in states.keys {
+      timeline(for: key).append(state)
+      states[key] = state
+    }
+  }
+
+  /// 再接続中のセッションをまとめて接続中へ戻す（復帰）
+  func recoverAll() {
+    for (key, state) in states where state == .reconnecting || state == .held {
+      timeline(for: key).append(.connected)
+      states[key] = .connected
+    }
+  }
+
+  /// 復元済み表示は一定時間で接続中へ落とす
+  private func scheduleRestoredDecay(for key: UUID) {
+    DispatchQueue.main.asyncAfter(deadline: .now() + 8) { [weak self] in
+      guard let self, self.states[key] == .restored else { return }
+      self.set(.connected, for: key)
+    }
   }
 }
 
