@@ -130,7 +130,13 @@ public extension EncodedStateBacked {
   /// Consumed once inside `MCPSession.executeWithArgs:`.
   @objc var initialCommand: String? = nil
 
-  private enum Key: CodingKey { case childSessionType, childSessionParams }
+  /// 64_MoshTerm カスタム: SSH 自動再接続用。
+  /// SSH 接続が生きている間だけ、それを起動したコマンド行を保持する（接続が終われば nil に戻る）。
+  /// Mosh と違い SSH はアプリ kill 後に接続を復元できないため、復元時にこのコマンドを再実行して
+  /// 再接続する（tmux 自動アタッチが有効なら同じセッションへ戻る）。NSCoding で永続化する。
+  @objc var reconnectionCommand: String? = nil
+
+  private enum Key: CodingKey { case childSessionType, childSessionParams, reconnectionCommand }
 
   override init() { super.init() }
 
@@ -140,6 +146,7 @@ public extension EncodedStateBacked {
   func encode(with coder: NSCoder) {
     coder.bk_encode(childSessionType, for: Key.childSessionType)
     coder.bk_encode(childSessionParams, for: Key.childSessionParams)
+    coder.bk_encode(reconnectionCommand, for: Key.reconnectionCommand)
   }
 
   required init?(coder: NSCoder) {
@@ -147,6 +154,7 @@ public extension EncodedStateBacked {
     self.childSessionType = coder.bk_decode(for: Key.childSessionType)
     // NOTE: include all known MCP children subclasses here for secure decoding
     self.childSessionParams = coder.bk_decode(of: [MoshParams.self], for: Key.childSessionParams)
+    self.reconnectionCommand = coder.bk_decode(for: Key.reconnectionCommand)
   }
 
   // MARK: - BKSessionParamsSnapshotting (forward)

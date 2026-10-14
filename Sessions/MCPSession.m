@@ -112,6 +112,16 @@
         return;
       }
     }
+    // 64_MoshTerm カスタム: SSH 自動再接続。
+    // kill 前に SSH 接続が生きていた場合、復元時にそのコマンドを再実行して再接続する。
+    // reconnectionCommand は NSCoding で永続化され、接続中のみ値を持つ（executeWithArgs:
+    // は新規セッションでは nil、復元セッションでのみ値が入るので多重実行の心配はない）。
+    NSString *reconnectionCommand = self.sessionParams.reconnectionCommand;
+    if (reconnectionCommand.length > 0) {
+      [self enqueueCommand:reconnectionCommand skipHistoryRecord:YES];
+      return;
+    }
+
     NSString *initialCommand = self.sessionParams.initialCommand;
     if (initialCommand.length > 0) {
       [self enqueueCommand:initialCommand];
@@ -212,6 +222,14 @@
 
     _currentCmd = cmdline;
 
+    // 64_MoshTerm カスタム: SSH 自動再接続。
+    // ssh 接続が生きている間だけコマンド行を保持する。アプリが kill されても、
+    // suspend 時にこの値が保存され、復元時に再実行して再接続する。
+    BOOL isSSH = [cmd isEqualToString:@"ssh"];
+    if (isSSH) {
+      self.sessionParams.reconnectionCommand = cmdline;
+    }
+
     _cmdStream = [_device.stream duplicate];
     ios_setStreams(_cmdStream.in, _cmdStream.out, _cmdStream.out);
     // ios_system provides a get command that returns a "tty" instead of an open.  We can control it here.
@@ -225,6 +243,12 @@
     ios_waitpid(_pid);
     ios_releaseThreadId(_pid);
     self.device.autoCR = FALSE;
+
+    // ssh が終了した（＝ユーザーが切断した）ので再接続対象から外す。
+    // 接続が生きたまま kill された場合のみ reconnectionCommand が残り、復元時に再接続される。
+    if (isSSH) {
+      self.sessionParams.reconnectionCommand = nil;
+    }
 
     fclose(tty);
     tty = nil;
