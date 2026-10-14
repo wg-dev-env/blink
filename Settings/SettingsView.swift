@@ -118,11 +118,11 @@ struct SettingsView: View {
       }
 
       Section("Terminal") {
-        // MoshTerm: 配色テーマ・外観モード（S1 仮置き。画面構成は S8 で正式化）
+        // MoshTerm: 設定画面（06 §6.5。従来の設定と併存、実機確認後に本画面へ寄せる）
         Row {
-          Label("外観（配色）", systemImage: "circle.lefthalf.filled")
+          Label("設定（MoshTerm）", systemImage: "circle.lefthalf.filled")
         } details: {
-          MTAppearanceView()
+          MTSettingsView()
         }
         Row {
           Label("Style", systemImage: "paintpalette")

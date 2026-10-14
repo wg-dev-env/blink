@@ -568,14 +568,23 @@ struct HostView: View {
         )
       }.disabled(!_enabled)
 
-      // 64_MoshTerm カスタム: tmux 自動アタッチ（仮置き UI。フェーズ B で作り直す）
+      // MoshTerm: tmux 自動アタッチ（06 §6.4。「切れない」の本命なので ok 色で強調）
       Section(
-        header: Text("TMUX"),
-        footer: Text("Runs `tmux new -A -s <session>` on connect (Mosh & SSH). Explicit commands take precedence.")
+        header: Text("TMUX")
+          .foregroundColor((MTThemeStore.shared.selectedTheme ?? MTTheme.all[0]).ok.color),
+        footer: Text("接続時に tmux セッションへ自動アタッチします（Mosh / SSH 共通）。セッションが無ければ作成します。コマンドの明示指定が優先されます。")
       ) {
-        Toggle("Auto Attach", isOn: $_tmuxAutoAttach)
+        Toggle("接続時に自動アタッチ", isOn: $_tmuxAutoAttach)
         if _tmuxAutoAttach {
-          Field("Session", $_tmuxSessionName, next: "Alias", placeholder: TmuxAutoAttach.defaultSessionName)
+          Field("セッション名", $_tmuxSessionName, next: "Alias", placeholder: TmuxAutoAttach.defaultSessionName)
+          HStack {
+            Text("実行コマンド")
+            Spacer()
+            Text("tmux new -A -s \(_tmuxSessionName.isEmpty ? TmuxAutoAttach.defaultSessionName : _tmuxSessionName)")
+              .font(MTFont.mono(12))
+              .foregroundColor((MTThemeStore.shared.selectedTheme ?? MTTheme.all[0]).ok.color)
+              .lineLimit(1)
+          }
         }
       }.disabled(!_enabled)
 
