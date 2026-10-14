@@ -33,10 +33,17 @@ final class MTThemeStore: ObservableObject {
     case theme   // 常にテーマどおり
   }
 
+  /// 差分の配色（06 §5.5）。既定は橙 / 青（赤緑の色覚差に配慮）
+  enum DiffPalette: String, CaseIterable {
+    case orangeBlue  // 橙（元）/ 青（変更後）
+    case redGreen    // 従来の赤 / 緑
+  }
+
   static let shared = MTThemeStore()
 
   private static let themeKey = "MTSelectedThemeID"
   private static let modeKey = "MTAppearanceMode"
+  private static let diffKey = "MTDiffPalette"
 
   @Published private(set) var selectedThemeID: String?
   @Published var appearanceMode: AppearanceMode {
@@ -46,11 +53,30 @@ final class MTThemeStore: ObservableObject {
       notifyAppearanceChanged()
     }
   }
+  @Published var diffPalette: DiffPalette {
+    didSet {
+      guard diffPalette != oldValue else { return }
+      UserDefaults.standard.set(diffPalette.rawValue, forKey: Self.diffKey)
+    }
+  }
 
   private init() {
     let defaults = UserDefaults.standard
     selectedThemeID = defaults.string(forKey: Self.themeKey)
     appearanceMode = AppearanceMode(rawValue: defaults.string(forKey: Self.modeKey) ?? "") ?? .system
+    diffPalette = DiffPalette(rawValue: defaults.string(forKey: Self.diffKey) ?? "") ?? .orangeBlue
+  }
+
+  /// 現在の設定での diff 配色（文字色・地色）。赤 / 緑選択時はテーマによらず共通値。
+  var diffColors: (delText: MTColor, delBg: MTColor, addText: MTColor, addBg: MTColor) {
+    let theme = selectedTheme ?? MTTheme.all[0]
+    switch diffPalette {
+    case .orangeBlue:
+      return (theme.diffDelText, theme.diffDelBg, theme.diffAddText, theme.diffAddBg)
+    case .redGreen:
+      return (MTColor(0xE06C60), MTColor(r: 224, g: 90, b: 80, a: 0.16),
+              MTColor(0x6FBF73), MTColor(r: 90, g: 190, b: 110, a: 0.16))
+    }
   }
 
   var selectedTheme: MTTheme? {

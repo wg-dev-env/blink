@@ -62,8 +62,49 @@ struct MTAppearanceView: View {
         .pickerStyle(.segmented)
         .labelsHidden()
       }
+
+      Section {
+        Picker("差分の配色", selection: $store.diffPalette) {
+          Text("橙 / 青（推奨）").tag(MTThemeStore.DiffPalette.orangeBlue)
+          Text("赤 / 緑").tag(MTThemeStore.DiffPalette.redGreen)
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+
+        diffPreview
+      } header: {
+        Text("差分の配色")
+      } footer: {
+        Text("変更前後の表示に使う色です。橙 / 青は赤緑の色覚差でも見分けられます。")
+      }
     }
     .navigationTitle("外観")
+  }
+
+  /// 差分配色のプレビュー（元 = del、変更後 = add の 2 行）
+  private var diffPreview: some View {
+    let colors = store.diffColors
+    return VStack(spacing: 2) {
+      HStack {
+        Text("- old_value = 1")
+          .font(MTFont.mono(12))
+          .foregroundColor(colors.delText.color)
+        Spacer()
+      }
+      .padding(.horizontal, 8)
+      .padding(.vertical, 3)
+      .background(colors.delBg.color)
+      HStack {
+        Text("+ new_value = 2")
+          .font(MTFont.mono(12))
+          .foregroundColor(colors.addText.color)
+        Spacer()
+      }
+      .padding(.horizontal, 8)
+      .padding(.vertical, 3)
+      .background(colors.addBg.color)
+    }
+    .cornerRadius(6)
   }
 }
 
