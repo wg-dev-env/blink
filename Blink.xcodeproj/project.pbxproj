@@ -71,11 +71,22 @@
 		07FABC2225C9AFC500E1CC2C /* String+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07FABC2125C9AFC400E1CC2C /* String+Extension.swift */; };
 		07FABC4825C9B08100E1CC2C /* BlinkFiles.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 07FABBAF25C9AECF00E1CC2C /* BlinkFiles.framework */; };
 		07FDDC5625C9B28200A40529 /* LibSSH.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = D2334EC425C1C04700385378 /* LibSSH.xcframework */; };
+		4D540001000000000000B001 /* MTTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A001 /* MTTheme.swift */; };
+		4D540001000000000000B002 /* MTThemeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A002 /* MTThemeStore.swift */; };
+		4D540001000000000000B003 /* MTAppearanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A003 /* MTAppearanceView.swift */; };
+		4D540001000000000000B004 /* MTFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A004 /* MTFont.swift */; };
+		4D540001000000000000B005 /* MTSessionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A005 /* MTSessionState.swift */; };
+		4D540001000000000000B006 /* MTTabBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A006 /* MTTabBarView.swift */; };
+		4D540001000000000000B011 /* IBMPlexSansJP-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */; };
+		4D540001000000000000B012 /* IBMPlexSansJP-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */; };
+		4D540001000000000000B013 /* IBMPlexSansJP-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */; };
+		4D540001000000000000B014 /* JetBrainsMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A014 /* JetBrainsMono-Medium.ttf */; };
+		4D540001000000000000B015 /* OFL-IBMPlexSansJP.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A015 /* OFL-IBMPlexSansJP.txt */; };
+		4D540001000000000000B016 /* OFL-JetBrainsMono.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A016 /* OFL-JetBrainsMono.txt */; };
 		803B99D72582869200DC99C8 /* BKNotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 803B99D62582869200DC99C8 /* BKNotificationsView.swift */; };
 		803B99E3258381B200DC99C8 /* SettingsHostingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 803B99E2258381B200DC99C8 /* SettingsHostingController.swift */; };
 		85A34307200A837A009324F1 /* webfontloader.js in Resources */ = {isa = PBXBuildFile; fileRef = 85A34303200A837A009324F1 /* webfontloader.js */; };
 		85A34309200A8FAF009324F1 /* term.css in Resources */ = {isa = PBXBuildFile; fileRef = 85A34308200A8FAF009324F1 /* term.css */; };
-		9827126B262E4BDB00F883FA /* BlinkFileProviderExtension.appex in Embed PlugIns */ = {isa = PBXBuildFile; fileRef = 98271250262E4BDB00F883FA /* BlinkFileProviderExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		B700AED81DD0F2C200100EBF /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B700AED71DD0F2C200100EBF /* CloudKit.framework */; };
 		B75112CD1DE4A7B10040C693 /* BKiCloudConfigurationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B75112CC1DE4A7B10040C693 /* BKiCloudConfigurationViewController.m */; };
 		B752EE2B1DFEF19D00E305C8 /* BKUserConfigurationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B752EE2A1DFEF19D00E305C8 /* BKUserConfigurationManager.m */; };
@@ -101,24 +112,12 @@
 		BD4F7A072CBC9FD300FE67EA /* FileTranslatorConnectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4F7A062CBC9FD300FE67EA /* FileTranslatorConnectionTests.swift */; };
 		BD55D6982F7D743500EE80EA /* TerminalStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD55D6952F7D743400EE80EA /* TerminalStyle.swift */; };
 		BD55D6992F7D743500EE80EA /* TerminalStyleStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD55D6972F7D743400EE80EA /* TerminalStyleStore.swift */; };
-		4D540001000000000000B001 /* MTTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A001 /* MTTheme.swift */; };
-		4D540001000000000000B002 /* MTThemeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A002 /* MTThemeStore.swift */; };
-		4D540001000000000000B003 /* MTAppearanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A003 /* MTAppearanceView.swift */; };
-		4D540001000000000000B004 /* MTFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A004 /* MTFont.swift */; };
-		4D540001000000000000B005 /* MTSessionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A005 /* MTSessionState.swift */; };
-		4D540001000000000000B006 /* MTTabBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A006 /* MTTabBarView.swift */; };
-		4D540001000000000000B011 /* IBMPlexSansJP-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */; };
-		4D540001000000000000B012 /* IBMPlexSansJP-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */; };
-		4D540001000000000000B013 /* IBMPlexSansJP-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */; };
-		4D540001000000000000B014 /* JetBrainsMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A014 /* JetBrainsMono-Medium.ttf */; };
-		4D540001000000000000B015 /* OFL-IBMPlexSansJP.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A015 /* OFL-IBMPlexSansJP.txt */; };
-		4D540001000000000000B016 /* OFL-JetBrainsMono.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A016 /* OFL-JetBrainsMono.txt */; };
 		BD55D69A2F7D743500EE80EA /* TerminalStyleBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD55D6962F7D743400EE80EA /* TerminalStyleBundle.swift */; };
 		BD55D69C2F7D744B00EE80EA /* TerminalStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD55D69B2F7D744B00EE80EA /* TerminalStyleTests.swift */; };
 		BD55D6A02F8D000100EE80EA /* StyleCustomizationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD55D69E2F8D000100EE80EA /* StyleCustomizationView.swift */; };
 		BD55D6A12F8D000100EE80EA /* DisplaySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD55D69F2F8D000100EE80EA /* DisplaySettingsView.swift */; };
-		BD55D7152F816AFC00EE80EA /* 1860Migration.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD55D7142F816AFC00EE80EA /* 1860Migration.swift */; };
 		BD55D6DC2F7F2F5A00EE80EA /* DeviceInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = BD55D6DB2F7F2F5A00EE80EA /* DeviceInfo.m */; };
+		BD55D7152F816AFC00EE80EA /* 1860Migration.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD55D7142F816AFC00EE80EA /* 1860Migration.swift */; };
 		BD5A0E3A2F89545B00AB3734 /* 1870Migration.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD5A0E392F89545B00AB3734 /* 1870Migration.swift */; };
 		BD67FC79272B30F300C1EE75 /* Messages.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD67FC78272B30F300C1EE75 /* Messages.swift */; };
 		BD67FC81272DF22700C1EE75 /* BlinkConfig.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDCB715E268E1577007D7047 /* BlinkConfig.framework */; };
@@ -177,7 +176,6 @@
 		BD9BF7E9262A6B0F00B02074 /* SOCKSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD9BF7E8262A6B0F00B02074 /* SOCKSTests.swift */; };
 		BD9EA1CC2718E19000874007 /* DocumentActionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD9EA1CB2718E19000874007 /* DocumentActionViewController.swift */; };
 		BD9EA1CF2718E19000874007 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BD9EA1CD2718E19000874007 /* MainInterface.storyboard */; };
-		BD9EA1D32718E19000874007 /* BlinkFileProviderExtensionUI.appex in Embed PlugIns */ = {isa = PBXBuildFile; fileRef = BD9EA1C92718E19000874007 /* BlinkFileProviderExtensionUI.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		BD9EA1FE271A148700874007 /* Migrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD9EA1F9271A148700874007 /* Migrator.swift */; };
 		BD9EA1FF271A148700874007 /* 1400Migration.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD9EA1FD271A148700874007 /* 1400Migration.swift */; };
 		BD9EA203271A3EFE00874007 /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BD9EA202271A3EFE00874007 /* Media.xcassets */; };
@@ -199,7 +197,6 @@
 		BDCB7165268E1577007D7047 /* BlinkConfig.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDCB715E268E1577007D7047 /* BlinkConfig.framework */; };
 		BDCB7166268E1577007D7047 /* BlinkConfig.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = BDCB715E268E1577007D7047 /* BlinkConfig.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		BDCB7178268E15A2007D7047 /* BKHosts.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCB716B268E15A0007D7047 /* BKHosts.swift */; };
-		C064A00000000000000000B1 /* TmuxAutoAttach.swift in Sources */ = {isa = PBXBuildFile; fileRef = C064A00000000000000000F1 /* TmuxAutoAttach.swift */; };
 		BDCB7179268E15A2007D7047 /* BKHosts.m in Sources */ = {isa = PBXBuildFile; fileRef = BDCB716C268E15A1007D7047 /* BKHosts.m */; };
 		BDCB717A268E15A2007D7047 /* UICKeyChainStore.h in Headers */ = {isa = PBXBuildFile; fileRef = BDCB716D268E15A1007D7047 /* UICKeyChainStore.h */; };
 		BDCB717B268E15A2007D7047 /* UICKeyChainStore.m in Sources */ = {isa = PBXBuildFile; fileRef = BDCB716E268E15A1007D7047 /* UICKeyChainStore.m */; };
@@ -234,6 +231,7 @@
 		BDF40FEB2C14A6CE00DF41C1 /* AgentSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF40FE92C14A6CE00DF41C1 /* AgentSettingsView.swift */; };
 		BDFA97322D7F49EF0020BBF2 /* ConfettiSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = BDFA97312D7F49EF0020BBF2 /* ConfettiSwiftUI */; };
 		BDFA97352D959BC90020BBF2 /* TypingText.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFA97342D959BC90020BBF2 /* TypingText.swift */; };
+		C064A00000000000000000B1 /* TmuxAutoAttach.swift in Sources */ = {isa = PBXBuildFile; fileRef = C064A00000000000000000F1 /* TmuxAutoAttach.swift */; };
 		C94437571D8311960096F84E /* BKResource.m in Sources */ = {isa = PBXBuildFile; fileRef = C94437561D8311960096F84E /* BKResource.m */; };
 		C94437601D831CD30096F84E /* Themes in Resources */ = {isa = PBXBuildFile; fileRef = C944375F1D831CD30096F84E /* Themes */; };
 		C94437651D838ABF0096F84E /* Fonts in Resources */ = {isa = PBXBuildFile; fileRef = C94437641D838ABF0096F84E /* Fonts */; };
@@ -553,13 +551,6 @@
 			remoteGlobalIDString = 07FABBAE25C9AECF00E1CC2C;
 			remoteInfo = BlinkFiles;
 		};
-		98271269262E4BDB00F883FA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = EA0BA1831C0CC57B00719C1A /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 9827124F262E4BDB00F883FA;
-			remoteInfo = BlinkFileProviderExtension;
-		};
 		BD67FC83272DF22700C1EE75 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = EA0BA1831C0CC57B00719C1A /* Project object */;
@@ -615,13 +606,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = BD9513E02B4F5A7A00A7BEBE;
 			remoteInfo = BlinkFileProvider;
-		};
-		BD9EA1D12718E19000874007 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = EA0BA1831C0CC57B00719C1A /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = BD9EA1C82718E19000874007;
-			remoteInfo = BlinkFileProviderExtensionUI;
 		};
 		BDBFA30E2728914F00C77798 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -844,6 +828,18 @@
 		07FABC1325C9AF8F00E1CC2C /* LocalFilesTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalFilesTests.swift; sourceTree = "<group>"; };
 		07FABC1425C9AF8F00E1CC2C /* CopyFilesTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CopyFilesTests.swift; sourceTree = "<group>"; };
 		07FABC2125C9AFC400E1CC2C /* String+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String+Extension.swift"; sourceTree = "<group>"; };
+		4D540001000000000000A001 /* MTTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTTheme.swift; sourceTree = "<group>"; };
+		4D540001000000000000A002 /* MTThemeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTThemeStore.swift; sourceTree = "<group>"; };
+		4D540001000000000000A003 /* MTAppearanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTAppearanceView.swift; sourceTree = "<group>"; };
+		4D540001000000000000A004 /* MTFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTFont.swift; sourceTree = "<group>"; };
+		4D540001000000000000A005 /* MTSessionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTSessionState.swift; sourceTree = "<group>"; };
+		4D540001000000000000A006 /* MTTabBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTTabBarView.swift; sourceTree = "<group>"; };
+		4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Regular.ttf"; sourceTree = "<group>"; };
+		4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Medium.ttf"; sourceTree = "<group>"; };
+		4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Bold.ttf"; sourceTree = "<group>"; };
+		4D540001000000000000A014 /* JetBrainsMono-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Medium.ttf"; sourceTree = "<group>"; };
+		4D540001000000000000A015 /* OFL-IBMPlexSansJP.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "OFL-IBMPlexSansJP.txt"; sourceTree = "<group>"; };
+		4D540001000000000000A016 /* OFL-JetBrainsMono.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "OFL-JetBrainsMono.txt"; sourceTree = "<group>"; };
 		803B99D62582869200DC99C8 /* BKNotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BKNotificationsView.swift; sourceTree = "<group>"; };
 		803B99E2258381B200DC99C8 /* SettingsHostingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHostingController.swift; sourceTree = "<group>"; };
 		85A34303200A837A009324F1 /* webfontloader.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = webfontloader.js; sourceTree = "<group>"; };
@@ -884,24 +880,12 @@
 		BD55D6952F7D743400EE80EA /* TerminalStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalStyle.swift; sourceTree = "<group>"; };
 		BD55D6962F7D743400EE80EA /* TerminalStyleBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalStyleBundle.swift; sourceTree = "<group>"; };
 		BD55D6972F7D743400EE80EA /* TerminalStyleStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalStyleStore.swift; sourceTree = "<group>"; };
-		4D540001000000000000A001 /* MTTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTTheme.swift; sourceTree = "<group>"; };
-		4D540001000000000000A002 /* MTThemeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTThemeStore.swift; sourceTree = "<group>"; };
-		4D540001000000000000A003 /* MTAppearanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTAppearanceView.swift; sourceTree = "<group>"; };
-		4D540001000000000000A004 /* MTFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTFont.swift; sourceTree = "<group>"; };
-		4D540001000000000000A005 /* MTSessionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTSessionState.swift; sourceTree = "<group>"; };
-		4D540001000000000000A006 /* MTTabBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTTabBarView.swift; sourceTree = "<group>"; };
-		4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Regular.ttf"; sourceTree = "<group>"; };
-		4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Medium.ttf"; sourceTree = "<group>"; };
-		4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Bold.ttf"; sourceTree = "<group>"; };
-		4D540001000000000000A014 /* JetBrainsMono-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Medium.ttf"; sourceTree = "<group>"; };
-		4D540001000000000000A015 /* OFL-IBMPlexSansJP.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "OFL-IBMPlexSansJP.txt"; sourceTree = "<group>"; };
-		4D540001000000000000A016 /* OFL-JetBrainsMono.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "OFL-JetBrainsMono.txt"; sourceTree = "<group>"; };
 		BD55D69B2F7D744B00EE80EA /* TerminalStyleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalStyleTests.swift; sourceTree = "<group>"; };
 		BD55D69E2F8D000100EE80EA /* StyleCustomizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StyleCustomizationView.swift; sourceTree = "<group>"; };
 		BD55D69F2F8D000100EE80EA /* DisplaySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplaySettingsView.swift; sourceTree = "<group>"; };
-		BD55D7142F816AFC00EE80EA /* 1860Migration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 1860Migration.swift; sourceTree = "<group>"; };
 		BD55D6DA2F7F2F5A00EE80EA /* DeviceInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DeviceInfo.h; sourceTree = "<group>"; };
 		BD55D6DB2F7F2F5A00EE80EA /* DeviceInfo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DeviceInfo.m; sourceTree = "<group>"; };
+		BD55D7142F816AFC00EE80EA /* 1860Migration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 1860Migration.swift; sourceTree = "<group>"; };
 		BD5A0E392F89545B00AB3734 /* 1870Migration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 1870Migration.swift; sourceTree = "<group>"; };
 		BD67FC78272B30F300C1EE75 /* Messages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Messages.swift; sourceTree = "<group>"; };
 		BD67FC9A2732D4D300C1EE75 /* BackgroundTaskMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTaskMonitor.swift; sourceTree = "<group>"; };
@@ -971,7 +955,6 @@
 		BDCB715E268E1577007D7047 /* BlinkConfig.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = BlinkConfig.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDCB7161268E1577007D7047 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BDCB716B268E15A0007D7047 /* BKHosts.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BKHosts.swift; sourceTree = "<group>"; };
-		C064A00000000000000000F1 /* TmuxAutoAttach.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TmuxAutoAttach.swift; sourceTree = "<group>"; };
 		BDCB716C268E15A1007D7047 /* BKHosts.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BKHosts.m; sourceTree = "<group>"; };
 		BDCB716D268E15A1007D7047 /* UICKeyChainStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UICKeyChainStore.h; sourceTree = "<group>"; };
 		BDCB716E268E15A1007D7047 /* UICKeyChainStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UICKeyChainStore.m; sourceTree = "<group>"; };
@@ -1000,6 +983,7 @@
 		BDF2B8D62BC481F000B9C7EA /* curl_ios.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = curl_ios.xcframework; path = xcfs/.build/artifacts/xcfs/curl_ios/curl_ios.xcframework; sourceTree = SOURCE_ROOT; };
 		BDF40FE92C14A6CE00DF41C1 /* AgentSettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AgentSettingsView.swift; sourceTree = "<group>"; };
 		BDFA97342D959BC90020BBF2 /* TypingText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingText.swift; sourceTree = "<group>"; };
+		C064A00000000000000000F1 /* TmuxAutoAttach.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TmuxAutoAttach.swift; sourceTree = "<group>"; };
 		C94437551D8311960096F84E /* BKResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BKResource.h; sourceTree = "<group>"; };
 		C94437561D8311960096F84E /* BKResource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BKResource.m; sourceTree = "<group>"; };
 		C944375F1D831CD30096F84E /* Themes */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Themes; sourceTree = "<group>"; };
@@ -1537,49 +1521,6 @@
 			path = Blink;
 			sourceTree = "<group>";
 		};
-		4D540001000000000000C001 /* Custom */ = {
-			isa = PBXGroup;
-			children = (
-				4D540001000000000000C002 /* Theme */,
-				4D540001000000000000C003 /* Fonts */,
-				4D540001000000000000C004 /* Tabs */,
-			);
-			path = Custom;
-			sourceTree = "<group>";
-		};
-		4D540001000000000000C002 /* Theme */ = {
-			isa = PBXGroup;
-			children = (
-				4D540001000000000000A001 /* MTTheme.swift */,
-				4D540001000000000000A002 /* MTThemeStore.swift */,
-				4D540001000000000000A003 /* MTAppearanceView.swift */,
-				4D540001000000000000A004 /* MTFont.swift */,
-			);
-			path = Theme;
-			sourceTree = "<group>";
-		};
-		4D540001000000000000C004 /* Tabs */ = {
-			isa = PBXGroup;
-			children = (
-				4D540001000000000000A005 /* MTSessionState.swift */,
-				4D540001000000000000A006 /* MTTabBarView.swift */,
-			);
-			path = Tabs;
-			sourceTree = "<group>";
-		};
-		4D540001000000000000C003 /* Fonts */ = {
-			isa = PBXGroup;
-			children = (
-				4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */,
-				4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */,
-				4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */,
-				4D540001000000000000A014 /* JetBrainsMono-Medium.ttf */,
-				4D540001000000000000A015 /* OFL-IBMPlexSansJP.txt */,
-				4D540001000000000000A016 /* OFL-JetBrainsMono.txt */,
-			);
-			path = Fonts;
-			sourceTree = "<group>";
-		};
 		0732F0481D062B9A00AB5438 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -1779,6 +1720,49 @@
 				07FABBC025C9AECF00E1CC2C /* Info.plist */,
 			);
 			path = BlinkFilesTests;
+			sourceTree = "<group>";
+		};
+		4D540001000000000000C001 /* Custom */ = {
+			isa = PBXGroup;
+			children = (
+				4D540001000000000000C002 /* Theme */,
+				4D540001000000000000C003 /* Fonts */,
+				4D540001000000000000C004 /* Tabs */,
+			);
+			path = Custom;
+			sourceTree = "<group>";
+		};
+		4D540001000000000000C002 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				4D540001000000000000A001 /* MTTheme.swift */,
+				4D540001000000000000A002 /* MTThemeStore.swift */,
+				4D540001000000000000A003 /* MTAppearanceView.swift */,
+				4D540001000000000000A004 /* MTFont.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		4D540001000000000000C003 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */,
+				4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */,
+				4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */,
+				4D540001000000000000A014 /* JetBrainsMono-Medium.ttf */,
+				4D540001000000000000A015 /* OFL-IBMPlexSansJP.txt */,
+				4D540001000000000000A016 /* OFL-JetBrainsMono.txt */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
+		4D540001000000000000C004 /* Tabs */ = {
+			isa = PBXGroup;
+			children = (
+				4D540001000000000000A005 /* MTSessionState.swift */,
+				4D540001000000000000A006 /* MTTabBarView.swift */,
+			);
+			path = Tabs;
 			sourceTree = "<group>";
 		};
 		803B99CB2582865500DC99C8 /* Notifications */ = {
@@ -3507,7 +3491,6 @@
 			files = (
 				BD74A7C22905BD5800ED01CF /* WhatsNewModelTests.swift in Sources */,
 				BDE7C45C29DCAEFA005E033E /* FileLocationPathTests.swift in Sources */,
-				BD9EA217271F846100874007 /* BlinkLogging.swift in Sources */,
 				BD55D69C2F7D744B00EE80EA /* TerminalStyleTests.swift in Sources */,
 				D20CBA4F2360319600D93301 /* NSCoder+CodingKey.swift in Sources */,
 				D243F17E2602438D00097A2F /* XCTestCase.swift in Sources */,
@@ -3792,12 +3775,6 @@
 			target = 07FABBAE25C9AECF00E1CC2C /* BlinkFiles */;
 			targetProxy = 07FABC4A25C9B08100E1CC2C /* PBXContainerItemProxy */;
 		};
-		9827126A262E4BDB00F883FA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			platformFilter = ios;
-			target = 9827124F262E4BDB00F883FA /* BlinkFileProviderExtension */;
-			targetProxy = 98271269262E4BDB00F883FA /* PBXContainerItemProxy */;
-		};
 		BD67FC84272DF22700C1EE75 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = BDCB715D268E1577007D7047 /* BlinkConfig */;
@@ -3837,11 +3814,6 @@
 			isa = PBXTargetDependency;
 			target = BD9513E02B4F5A7A00A7BEBE /* BlinkFileProvider */;
 			targetProxy = BD9514222B4F600800A7BEBE /* PBXContainerItemProxy */;
-		};
-		BD9EA1D22718E19000874007 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = BD9EA1C82718E19000874007 /* BlinkFileProviderExtensionUI */;
-			targetProxy = BD9EA1D12718E19000874007 /* PBXContainerItemProxy */;
 		};
 		BDBFA30F2728914F00C77798 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -5414,7 +5386,7 @@
 					"-ObjC",
 					"$(BLINK_OTHER_LDFLAGS)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_ID)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.wgdevenv.moshterm;
 				PRODUCT_NAME = Blink;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				RUN_CLANG_STATIC_ANALYZER = YES;
@@ -5462,7 +5434,7 @@
 					"-ObjC",
 					"$(BLINK_OTHER_LDFLAGS)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_ID)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.wgdevenv.moshterm;
 				PRODUCT_NAME = Blink;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRIP_STYLE = "non-global";
