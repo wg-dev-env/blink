@@ -261,9 +261,11 @@ class SpaceController: UIViewController {
     view.addSubview(_overlay)
     
     _registerForNotifications()
-    
+
     setupOverlayConstraints()
-    
+
+    _setupMTTabBar()
+
     if _viewportsKeys.isEmpty {
       _newShellAction(animated: false)
     } else if let key = _currentKey {
@@ -495,7 +497,46 @@ Please go to your subscriptions and cancel one of them!
     currentTerm()?.termDevice
   }
   
+  // MARK: - MoshTerm タブバー（S3）
+
+  private var _mtTabBar: MTTabBarHost? = nil
+
+  private func _setupMTTabBar() {
+    // 通常のアプリウィンドウにだけ出す（外部ディスプレイ等には出さない）
+    guard sceneRole == .windowApplication else { return }
+
+    let host = MTTabBarHost(
+      onSelect: { [weak self] key in self?._moveToShell(key: key) },
+      onNew: { [weak self] in self?.newShellAction() },
+      onList: { [weak self] in self?._displayHUD() }  // セッション一覧画面は S7 で置き換え
+    )
+    addChild(host)
+    host.view.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(host.view)
+    NSLayoutConstraint.activate([
+      host.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+      host.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      host.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      host.view.heightAnchor.constraint(equalToConstant: MTTabBarHost.height),
+    ])
+    host.didMove(toParent: self)
+    _mtTabBar = host
+    // 端末ビューの上インセットに加算される（LayoutConstraintManager）
+    MTChrome.tabBarTopInset = MTTabBarHost.height
+  }
+
+  private func _mtTabBarUpdate() {
+    guard _mtTabBar != nil else { return }
+    let items = _viewportsKeys.map { key -> MTTabItem in
+      let term: TermController = SessionRegistry.shared[key]
+      let title = term.title ?? ""
+      return MTTabItem(key: key, title: title.isEmpty ? "shell" : title)
+    }
+    _mtTabBar?.update(items: items, current: _currentKey)
+  }
+
   private func _displayHUD() {
+    _mtTabBarUpdate()
     _hud?.hide(animated: false)
 
     // Check capability flag instead of mode directly

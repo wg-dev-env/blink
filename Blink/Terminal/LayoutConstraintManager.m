@@ -259,7 +259,10 @@
             break;
         }
     }
-    
+
+    // MoshTerm: タブバー分の上インセット（SpaceController がタブバー設置時に設定）
+    result.top += MTChrome.tabBarTopInset;
+
     return result;
 }
 
