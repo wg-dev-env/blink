@@ -465,9 +465,10 @@ struct HostView: View {
   @State private var _agentForwardPrompt: BKAgentForward = BKAgentForwardNo
   @State private var _agentForwardKeys: [String] = []
 
-  // 64_MoshTerm カスタム: tmux 自動アタッチ（仮置き UI。フェーズ B で作り直す）
+  // 64_MoshTerm カスタム: tmux 自動アタッチ
   @State private var _tmuxAutoAttach: Bool = false
   @State private var _tmuxSessionName: String = ""
+  @ObservedObject private var _mtThemeStore = MTThemeStore.shared
 
   @State private var _errorMessage: String = ""
 
@@ -571,7 +572,7 @@ struct HostView: View {
       // MoshTerm: tmux 自動アタッチ（06 §6.4。「切れない」の本命なので ok 色で強調）
       Section(
         header: Text("TMUX")
-          .foregroundColor((MTThemeStore.shared.selectedTheme ?? MTTheme.all[0]).ok.color),
+          .foregroundColor(_mtThemeStore.currentTheme.ok.color),
         footer: Text("接続時に tmux セッションへ自動アタッチします（Mosh / SSH 共通）。セッションが無ければ作成します。コマンドの明示指定が優先されます。")
       ) {
         Toggle("接続時に自動アタッチ", isOn: $_tmuxAutoAttach)
@@ -580,9 +581,10 @@ struct HostView: View {
           HStack {
             Text("実行コマンド")
             Spacer()
-            Text("tmux new -A -s \(_tmuxSessionName.isEmpty ? TmuxAutoAttach.defaultSessionName : _tmuxSessionName)")
+            // 実際に実行されるコマンドと同じサニタイズ結果を見せる
+            Text("tmux new -A -s \(TmuxAutoAttach.sanitizedSessionName(_tmuxSessionName))")
               .font(MTFont.mono(12))
-              .foregroundColor((MTThemeStore.shared.selectedTheme ?? MTTheme.all[0]).ok.color)
+              .foregroundColor(_mtThemeStore.currentTheme.ok.color)
               .lineLimit(1)
           }
         }

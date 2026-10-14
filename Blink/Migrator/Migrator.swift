@@ -35,9 +35,11 @@ import Foundation
 
 @objc class Migrator : NSObject {
   @objc static func perform() {
+    // MoshTerm: MigrationFileProviderReplicatedExtension は除外。
+    // File Provider 拡張を同梱しないこのフォークでは NSFileProviderManager.documentStorageURL が
+    // NSException を投げ、初回起動時に必ずクラッシュする（ObjC 例外のため catch 不可）
     Self.perform(steps: [MigrationToAppGroup(),
                          MigrationAddSnippetsShortcut(),
-                         MigrationFileProviderReplicatedExtension(),
                          MigrationStyleFromDefaults(),
                          MigrationWipeSessionRegistry()
                         ])
@@ -49,9 +51,9 @@ import Foundation
     let currentVersionString = try? String(contentsOf: migratorFileURL, encoding: .utf8)
     var currentVersion = Int(currentVersionString ?? "0") ?? 0
 
-    steps.forEach { step in
+    for step in steps {
       guard step.version > currentVersion else {
-        return
+        continue
       }
 
       do {
@@ -62,8 +64,10 @@ import Foundation
           .write(to: migratorFileURL,
                  options:  [.atomic, .noFileProtection])
       } catch {
-        print(error)
-        exit(0)
+        // MoshTerm: 移行失敗で exit(0) すると「起動と同時に終了」に見える。
+        // ログを残して以降のステップを中断し、アプリは起動させる（ステップは冪等なので次回再試行される）
+        NSLog("[Migrator] step v%d failed: %@", step.version, String(describing: error))
+        break
       }
     }
   }

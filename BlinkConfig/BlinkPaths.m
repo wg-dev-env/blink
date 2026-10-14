@@ -71,6 +71,12 @@ NSString *__iCloudsDriveDocumentsPath = nil;
 
     NSFileManager *fm = [NSFileManager defaultManager];
     NSString *path = [fm containerURLForSecurityApplicationGroupIdentifier:groupID].path;
+    if (path == nil) {
+      // MoshTerm: App Group コンテナが取れない環境（プロファイル不備・未署名ビルド等）では
+      // 自前の Library へフォールバックする。nil のまま返すと起動直後の Migrator が落ちる
+      path = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject];
+      NSLog(@"[BlinkPaths] App Group container unavailable (%@); falling back to %@", groupID, path);
+    }
     __groupContainerPath = path;
   }
   return __groupContainerPath;

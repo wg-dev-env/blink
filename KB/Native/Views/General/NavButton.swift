@@ -40,6 +40,8 @@ struct NavButton<Details: View>: View {
     Button(action: {
       let rootView = self.details().environmentObject(self.nav)
       let vc = UIHostingController(rootView: rootView)
+      // MoshTerm: push 先は親 VC の外観を継がないため、外観モードを明示的に引き継ぐ
+      vc.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
       self.nav.navController.pushViewController(vc, animated: true)
       }, label: { EmptyView() })
   }
@@ -54,6 +56,8 @@ struct StoryBoardNavButton: View {
 //      let vc = UIHostingController(rootView: rootView)
       let storyboard = UIStoryboard(name: "Settings", bundle: nil)
       let vc = storyboard.instantiateViewController(identifier: storyBoardID)
+      // MoshTerm: 外観モードを引き継ぐ（上の NavButton と同じ）
+      vc.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
       self.nav.navController.pushViewController(vc, animated: true)
       }, label: { EmptyView() })
   }

@@ -72,7 +72,7 @@ struct MTInputModePill: View {
   @ObservedObject private var center = MTInputModeCenter.shared
   @ObservedObject private var themeStore = MTThemeStore.shared
 
-  private var theme: MTTheme { themeStore.selectedTheme ?? MTTheme.all[0] }
+  private var theme: MTTheme { themeStore.currentTheme }
 
   var body: some View {
     let mode = center.mode

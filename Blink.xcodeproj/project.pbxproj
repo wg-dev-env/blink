@@ -87,6 +87,8 @@
 		4D540001000000000000B012 /* IBMPlexSansJP-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */; };
 		4D540001000000000000B013 /* IBMPlexSansJP-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */; };
 		4D540001000000000000B014 /* JetBrainsMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A014 /* JetBrainsMono-Medium.ttf */; };
+		4D540001000000000000B019 /* JetBrainsMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A019 /* JetBrainsMono-Regular.ttf */; };
+		4D540001000000000000B020 /* JetBrainsMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A020 /* JetBrainsMono-Bold.ttf */; };
 		4D540001000000000000B015 /* OFL-IBMPlexSansJP.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A015 /* OFL-IBMPlexSansJP.txt */; };
 		4D540001000000000000B016 /* OFL-JetBrainsMono.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A016 /* OFL-JetBrainsMono.txt */; };
 		803B99D72582869200DC99C8 /* BKNotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 803B99D62582869200DC99C8 /* BKNotificationsView.swift */; };
@@ -850,6 +852,8 @@
 		4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Medium.ttf"; sourceTree = "<group>"; };
 		4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Bold.ttf"; sourceTree = "<group>"; };
 		4D540001000000000000A014 /* JetBrainsMono-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Medium.ttf"; sourceTree = "<group>"; };
+		4D540001000000000000A019 /* JetBrainsMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Regular.ttf"; sourceTree = "<group>"; };
+		4D540001000000000000A020 /* JetBrainsMono-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Bold.ttf"; sourceTree = "<group>"; };
 		4D540001000000000000A015 /* OFL-IBMPlexSansJP.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "OFL-IBMPlexSansJP.txt"; sourceTree = "<group>"; };
 		4D540001000000000000A016 /* OFL-JetBrainsMono.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "OFL-JetBrainsMono.txt"; sourceTree = "<group>"; };
 		803B99D62582869200DC99C8 /* BKNotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BKNotificationsView.swift; sourceTree = "<group>"; };
@@ -1764,6 +1768,8 @@
 				4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */,
 				4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */,
 				4D540001000000000000A014 /* JetBrainsMono-Medium.ttf */,
+				4D540001000000000000A019 /* JetBrainsMono-Regular.ttf */,
+				4D540001000000000000A020 /* JetBrainsMono-Bold.ttf */,
 				4D540001000000000000A015 /* OFL-IBMPlexSansJP.txt */,
 				4D540001000000000000A016 /* OFL-JetBrainsMono.txt */,
 			);
@@ -3279,6 +3285,8 @@
 				4D540001000000000000B012 /* IBMPlexSansJP-Medium.ttf in Resources */,
 				4D540001000000000000B013 /* IBMPlexSansJP-Bold.ttf in Resources */,
 				4D540001000000000000B014 /* JetBrainsMono-Medium.ttf in Resources */,
+				4D540001000000000000B019 /* JetBrainsMono-Regular.ttf in Resources */,
+				4D540001000000000000B020 /* JetBrainsMono-Bold.ttf in Resources */,
 				4D540001000000000000B015 /* OFL-IBMPlexSansJP.txt in Resources */,
 				4D540001000000000000B016 /* OFL-JetBrainsMono.txt in Resources */,
 				4D540001000000000000B017 /* COPYING in Resources */,

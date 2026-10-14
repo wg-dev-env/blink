@@ -33,7 +33,7 @@ struct MTLifelineView: View {
   @State private var now = Date()
   private let tick = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
-  private var theme: MTTheme { themeStore.selectedTheme ?? MTTheme.all[0] }
+  private var theme: MTTheme { themeStore.currentTheme }
 
   var body: some View {
     let key = center.currentKey
@@ -177,7 +177,7 @@ struct MTStatusOverlayView: View {
   @State private var disconnectedSince: Date? = nil
   @State private var lastState: MTSessionState = .connected
 
-  private var theme: MTTheme { themeStore.selectedTheme ?? MTTheme.all[0] }
+  private var theme: MTTheme { themeStore.currentTheme }
 
   private var currentState: MTSessionState {
     center.currentKey.map { center.state(for: $0) } ?? .connected

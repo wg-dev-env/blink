@@ -81,7 +81,7 @@ struct MTSessionsView: View {
   @ObservedObject private var themeStore = MTThemeStore.shared
   @Environment(\.dismiss) private var dismiss
 
-  private var theme: MTTheme { themeStore.selectedTheme ?? MTTheme.all[0] }
+  private var theme: MTTheme { themeStore.currentTheme }
 
   private var visibleItems: [MTTabItem] {
     items.filter { !sessionsStore.hiddenKeys.contains($0.key) }

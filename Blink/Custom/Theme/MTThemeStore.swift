@@ -69,7 +69,7 @@ final class MTThemeStore: ObservableObject {
 
   /// 現在の設定での diff 配色（文字色・地色）。赤 / 緑選択時はテーマによらず共通値。
   var diffColors: (delText: MTColor, delBg: MTColor, addText: MTColor, addBg: MTColor) {
-    let theme = selectedTheme ?? MTTheme.all[0]
+    let theme = currentTheme
     switch diffPalette {
     case .orangeBlue:
       return (theme.diffDelText, theme.diffDelBg, theme.diffAddText, theme.diffAddBg)
@@ -82,6 +82,10 @@ final class MTThemeStore: ObservableObject {
   var selectedTheme: MTTheme? {
     selectedThemeID.flatMap { id in MTTheme.all.first { $0.id == id } }
   }
+
+  /// 表示に使うテーマ（未選択時は既定の「黒」）。
+  /// 「既定 = 先頭」の規則はここ 1 か所に閉じ込める。
+  var currentTheme: MTTheme { selectedTheme ?? MTTheme.all[0] }
 
   /// UIKit に適用する外観。テーマ未選択なら nil（既存の keyboardStyle 設定に委ねる）。
   var overrideInterfaceStyle: UIUserInterfaceStyle? {

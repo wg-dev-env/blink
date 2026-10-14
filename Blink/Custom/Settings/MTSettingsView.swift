@@ -22,14 +22,21 @@
 import SwiftUI
 import UIKit
 
+/// アプリ情報の単一定義（GPL のソース入手先 URL など）
+enum MTAppInfo {
+  static let sourceCodeURL = URL(string: "https://github.com/wg-dev-env/blink")!
+  static var sourceCodeDisplay: String {
+    sourceCodeURL.absoluteString.replacingOccurrences(of: "https://", with: "")
+  }
+}
+
 /// MoshTerm の設定画面（06 §6.5）。
 /// 既存の Blink 設定と併存し、該当する既存画面へはここからも入れる。
 /// AI / エージェントの項目は作らない（要件）。
 struct MTSettingsView: View {
-  @EnvironmentObject private var nav: Nav
   @ObservedObject private var themeStore = MTThemeStore.shared
 
-  private var theme: MTTheme { themeStore.selectedTheme ?? MTTheme.all[0] }
+  private var theme: MTTheme { themeStore.currentTheme }
 
   var body: some View {
     List {
@@ -41,14 +48,30 @@ struct MTSettingsView: View {
 
       // 2–3. 配色・外観
       Section("外観") {
-        pushRow("配色・外観モード・差分の配色", icon: "paintpalette") { MTAppearanceView() }
-        pushRow("フォントとスタイル", icon: "textformat") { StyleCustomizationView() }
-        pushRow("画面表示", icon: "display") { DisplaySettingsView() }
+        Row {
+          Label("配色・外観モード・差分の配色", systemImage: "paintpalette")
+        } details: {
+          MTAppearanceView()
+        }
+        Row {
+          Label("フォントとスタイル", systemImage: "textformat")
+        } details: {
+          StyleCustomizationView()
+        }
+        Row {
+          Label("画面表示", systemImage: "display")
+        } details: {
+          DisplaySettingsView()
+        }
       }
 
       // 4. 入力
       Section("入力") {
-        pushRow("キーボード", icon: "keyboard") { KBConfigView(config: KBTracker.shared.loadConfig()) }
+        Row {
+          Label("キーボード", systemImage: "keyboard")
+        } details: {
+          KBConfigView(config: KBTracker.shared.loadConfig())
+        }
         HStack {
           Label("言語", systemImage: "character.ja")
           Spacer()
@@ -77,7 +100,11 @@ struct MTSettingsView: View {
 
       // 6. セキュリティ
       Section {
-        pushRow("認証情報（鍵と証明書）", icon: "key") { KeyListView() }
+        Row {
+          Label("認証情報（鍵と証明書）", systemImage: "key")
+        } details: {
+          KeyListView()
+        }
       } header: {
         Text("セキュリティ")
       } footer: {
@@ -86,8 +113,12 @@ struct MTSettingsView: View {
 
       // 7. 情報
       Section("情報") {
-        pushRow("ライセンス", icon: "doc.text") { MTLicensesView() }
-        Link(destination: URL(string: "https://github.com/wg-dev-env/blink")!) {
+        Row {
+          Label("ライセンス", systemImage: "doc.text")
+        } details: {
+          MTLicensesView()
+        }
+        Link(destination: MTAppInfo.sourceCodeURL) {
           HStack {
             Label("ソースコード", systemImage: "chevron.left.forwardslash.chevron.right")
             Spacer()
@@ -97,23 +128,6 @@ struct MTSettingsView: View {
       }
     }
     .navigationTitle("設定")
-  }
-
-  /// 既存の Nav（UIKit ナビゲーション）へ SwiftUI 画面を push する行
-  @ViewBuilder
-  private func pushRow<V: View>(_ title: String, icon: String, @ViewBuilder destination: @escaping () -> V) -> some View {
-    Button {
-      let vc = UIHostingController(rootView: destination().environmentObject(nav))
-      nav.navController.pushViewController(vc, animated: true)
-    } label: {
-      HStack {
-        Label(title, systemImage: icon).foregroundColor(.primary)
-        Spacer()
-        Image(systemName: "chevron.right")
-          .font(.system(size: 13, weight: .semibold))
-          .foregroundColor(Color(UIColor.tertiaryLabel))
-      }
-    }
   }
 }
 
@@ -168,54 +182,48 @@ struct MTLicensesView: View {
   var body: some View {
     List {
       Section("本体") {
-        NavigationLinkRow(title: "GNU GPL v3（Blink / MoshTerm）", resource: "COPYING")
+        Row {
+          Text("GNU GPL v3（Blink / MoshTerm）")
+        } details: {
+          MTLicenseTextView(title: "GNU GPL v3", resource: "COPYING", ext: nil)
+        }
       }
       Section("書体（SIL Open Font License 1.1）") {
-        NavigationLinkRow(title: "IBM Plex Sans JP", resource: "OFL-IBMPlexSansJP")
-        NavigationLinkRow(title: "JetBrains Mono", resource: "OFL-JetBrainsMono")
+        Row {
+          Text("IBM Plex Sans JP")
+        } details: {
+          MTLicenseTextView(title: "IBM Plex Sans JP", resource: "OFL-IBMPlexSansJP", ext: "txt")
+        }
+        Row {
+          Text("JetBrains Mono")
+        } details: {
+          MTLicenseTextView(title: "JetBrains Mono", resource: "OFL-JetBrainsMono", ext: "txt")
+        }
       }
       Section {
-        Link("ソースコードの入手先: github.com/wg-dev-env/blink",
-             destination: URL(string: "https://github.com/wg-dev-env/blink")!)
+        Link("ソースコードの入手先: \(MTAppInfo.sourceCodeDisplay)",
+             destination: MTAppInfo.sourceCodeURL)
       } footer: {
         Text("このアプリは Blink Shell（Blink Mobile Shell Project）のフォークであり、GNU GPL v3 の条件で利用できます。")
       }
     }
     .navigationTitle("ライセンス")
   }
-
-  private struct NavigationLinkRow: View {
-    @EnvironmentObject private var nav: Nav
-    let title: String
-    let resource: String
-
-    var body: some View {
-      Button {
-        let vc = UIHostingController(rootView: MTLicenseTextView(title: title, resource: resource))
-        nav.navController.pushViewController(vc, animated: true)
-      } label: {
-        HStack {
-          Text(title).foregroundColor(.primary)
-          Spacer()
-          Image(systemName: "chevron.right")
-            .font(.system(size: 13, weight: .semibold))
-            .foregroundColor(Color(UIColor.tertiaryLabel))
-        }
-      }
-    }
-  }
 }
 
 struct MTLicenseTextView: View {
   let title: String
-  let resource: String
+  private let text: String
 
-  private var text: String {
-    guard let url = Bundle.main.url(forResource: resource, withExtension: resource == "COPYING" ? nil : "txt"),
-          let content = try? String(contentsOf: url, encoding: .utf8) else {
-      return "ライセンス本文が見つかりません（\(resource)）"
+  init(title: String, resource: String, ext: String?) {
+    self.title = title
+    // 本文は一度だけ読み込む（body 評価のたびのファイル I/O を避ける）
+    if let url = Bundle.main.url(forResource: resource, withExtension: ext),
+       let content = try? String(contentsOf: url, encoding: .utf8) {
+      self.text = content
+    } else {
+      self.text = "ライセンス本文が見つかりません（\(resource)）"
     }
-    return content
   }
 
   var body: some View {

@@ -148,7 +148,9 @@
 		<string>IBMPlexSansJP-Regular.ttf</string>
 		<string>IBMPlexSansJP-Medium.ttf</string>
 		<string>IBMPlexSansJP-Bold.ttf</string>
+		<string>JetBrainsMono-Regular.ttf</string>
 		<string>JetBrainsMono-Medium.ttf</string>
+		<string>JetBrainsMono-Bold.ttf</string>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
