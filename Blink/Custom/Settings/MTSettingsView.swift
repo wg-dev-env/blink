@@ -111,6 +111,17 @@ struct MTSettingsView: View {
         Text("Face ID での画面ロックは従来の設定（Auto Lock）を使用します。非表示セッションの解錠はアプリを閉じるとリセットされます。")
       }
 
+      // 詳細（Blink の全設定: ホスト・鍵・Default User など）
+      Section {
+        Row {
+          Label("詳細設定", systemImage: "slider.horizontal.3")
+        } details: {
+          SettingsView()
+        }
+      } footer: {
+        Text("ホスト・鍵・Default User など、Blink 由来の全設定に入れます。")
+      }
+
       // 7. 情報
       Section("情報") {
         Row {

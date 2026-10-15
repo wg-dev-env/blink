@@ -30,6 +30,7 @@ struct MTSidebarView: View {
   let onNewConnection: () -> Void
   let onRename: (UUID) -> Void
   let onClose: (UUID) -> Void
+  let onSettings: () -> Void
 
   @ObservedObject private var stateCenter = MTSessionStateCenter.shared
   @ObservedObject private var sessionsStore = MTSessionsStore.shared
@@ -42,6 +43,25 @@ struct MTSidebarView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
+      // ヘッダ: アプリ名と設定への入口
+      HStack {
+        Text("Iroha")
+          .font(MTFont.ui(15, .bold))
+          .foregroundColor(theme.text.color)
+        Spacer()
+        Button(action: onSettings) {
+          Image(systemName: "gearshape")
+            .font(.system(size: 14, weight: .medium))
+            .foregroundColor(theme.sub.color)
+            .frame(width: 36, height: 36)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("設定"))
+      }
+      .padding(.horizontal, 12)
+      .padding(.top, 6)
+
       List {
         Section {
           ForEach(model.items.filter { !sessionsStore.hiddenKeys.contains($0.key) }) { item in

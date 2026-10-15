@@ -524,7 +524,8 @@ Please go to your subscriptions and cancel one of them!
       onNew: { [weak self] in self?._mtShowConnectSheet() },
       onList: { [weak self] in self?._mtShowSessionsList() },
       onRename: { [weak self] key in self?._mtRenameSession(key) },
-      onClose: { [weak self] key in self?._mtCloseSession(key) }
+      onClose: { [weak self] key in self?._mtCloseSession(key) },
+      onSettings: { [weak self] in self?._mtShowSettings() }
     )
     addChild(host)
     host.view.translatesAutoresizingMaskIntoConstraints = false
@@ -598,7 +599,8 @@ Please go to your subscriptions and cancel one of them!
       },
       onNewConnection: { [weak self] in self?._mtShowConnectSheet() },
       onRename: { [weak self] key in self?._mtRenameSession(key) },
-      onClose: { [weak self] key in self?._mtCloseSession(key) }
+      onClose: { [weak self] key in self?._mtCloseSession(key) },
+      onSettings: { [weak self] in self?._mtShowSettings() }
     )
     let host = UIHostingController(rootView: view)
     host.view.backgroundColor = .clear
@@ -638,6 +640,21 @@ Please go to your subscriptions and cancel one of them!
     forEachActive { term in
       term.termView.constraintManager?.update(term.termView.currentLayoutMode())
     }
+  }
+
+  /// 設定（06 §6.5）をシートで開く（タブバー・サイドバーの歯車）
+  private func _mtShowSettings() {
+    let navController = UINavigationController()
+    let rootView = NavView(navController: navController) { MTSettingsView() }
+    let content = UIHostingController(rootView: rootView)
+    content.navigationItem.leftBarButtonItem = UIBarButtonItem(
+      systemItem: .close,
+      primaryAction: UIAction { [weak self] _ in self?.dismiss(animated: true) })
+    navController.setViewControllers([content], animated: false)
+    navController.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
+    navController.modalPresentationStyle = .pageSheet
+    currentTerm()?.resignInput()
+    present(navController, animated: true)
   }
 
   /// セッション名の手動変更（タブ長押し →「名前を変更」）。シェルの自動タイトルより優先される。

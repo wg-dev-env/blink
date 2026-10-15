@@ -48,6 +48,7 @@ struct MTTabBarView: View {
   let onList: () -> Void
   let onRename: (UUID) -> Void
   let onClose: (UUID) -> Void
+  let onSettings: () -> Void
 
   private var theme: MTTheme { themeStore.currentTheme }
 
@@ -91,6 +92,17 @@ struct MTTabBarView: View {
           withAnimation { proxy.scrollTo(key, anchor: .center) }
         }
       }
+
+      // 設定（06 §6.5 への入口）
+      Button(action: onSettings) {
+        Image(systemName: "gearshape")
+          .font(.system(size: 14, weight: .medium))
+          .foregroundColor(theme.sub.color)
+          .frame(width: 44, height: 36)
+          .background(RoundedRectangle(cornerRadius: 10).fill(theme.raised.color))
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel(Text("設定"))
 
       // 新規タブ
       Button(action: onNew) {
@@ -196,11 +208,12 @@ final class MTTabBarHost: UIViewController {
     let onList: () -> Void
     let onRename: (UUID) -> Void
     let onClose: (UUID) -> Void
+    let onSettings: () -> Void
 
     var body: some View {
       VStack(spacing: 0) {
         MTTabBarView(model: model, onSelect: onSelect, onNew: onNew, onList: onList,
-                     onRename: onRename, onClose: onClose)
+                     onRename: onRename, onClose: onClose, onSettings: onSettings)
         MTLifelineView()
           .frame(height: 20)
       }
@@ -211,11 +224,12 @@ final class MTTabBarHost: UIViewController {
        onNew: @escaping () -> Void,
        onList: @escaping () -> Void,
        onRename: @escaping (UUID) -> Void,
-       onClose: @escaping (UUID) -> Void) {
+       onClose: @escaping (UUID) -> Void,
+       onSettings: @escaping () -> Void) {
     super.init(nibName: nil, bundle: nil)
     let hosting = UIHostingController(
       rootView: ChromeView(model: model, onSelect: onSelect, onNew: onNew, onList: onList,
-                           onRename: onRename, onClose: onClose))
+                           onRename: onRename, onClose: onClose, onSettings: onSettings))
     addChild(hosting)
     hosting.view.backgroundColor = .clear
     hosting.view.translatesAutoresizingMaskIntoConstraints = false
