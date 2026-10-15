@@ -47,7 +47,7 @@ struct StyleCustomizationView: View {
       TerminalPreviewCell(style: editingStyle, revision: previewRevision)
         .frame(height: 200)
 
-      Text("Configuration will be applied to new terminal sessions.")
+      Text("変更は新しいセッションから反映されます（Applies to new sessions）")
         .font(.footnote)
         .foregroundColor(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -57,7 +57,7 @@ struct StyleCustomizationView: View {
       // -- Scrollable Settings --
       List {
         // -- Themes --
-        Section("Themes") {
+        Section("テーマ（Themes）") {
           ForEach(themes, id: \.name) { theme in
             Button {
               editingStyle.themeName = theme.name
@@ -81,7 +81,7 @@ struct StyleCustomizationView: View {
             pushStoryboardController("BKThemeCreateViewController")
           } label: {
             HStack {
-              Text("Add a new theme")
+              Text("テーマを追加（Add a new theme）")
               Spacer()
               Chevron()
             }
@@ -89,7 +89,7 @@ struct StyleCustomizationView: View {
         }
 
         // -- Fonts --
-        Section("Fonts") {
+        Section("フォント（Fonts）") {
           ForEach(fonts, id: \.name) { font in
             Button {
               editingStyle.fontName = font.name
@@ -113,7 +113,7 @@ struct StyleCustomizationView: View {
             pushStoryboardController("BKFontCreateViewController")
           } label: {
             HStack {
-              Text("Add a new font")
+              Text("フォントを追加（Add a new font）")
               Spacer()
               Chevron()
             }
@@ -123,7 +123,7 @@ struct StyleCustomizationView: View {
         // -- Font Size & Options --
         Section {
           HStack {
-            Text("Font Size")
+            Text("文字サイズ（Font Size）")
             Spacer()
             Text("\(Int(editingStyle.fontSize)) px")
               .foregroundColor(.secondary)
@@ -133,12 +133,12 @@ struct StyleCustomizationView: View {
           }
 
           HStack {
-            Text("Enable Bold")
+            Text("太字（Bold）")
             Spacer()
-            Picker("Enable Bold", selection: $editingStyle.boldMode) {
-              Text("Auto").tag(TerminalStyle.BoldMode.auto)
-              Text("On").tag(TerminalStyle.BoldMode.on)
-              Text("Off").tag(TerminalStyle.BoldMode.off)
+            Picker("太字（Bold）", selection: $editingStyle.boldMode) {
+              Text("自動").tag(TerminalStyle.BoldMode.auto)
+              Text("オン").tag(TerminalStyle.BoldMode.on)
+              Text("オフ").tag(TerminalStyle.BoldMode.off)
             }
             .pickerStyle(.segmented)
             .labelsHidden()
@@ -146,16 +146,16 @@ struct StyleCustomizationView: View {
             .onChange(of: editingStyle.boldMode) { _ in applyToPreview() }
           }
 
-          Toggle("Bold as Bright", isOn: $editingStyle.boldAsBright)
+          Toggle("太字を明色で（Bold as Bright）", isOn: $editingStyle.boldAsBright)
             .onChange(of: editingStyle.boldAsBright) { _ in applyToPreview() }
 
-          Toggle("Cursor Blink", isOn: $editingStyle.cursorBlink)
+          Toggle("カーソルを点滅（Cursor Blink）", isOn: $editingStyle.cursorBlink)
             .onChange(of: editingStyle.cursorBlink) { _ in applyToPreview() }
         }
       }
       .listStyle(.grouped)
     }
-    .navigationTitle("Style")
+    .navigationTitle("フォントとスタイル")
     .onAppear {
       if !isLoaded {
         ensureEditableStyle()

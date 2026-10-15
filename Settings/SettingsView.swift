@@ -92,108 +92,108 @@ struct SettingsView: View {
           }.disabled(_entitlements.earlyAccessFeatures.period != .Normal)
         }
       }
-      Section("Connect") {
+      Section("接続（Connect）") {
         Row {
-          Label("Keys & Certificates", systemImage: "key")
+          Label("鍵と証明書（Keys & Certificates）", systemImage: "key")
         } details: {
           KeyListView()
         }
         Row {
-          Label("Hosts", systemImage: "server.rack")
+          Label("ホスト（Hosts）", systemImage: "server.rack")
         } details: {
           HostListView()
         }
         Row {
-          Label("Default Agent", systemImage: "key.viewfinder")
+          Label("既定のエージェント（Default Agent）", systemImage: "key.viewfinder")
         } details: {
           DefaultAgentSettingsView()
         }
         RowWithStoryBoardId(content: {
           HStack {
-            Label("Default User", systemImage: "person")
+            Label("既定のユーザー（Default User）", systemImage: "person")
             Spacer()
             Text(_defaultUser).foregroundColor(.secondary)
           }
         }, storyBoardId: "BKDefaultUserViewController")
       }
 
-      Section("Terminal") {
+      Section("ターミナル（Terminal）") {
         // MoshTerm: 設定画面（06 §6.5。従来の設定と併存、実機確認後に本画面へ寄せる）
         Row {
-          Label("設定（MoshTerm）", systemImage: "circle.lefthalf.filled")
+          Label("MoshTerm の設定", systemImage: "circle.lefthalf.filled")
         } details: {
           MTSettingsView()
         }
         Row {
-          Label("Style", systemImage: "paintpalette")
+          Label("フォントとスタイル（Style）", systemImage: "paintpalette")
         } details: {
           StyleCustomizationView()
         }
         Row {
-          Label("Display", systemImage: "display")
+          Label("画面表示（Display）", systemImage: "display")
         } details: {
           DisplaySettingsView()
         }
         Row {
-          Label("Keyboard", systemImage: "keyboard")
+          Label("キーボード（Keyboard）", systemImage: "keyboard")
         } details: {
           KBConfigView(config: KBTracker.shared.loadConfig())
         }
         RowWithStoryBoardId(content: {
-          Label("Smart Keys", systemImage: "keyboard.badge.ellipsis")
+          Label("スマートキー（Smart Keys）", systemImage: "keyboard.badge.ellipsis")
         }, storyBoardId: "BKSmartKeysConfigViewController")
         Row {
-          Label("Notifications", systemImage: "bell")
+          Label("通知（Notifications）", systemImage: "bell")
         } details: {
           BKNotificationsView()
         }
 #if TARGET_OS_MACCATALYST
         Row {
-          Label("Gestures", systemImage: "rectangle.and.hand.point.up.left.filled")
+          Label("ジェスチャ（Gestures）", systemImage: "rectangle.and.hand.point.up.left.filled")
         } details: {
           GesturesView()
         }
 #endif
       }
 
-      Section("Configuration") {
+      Section("構成（Configuration）") {
         Row {
-          Label("Bookmarks", systemImage: "bookmark")
+          Label("ブックマーク（Bookmarks）", systemImage: "bookmark")
         } details: {
           BookmarkedLocationsView()
         }
 
         Row {
-          Label("Snips", systemImage: "chevron.left.square")
+          Label("スニペット（Snips）", systemImage: "chevron.left.square")
         } details: {
           SnippetsConfigView()
         }
 
         RowWithStoryBoardId(content: {
           HStack {
-            Label("iCloud Sync", systemImage: "icloud")
+            Label("iCloud 同期（iCloud Sync）", systemImage: "icloud")
             Spacer()
-            Text(_iCloudSyncOn ? "On" : "Off").foregroundColor(.secondary)
+            Text(_iCloudSyncOn ? "オン" : "オフ").foregroundColor(.secondary)
           }
         }, storyBoardId: "BKiCloudConfigurationViewController")
 
         RowWithStoryBoardId(content: {
           HStack {
-            Label("Auto Lock", systemImage: _biometryType == .faceID ? "faceid" : "touchid")
+            Label("自動ロック（Auto Lock）", systemImage: _biometryType == .faceID ? "faceid" : "touchid")
             Spacer()
-            Text(_autoLockOn ? "On" : "Off").foregroundColor(.secondary)
+            Text(_autoLockOn ? "オン" : "オフ").foregroundColor(.secondary)
           }
         }, storyBoardId: "BKSecurityConfigurationViewController")
       }
 
-      Section("Get in touch") {
+      Section("サポート（Get in touch）") {
         Row {
-          Label("Support", systemImage: "book")
+          Label("ヘルプ（Support）", systemImage: "book")
         } details: {
           SupportView()
         }
         Row {
-          Label("Community", systemImage: "bubble.left")
+          Label("コミュニティ（Community）", systemImage: "bubble.left")
         } details: {
           FeedbackView()
         }
@@ -212,7 +212,7 @@ struct SettingsView: View {
       Section {
         RowWithStoryBoardId(content: {
           HStack {
-            Label("About", systemImage: "questionmark.circle")
+            Label("このアプリについて（About）", systemImage: "questionmark.circle")
             Spacer()
             Text(_blinkVersion).foregroundColor(.secondary)
           }
@@ -240,7 +240,7 @@ struct SettingsView: View {
 
     }
     .listStyle(.grouped)
-    .navigationTitle("Settings")
+    .navigationTitle("設定")
     .sheet(isPresented: $_displayBlinkClassicToPlus) {
       BlinkClassicToPlusWindow(urlHandler: blink_openurl, dismissHandler: { _displayBlinkClassicToPlus = false })
     }

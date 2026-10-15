@@ -58,31 +58,31 @@ struct DisplaySettingsView: View {
       // -- Layout --
       Section {
         HStack {
-          Text("Mode")
+          Text("表示モード（Mode）")
           Spacer()
-          Picker("Mode", selection: $layoutModeIndex) {
-            Text("Cover").tag(0)
-            Text("Safe Fit").tag(1)
-            Text("Fill").tag(2)
+          Picker("表示モード（Mode）", selection: $layoutModeIndex) {
+            Text("全画面").tag(0)
+            Text("セーフ").tag(1)
+            Text("フィル").tag(2)
           }
           .pickerStyle(.segmented)
           .labelsHidden()
           .fixedSize()
         }
       } header: {
-        Text("Layout")
+        Text("レイアウト（Layout）")
       } footer: {
         VStack(alignment: .leading, spacing: 4) {
-          Text("Cover — Terminal fills the screen, content may be clipped.")
-          Text("Safe Fit — Honors safe area insets and layout guides.")
-          Text("Fill — Stretches to fit the screen bounds.")
+          Text("全画面（Cover）— 画面いっぱいに表示。端が隠れることがあります。")
+          Text("セーフ（Safe Fit）— セーフエリアを避けて表示します。")
+          Text("フィル（Fill）— 画面の形に合わせて広げます。")
         }
       }
 
       // -- External Display --
-      Section("External Display") {
+      Section("外部ディスプレイ（External Display）") {
         HStack {
-          Text("Font Size")
+          Text("文字サイズ（Font Size）")
           Spacer()
           Text("\(Int(externalDisplayFontSize)) px")
             .foregroundColor(.secondary)
@@ -91,11 +91,11 @@ struct DisplaySettingsView: View {
         }
 
         HStack {
-          Text("Overscan")
+          Text("オーバースキャン（Overscan）")
           Spacer()
-          Picker("Overscan", selection: $overscanIndex) {
-            Text("Scale").tag(0)
-            Text("Inset").tag(1)
+          Picker("オーバースキャン（Overscan）", selection: $overscanIndex) {
+            Text("拡大").tag(0)
+            Text("余白").tag(1)
             Text("None").tag(2)
             Text(hasAppleSilicon ? "Stage" : "Mirror").tag(3)
           }
@@ -133,7 +133,7 @@ struct DisplaySettingsView: View {
       }
     }
     .listStyle(.grouped)
-    .navigationTitle("Display")
+    .navigationTitle("画面表示")
     .onDisappear {
       saveChanges()
     }

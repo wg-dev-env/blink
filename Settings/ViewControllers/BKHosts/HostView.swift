@@ -536,13 +536,13 @@ struct HostView: View {
         header: Text(_conflictedICloudHost == nil ? "" : "Local Verion"),
         footer: Text(verbatim: _usageHint())
       ) {
-        Field("Alias", $_alias, next: "HostName", placeholder: "Required")
+        Field("Alias（呼び名）", $_alias, next: "HostName", placeholder: "必須。英数字で（例: macmini）")
       }.disabled(!_enabled)
 
       Section(header: Text("SSH")) {
-        Field("HostName",  $_hostName,  next: "Port",      placeholder: "Host or IP address. Required", enabled: _enabled, kbType: .URL)
+        Field("HostName（IP）",  $_hostName,  next: "Port",      placeholder: "ホスト名または IP アドレス。必須", enabled: _enabled, kbType: .URL)
         Field("Port",      $_port,      next: "User",      placeholder: "22", enabled: _enabled, kbType: .numberPad)
-        Field("User",      $_user,      next: "Password",  placeholder: BLKDefaults.defaultUserName(), enabled: _enabled)
+        Field("User（ユーザー名）",      $_user,      next: "Password",  placeholder: BLKDefaults.defaultUserName(), enabled: _enabled)
         FieldPassword("Password",  $_password,  next: "ProxyCmd",  placeholder: "Ask Every Time", enabled: _enabled)
         FieldSSHKey(value: $_sshKeyName, enabled: _enabled, hasSSHKey: BKPubKey.all().contains(where: {
           if let keyName = _sshKeyName.first {
@@ -558,7 +558,7 @@ struct HostView: View {
       Section(
         header: Text("MOSH")
       ) {
-        Field("Server",  $_moshServer,  next: "moshPort",    placeholder: "path/to/mosh-server")
+        Field("Server",  $_moshServer,  next: "moshPort",    placeholder: "通常は空欄（例: /opt/homebrew/bin/mosh-server）")
         Field("Port",    $_moshPort,    next: "moshCommand", placeholder: "UDP PORT[:PORT2]", id: "moshPort", kbType: .numbersAndPunctuation)
         Field("Command", $_moshCommand, next: "Alias",       placeholder: "screen -r or tmux attach", id: "moshCommand")
         FieldMoshCustomOptions(
@@ -632,7 +632,7 @@ struct HostView: View {
       },
       trailing: Group {
         if !_iCloudVersion {
-          Button("Save", action: {
+          Button("保存", action: {
             _validate()
             _saveHost()
             _reloadList()
@@ -642,7 +642,7 @@ struct HostView: View {
       }
     )
     .navigationBarBackButtonHidden(true)
-    .navigationBarTitle(_host == nil ? "New Host" : _iCloudVersion ? "iCloud Host Version" : "Host" )
+    .navigationBarTitle(_host == nil ? "ホストを追加" : _iCloudVersion ? "iCloud 版のホスト" : "ホストを編集" )
     .onAppear {
       if !_loaded {
         loadHost()
