@@ -553,3 +553,84 @@ function term_restore() {
   t.setVTScrollRegion(null, null);
   t.setCursorVisible(true);
 }
+
+// ─────────────────────────────────────────────────────────────
+// MoshTerm: 画面スナップショット（07 #01 ライフライン・スクラブ）
+// ─────────────────────────────────────────────────────────────
+
+/// 表示中の行とカーソル位置を取り出す。属性（色・太字）は落ちたプレーンテキスト。
+function term_snapshot() {
+  try {
+    var top = t.scrollbackRows_.length;
+    var rows = t.screenSize.height;
+    var text = t.getRowsText(top, top + rows);
+    var cursor = t.screen_ && t.screen_.cursorPosition
+      ? {row: t.screen_.cursorPosition.row, col: t.screen_.cursorPosition.column}
+      : {row: 0, col: 0};
+    return {
+      cols: t.screenSize.width,
+      rows: rows,
+      text: text,
+      cursor: cursor,
+      // vim や tmux の代替画面かどうか（戻したときの意味が変わるので記録する）
+      alternate: t.screen_ === t.alternateScreen_,
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// MoshTerm: コマンドブロック（07 #05）
+// シェル統合（OSC 133）が入っている環境でのみ動く。無い場合は何も起きない。
+//   133;A … プロンプト開始   133;B … コマンド入力開始
+//   133;C … コマンド実行開始  133;D;<exit> … 終了
+// ─────────────────────────────────────────────────────────────
+
+var _mtBlock = null;
+
+function mt_onShellMark(arg) {
+  var parts = String(arg || "").split(";");
+  var kind = parts[0];
+
+  if (kind === "C") {
+    // 出力の開始。この行より前がコマンド行
+    var start = t.getRowCount();
+    var commandLine = "";
+    if (start > 0) {
+      commandLine = t.getRowText(start - 1) || "";
+    }
+    _mtBlock = {
+      startRow: start,
+      startedAt: Date.now(),
+      command: commandLine.trim(),
+    };
+    return;
+  }
+
+  if (kind === "D") {
+    if (!_mtBlock) { return; }
+    var exitCode = parts.length > 1 ? parseInt(parts[1], 10) : 0;
+    var endRow = t.getRowCount();
+    // 行番号はスクロールバックのトリムでずれるため、ここで本文を確定させる
+    var output = "";
+    try {
+      output = t.getRowsText(_mtBlock.startRow, Math.max(_mtBlock.startRow, endRow));
+    } catch (e) {
+      output = "";
+    }
+    _postMessage('mt-block', {
+      command: _mtBlock.command,
+      output: output,
+      exitCode: isNaN(exitCode) ? 0 : exitCode,
+      duration: (Date.now() - _mtBlock.startedAt) / 1000.0,
+    });
+    _mtBlock = null;
+    return;
+  }
+
+  // A（プロンプト開始）と B（入力開始）は区切りのみ。未完のブロックは捨てる
+  if (kind === "A") {
+    _mtBlock = null;
+  }
+}

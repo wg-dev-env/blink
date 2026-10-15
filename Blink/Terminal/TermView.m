@@ -137,6 +137,17 @@ struct winsize __winSizeFromJSON(NSDictionary *json) {
   }
 }
 
+- (void)mtSnapshotWithCompletion:(void (^)(NSDictionary *))completion
+{
+  if (!_webView) {
+    completion(nil);
+    return;
+  }
+  [_webView evaluateJavaScript:@"term_snapshot()" completionHandler:^(id result, NSError *error) {
+    completion([result isKindOfClass:[NSDictionary class]] ? result : nil);
+  }];
+}
+
 - (void)setMTFrameWithColor:(UIColor *)color width:(CGFloat)width label:(NSString *)label
 {
   if (width <= 0 || color == nil) {
@@ -685,6 +696,15 @@ struct winsize __winSizeFromJSON(NSDictionary *json) {
     NSInteger size = [data[@"size"] integerValue];
     _termUIState.fontSize = size;
     [_device viewFontSizeChanged:size];
+  } else if ([operation isEqualToString:@"mt-block"]) {
+    // MoshTerm: コマンドブロック（07 #05）。プロトコルを増やさず通知で Swift 側へ渡す
+    NSMutableDictionary *info = [data mutableCopy];
+    if (_termController) {
+      info[@"controller"] = _termController;
+    }
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"MTCommandBlockDidFinish"
+                                                        object:self
+                                                      userInfo:info];
   } else if ([operation isEqualToString:@"copy"]) {
     [_device viewCopyString: data[@"content"]];
   } else if ([operation isEqualToString:@"alert"]) {

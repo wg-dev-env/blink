@@ -94,6 +94,10 @@ extern NSString * TermViewBrowserReadyNotificationKey;
                       label:(nullable NSString *)label
     NS_SWIFT_NAME(setMTFrame(color:width:label:));
 
+/// MoshTerm: 画面のスナップショット（07 #01）。表示中の行とカーソル位置を返す
+- (void)mtSnapshotWithCompletion:(void (^_Nonnull)(NSDictionary *_Nullable))completion
+    NS_SWIFT_NAME(mtSnapshot(completion:));
+
 - (CGRect)webViewFrame;
 - (void)load;
 - (void)applyTermUIState:(nonnull TermUIState *)termUIState;

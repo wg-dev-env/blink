@@ -66,3 +66,21 @@ hterm.VT.prototype.setDECMode = function(code, state) {
   }
   hterm.VT.prototype.setDECMode_original.call(this, code, state);
 };
+
+// MoshTerm: OSC 133（シェル統合）を受け取ってコマンドブロックに区切る（07 #05）。
+// hterm.VT.OSC[133] への直接代入は、ロード時に作られたハンドラ表のスナップショットを
+// 引く実装のため効かない。dispatch を包むのが唯一効く後付け方法。
+hterm.VT.prototype.dispatch_original = hterm.VT.prototype.dispatch;
+hterm.VT.prototype.dispatch = function(type, code, parseState) {
+  if (type === "OSC" && String(code) === "133") {
+    try {
+      if (typeof mt_onShellMark === "function") {
+        mt_onShellMark(parseState.args ? parseState.args[0] : "");
+      }
+    } catch (e) {
+      // シェル統合の解釈で失敗しても端末は止めない
+    }
+    return;
+  }
+  return hterm.VT.prototype.dispatch_original.call(this, type, code, parseState);
+};

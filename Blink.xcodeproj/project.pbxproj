@@ -88,6 +88,8 @@
 		4D540001000000000000B023 /* MTHostContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A023 /* MTHostContext.swift */; };
 		4D540001000000000000B024 /* MTInputGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A024 /* MTInputGuard.swift */; };
 		4D540001000000000000B025 /* MTSafetyViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A025 /* MTSafetyViews.swift */; };
+		4D540001000000000000B026 /* MTScreenHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A026 /* MTScreenHistory.swift */; };
+		4D540001000000000000B027 /* MTHistoryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A027 /* MTHistoryViews.swift */; };
 		4D540001000000000000B011 /* IBMPlexSansJP-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */; };
 		4D540001000000000000B012 /* IBMPlexSansJP-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */; };
 		4D540001000000000000B013 /* IBMPlexSansJP-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */; };
@@ -859,6 +861,8 @@
 		4D540001000000000000A023 /* MTHostContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTHostContext.swift; sourceTree = "<group>"; };
 		4D540001000000000000A024 /* MTInputGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTInputGuard.swift; sourceTree = "<group>"; };
 		4D540001000000000000A025 /* MTSafetyViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTSafetyViews.swift; sourceTree = "<group>"; };
+		4D540001000000000000A026 /* MTScreenHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTScreenHistory.swift; sourceTree = "<group>"; };
+		4D540001000000000000A027 /* MTHistoryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTHistoryViews.swift; sourceTree = "<group>"; };
 		4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Regular.ttf"; sourceTree = "<group>"; };
 		4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Medium.ttf"; sourceTree = "<group>"; };
 		4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Bold.ttf"; sourceTree = "<group>"; };
@@ -1796,6 +1800,8 @@
 				4D540001000000000000A023 /* MTHostContext.swift */,
 				4D540001000000000000A024 /* MTInputGuard.swift */,
 				4D540001000000000000A025 /* MTSafetyViews.swift */,
+				4D540001000000000000A026 /* MTScreenHistory.swift */,
+				4D540001000000000000A027 /* MTHistoryViews.swift */,
 			);
 			path = Safety;
 			sourceTree = "<group>";
@@ -3758,6 +3764,8 @@
 				4D540001000000000000B023 /* MTHostContext.swift in Sources */,
 				4D540001000000000000B024 /* MTInputGuard.swift in Sources */,
 				4D540001000000000000B025 /* MTSafetyViews.swift in Sources */,
+				4D540001000000000000B026 /* MTScreenHistory.swift in Sources */,
+				4D540001000000000000B027 /* MTHistoryViews.swift in Sources */,
 				BD55D69A2F7D743500EE80EA /* TerminalStyleBundle.swift in Sources */,
 				D2D8DD9023C84A6E00BFF223 /* StuckView.swift in Sources */,
 				B7A487651DC7BD65007BA809 /* BKDefaultUserViewController.m in Sources */,

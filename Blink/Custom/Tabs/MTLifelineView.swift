@@ -43,6 +43,17 @@ struct MTLifelineView: View {
     VStack(spacing: 3) {
       GeometryReader { geo in
         lifelineCanvas(timeline: timeline, state: state, size: geo.size)
+          // スクラブ: なぞった位置の時刻の画面を読み取り専用で出す（07 #01）
+          .contentShape(Rectangle())
+          .gesture(
+            DragGesture(minimumDistance: 4)
+              .onChanged { value in
+                scrub(at: value.location.x, width: geo.size.width, timeline: timeline, key: key)
+              }
+              .onEnded { _ in
+                MTScreenHistory.shared.scrubbing = nil
+              }
+          )
       }
       .frame(height: 10)
 
@@ -54,6 +65,15 @@ struct MTLifelineView: View {
     .onReceive(tick) { now = $0 }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(Text("ライフライン。\(state.label)"))
+  }
+
+  /// なぞった位置を時刻に直し、その頃の画面を出す
+  private func scrub(at x: CGFloat, width: CGFloat, timeline: MTSessionTimeline?, key: UUID?) {
+    guard let key, let timeline, width > 0 else { return }
+    let window: TimeInterval = min(max(now.timeIntervalSince(timeline.start), 60), 30 * 60)
+    let ratio = min(max(x / width, 0), 1)
+    let date = now.addingTimeInterval(-window * (1 - Double(ratio)))
+    MTScreenHistory.shared.scrubbing = MTScreenHistory.shared.snapshot(for: key, at: date)
   }
 
   private func color(for state: MTSessionState) -> Color {

@@ -515,6 +515,9 @@ Please go to your subscriptions and cancel one of them!
   private var _mtPendingAlias: String? = nil
   private var _mtRingHost: UIViewController? = nil
   private var _mtRingCancellable: AnyCancellable? = nil
+  private var _mtScrubCancellable: AnyCancellable? = nil
+  private var _mtStateCancellable: AnyCancellable? = nil
+  private var _mtSnapshotTimer: Timer? = nil
   private var _mtSidebarHost: UIViewController? = nil
   private var _mtSidebarLeading: NSLayoutConstraint? = nil
   private var _mtSidebarVisible = false
@@ -538,7 +541,8 @@ Please go to your subscriptions and cancel one of them!
       onList: { [weak self] in self?._mtShowSessionsList() },
       onRename: { [weak self] key in self?._mtRenameSession(key) },
       onClose: { [weak self] key in self?._mtCloseSession(key) },
-      onSettings: { [weak self] in self?._mtShowSettings() }
+      onSettings: { [weak self] in self?._mtShowSettings() },
+      onCommandBlocks: { [weak self] in self?._mtShowCommandBlocks() }
     )
     addChild(host)
     host.view.translatesAutoresizingMaskIntoConstraints = false
@@ -611,11 +615,72 @@ Please go to your subscriptions and cancel one of them!
     ])
     ringHost.didMove(toParent: self)
     _mtRingHost = ringHost
+
+    // スクラブ中の読み取り専用オーバーレイ（07 #01）
+    let scrubHost = UIHostingController(rootView: MTScrubOverlayView())
+    scrubHost.view.backgroundColor = .clear
+    addChild(scrubHost)
+    scrubHost.view.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(scrubHost.view)
+    NSLayoutConstraint.activate([
+      scrubHost.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor,
+                                          constant: MTTabBarHost.height),
+      scrubHost.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      scrubHost.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      scrubHost.view.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor),
+    ])
+    scrubHost.didMove(toParent: self)
+    scrubHost.view.isUserInteractionEnabled = false
+    _mtScrubCancellable = MTScreenHistory.shared.$scrubbing.sink { [weak scrubHost] snapshot in
+      scrubHost?.view.isUserInteractionEnabled = snapshot != nil
+    }
+
+    // 画面スナップショットを定期的に撮る（07 #01）
+    _mtSnapshotTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [weak self] _ in
+      self?._mtTakeSnapshot(reason: "定期")
+    }
+    // 回線が切れた・戻った・復元した瞬間も撮る
+    _mtStateCancellable = MTSessionStateCenter.shared.$states
+      .removeDuplicates { old, new in
+        guard let key = MTSessionStateCenter.shared.currentKey else { return true }
+        return old[key] == new[key]
+      }
+      .sink { [weak self] states in
+        guard let self, let key = MTSessionStateCenter.shared.currentKey,
+              let state = states[key] else { return }
+        let reason: String
+        switch state {
+        case .held: reason = "回線断"
+        case .reconnecting: reason = "回線切替"
+        case .restored: reason = "復元"
+        case .connected: return  // 復帰直後は中身が変わっていないので撮らない
+        }
+        self._mtTakeSnapshot(reason: reason)
+      }
     // 長押し待ちが無い間はタッチを下へ通す
     ringHost.view.isUserInteractionEnabled = false
     _mtRingCancellable = MTDangerGuard.shared.$pending.sink { [weak ringHost] pending in
       ringHost?.view.isUserInteractionEnabled = pending != nil
     }
+  }
+
+  /// 今の画面を撮ってセッションの履歴に積む（07 #01）
+  private func _mtTakeSnapshot(reason: String) {
+    guard let key = _currentKey, let term = currentTerm() else { return }
+    term.termView.mtSnapshot { dict in
+      guard let dict = dict as? [String: Any],
+            let snapshot = MTScreenSnapshot(dictionary: dict, reason: reason) else { return }
+      MTScreenHistory.shared.add(snapshot, for: key)
+    }
+  }
+
+  /// コマンド履歴（07 #05）をシートで開く
+  private func _mtShowCommandBlocks() {
+    let vc = UIHostingController(rootView: MTCommandBlocksView(sessionKey: _currentKey))
+    vc.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
+    vc.modalPresentationStyle = .pageSheet
+    currentTerm()?.resignInput()
+    present(vc, animated: true)
   }
 
   /// ドラフトの行をまとめて送る（復帰後）

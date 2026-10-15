@@ -51,6 +51,7 @@ struct MTTabBarView: View {
   let onRename: (UUID) -> Void
   let onClose: (UUID) -> Void
   let onSettings: () -> Void
+  let onCommandBlocks: () -> Void
 
   private var theme: MTTheme { themeStore.currentTheme }
 
@@ -97,16 +98,26 @@ struct MTTabBarView: View {
         }
       }
 
-      // 設定（06 §6.5 への入口）
-      Button(action: onSettings) {
+      // 設定（06 §6.5）とコマンド履歴（07 #05）
+      Menu {
+        Button {
+          onSettings()
+        } label: {
+          Label("設定", systemImage: "gearshape")
+        }
+        Button {
+          onCommandBlocks()
+        } label: {
+          Label("コマンド履歴", systemImage: "list.bullet.rectangle")
+        }
+      } label: {
         Image(systemName: "gearshape")
           .font(.system(size: 14, weight: .medium))
           .foregroundColor(theme.sub.color)
           .frame(width: 44, height: 36)
           .background(RoundedRectangle(cornerRadius: 10).fill(theme.raised.color))
       }
-      .buttonStyle(.plain)
-      .accessibilityLabel(Text("設定"))
+      .accessibilityLabel(Text("設定とコマンド履歴"))
 
       // 新規タブ
       Button(action: onNew) {
@@ -225,11 +236,13 @@ final class MTTabBarHost: UIViewController {
     let onRename: (UUID) -> Void
     let onClose: (UUID) -> Void
     let onSettings: () -> Void
+    let onCommandBlocks: () -> Void
 
     var body: some View {
       VStack(spacing: 0) {
         MTTabBarView(model: model, onSelect: onSelect, onNew: onNew, onList: onList,
-                     onRename: onRename, onClose: onClose, onSettings: onSettings)
+                     onRename: onRename, onClose: onClose, onSettings: onSettings,
+                     onCommandBlocks: onCommandBlocks)
         MTLifelineView()
           .frame(height: 20)
       }
@@ -241,11 +254,13 @@ final class MTTabBarHost: UIViewController {
        onList: @escaping () -> Void,
        onRename: @escaping (UUID) -> Void,
        onClose: @escaping (UUID) -> Void,
-       onSettings: @escaping () -> Void) {
+       onSettings: @escaping () -> Void,
+       onCommandBlocks: @escaping () -> Void) {
     super.init(nibName: nil, bundle: nil)
     let hosting = UIHostingController(
       rootView: ChromeView(model: model, onSelect: onSelect, onNew: onNew, onList: onList,
-                           onRename: onRename, onClose: onClose, onSettings: onSettings))
+                           onRename: onRename, onClose: onClose, onSettings: onSettings,
+                     onCommandBlocks: onCommandBlocks))
     addChild(hosting)
     hosting.view.backgroundColor = .clear
     hosting.view.translatesAutoresizingMaskIntoConstraints = false
