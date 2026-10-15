@@ -555,7 +555,9 @@ Please go to your subscriptions and cancel one of them!
       onClose: { [weak self] key in self?._mtCloseSession(key) },
       onSettings: { [weak self] in self?._mtShowSettings() },
       onCommandBlocks: { [weak self] in self?._mtShowCommandBlocks() },
-      onShieldNow: { [weak self] in self?._mtShieldNow() }
+      onShieldNow: { [weak self] in self?._mtShieldNow() },
+      // サイドバーがある iPad / Mac では歯車をサイドバー側に出すので、タブバーには出さない
+      showSettings: !_mtSupportsSidebar
     )
     addChild(host)
     host.view.translatesAutoresizingMaskIntoConstraints = false
@@ -898,7 +900,9 @@ Please go to your subscriptions and cancel one of them!
       onNewConnection: { [weak self] in self?._mtShowConnectSheet() },
       onRename: { [weak self] key in self?._mtRenameSession(key) },
       onClose: { [weak self] key in self?._mtCloseSession(key) },
-      onSettings: { [weak self] in self?._mtShowSettings() }
+      onSettings: { [weak self] in self?._mtShowSettings() },
+      onCommandBlocks: { [weak self] in self?._mtShowCommandBlocks() },
+      onShieldNow: { [weak self] in self?._mtShieldNow() }
     )
     let host = UIHostingController(rootView: view)
     host.view.backgroundColor = .clear

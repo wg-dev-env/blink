@@ -37,6 +37,19 @@ final class MTTabBarModel: ObservableObject {
   @Published var currentKey: UUID? = nil
 }
 
+/// 設定の歯車メニューの中身（タブバーとサイドバーで共有）
+struct MTSettingsMenu: View {
+  let onSettings: () -> Void
+  let onCommandBlocks: () -> Void
+  let onShieldNow: () -> Void
+
+  var body: some View {
+    Button { onSettings() } label: { Label("設定", systemImage: "gearshape") }
+    Button { onCommandBlocks() } label: { Label("コマンド履歴", systemImage: "list.bullet.rectangle") }
+    Button { onShieldNow() } label: { Label("今すぐ伏せる", systemImage: "eye.slash") }
+  }
+}
+
 // MARK: - タブバー（06 §5.1）
 
 struct MTTabBarView: View {
@@ -53,6 +66,8 @@ struct MTTabBarView: View {
   let onSettings: () -> Void
   let onCommandBlocks: () -> Void
   let onShieldNow: () -> Void
+  /// タブバーに歯車を出すか（サイドバーがある iPad / Mac では false）
+  var showSettings: Bool = true
 
   private var theme: MTTheme { themeStore.currentTheme }
 
@@ -99,31 +114,20 @@ struct MTTabBarView: View {
         }
       }
 
-      // 設定（06 §6.5）とコマンド履歴（07 #05）
-      Menu {
-        Button {
-          onSettings()
+      // 設定（06 §6.5）とコマンド履歴（07 #05）。
+      // サイドバーがある iPad / Mac では、歯車はサイドバー側に出すのでここには出さない
+      if showSettings {
+        Menu {
+          MTSettingsMenu(onSettings: onSettings, onCommandBlocks: onCommandBlocks, onShieldNow: onShieldNow)
         } label: {
-          Label("設定", systemImage: "gearshape")
+          Image(systemName: "gearshape")
+            .font(.system(size: 14, weight: .medium))
+            .foregroundColor(theme.sub.color)
+            .frame(width: 44, height: 36)
+            .background(RoundedRectangle(cornerRadius: 10).fill(theme.raised.color))
         }
-        Button {
-          onCommandBlocks()
-        } label: {
-          Label("コマンド履歴", systemImage: "list.bullet.rectangle")
-        }
-        Button {
-          onShieldNow()
-        } label: {
-          Label("今すぐ伏せる", systemImage: "eye.slash")
-        }
-      } label: {
-        Image(systemName: "gearshape")
-          .font(.system(size: 14, weight: .medium))
-          .foregroundColor(theme.sub.color)
-          .frame(width: 44, height: 36)
-          .background(RoundedRectangle(cornerRadius: 10).fill(theme.raised.color))
+        .accessibilityLabel(Text("設定とコマンド履歴"))
       }
-      .accessibilityLabel(Text("設定とコマンド履歴"))
 
       // 新規タブ
       Button(action: onNew) {
@@ -245,12 +249,14 @@ final class MTTabBarHost: UIViewController {
     let onSettings: () -> Void
     let onCommandBlocks: () -> Void
     let onShieldNow: () -> Void
+    let showSettings: Bool
 
     var body: some View {
       VStack(spacing: 0) {
         MTTabBarView(model: model, onSelect: onSelect, onNew: onNew, onList: onList,
                      onRename: onRename, onClose: onClose, onSettings: onSettings,
-                     onCommandBlocks: onCommandBlocks, onShieldNow: onShieldNow)
+                     onCommandBlocks: onCommandBlocks, onShieldNow: onShieldNow,
+                     showSettings: showSettings)
         MTLifelineView()
           .frame(height: 20)
       }
@@ -264,12 +270,14 @@ final class MTTabBarHost: UIViewController {
        onClose: @escaping (UUID) -> Void,
        onSettings: @escaping () -> Void,
        onCommandBlocks: @escaping () -> Void,
-       onShieldNow: @escaping () -> Void) {
+       onShieldNow: @escaping () -> Void,
+       showSettings: Bool = true) {
     super.init(nibName: nil, bundle: nil)
     let hosting = UIHostingController(
       rootView: ChromeView(model: model, onSelect: onSelect, onNew: onNew, onList: onList,
                            onRename: onRename, onClose: onClose, onSettings: onSettings,
-                     onCommandBlocks: onCommandBlocks, onShieldNow: onShieldNow))
+                     onCommandBlocks: onCommandBlocks, onShieldNow: onShieldNow,
+                     showSettings: showSettings))
     addChild(hosting)
     hosting.view.backgroundColor = .clear
     hosting.view.translatesAutoresizingMaskIntoConstraints = false

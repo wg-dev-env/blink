@@ -31,6 +31,8 @@ struct MTSidebarView: View {
   let onRename: (UUID) -> Void
   let onClose: (UUID) -> Void
   let onSettings: () -> Void
+  let onCommandBlocks: () -> Void
+  let onShieldNow: () -> Void
 
   @ObservedObject private var stateCenter = MTSessionStateCenter.shared
   @ObservedObject private var sessionsStore = MTSessionsStore.shared
@@ -49,15 +51,16 @@ struct MTSidebarView: View {
           .font(MTFont.ui(15, .bold))
           .foregroundColor(theme.text.color)
         Spacer()
-        Button(action: onSettings) {
+        Menu {
+          MTSettingsMenu(onSettings: onSettings, onCommandBlocks: onCommandBlocks, onShieldNow: onShieldNow)
+        } label: {
           Image(systemName: "gearshape")
             .font(.system(size: 15, weight: .medium))
             .foregroundColor(theme.sub.color)
             .frame(width: 44, height: 44)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text("設定"))
+        .accessibilityLabel(Text("設定とコマンド履歴"))
       }
       .padding(.horizontal, 12)
       .padding(.top, 6)
@@ -83,12 +86,14 @@ struct MTSidebarView: View {
               hostRow(host)
             }
           }
-          Button(action: onNewConnection) {
-            Label("接続を追加", systemImage: "plus")
-              .font(MTFont.ui(13, .medium))
-              .foregroundColor(theme.accent.color)
-          }
-          .buttonStyle(.plain)
+          Label("接続を追加", systemImage: "plus")
+            .font(MTFont.ui(13, .medium))
+            .foregroundColor(theme.accent.color)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 6)
+            .contentShape(Rectangle())
+            .onTapGesture { onNewConnection() }
+            .accessibilityAddTraits(.isButton)
         } header: {
           Text("接続先")
             .font(MTFont.ui(11, .medium))
@@ -111,23 +116,22 @@ struct MTSidebarView: View {
     let state = stateCenter.state(for: item.key)
     let isActive = item.key == model.currentKey
 
-    Button {
-      onSelect(item.key)
-    } label: {
-      HStack(spacing: 8) {
-        MTStateBadge(state: state, theme: theme)
-        Text("\(item.index)")
-          .font(MTFont.mono(11, .medium))
-          .foregroundColor(isActive ? theme.ok.color : theme.muted.color)
-        Text(item.title)
-          .font(MTFont.ui(13, isActive ? .medium : .regular))
-          .foregroundColor(isActive ? theme.text.color : theme.sub.color)
-          .lineLimit(1)
-        Spacer()
-      }
-      .padding(.vertical, 2)
+    // List 内の Button(.plain) はタップに反応しないことがあるため、
+    // 行全体を contentShape + onTapGesture でタップ可能にする
+    HStack(spacing: 8) {
+      MTStateBadge(state: state, theme: theme)
+      Text("\(item.index)")
+        .font(MTFont.mono(11, .medium))
+        .foregroundColor(isActive ? theme.ok.color : theme.muted.color)
+      Text(item.title)
+        .font(MTFont.ui(13, isActive ? .medium : .regular))
+        .foregroundColor(isActive ? theme.text.color : theme.sub.color)
+        .lineLimit(1)
+      Spacer()
     }
-    .buttonStyle(.plain)
+    .padding(.vertical, 6)
+    .contentShape(Rectangle())
+    .onTapGesture { onSelect(item.key) }
     .simultaneousGesture(TapGesture(count: 2).onEnded { onRename(item.key) })
     .listRowBackground(isActive ? theme.okBg.color : Color.clear)
     .contextMenu {
@@ -135,40 +139,40 @@ struct MTSidebarView: View {
       Button("隠す") { sessionsStore.hide(item.key) }
       Button("閉じる", role: .destructive) { onClose(item.key) }
     }
+    .accessibilityElement(children: .ignore)
     .accessibilityLabel(Text("\(item.title)。\(state.label)"))
-    .accessibilityAddTraits(isActive ? .isSelected : [])
+    .accessibilityAddTraits(isActive ? [.isButton, .isSelected] : .isButton)
   }
 
   @ViewBuilder
   private func hostRow(_ host: MTHostItem) -> some View {
-    Button {
-      onConnect(host.alias, .mosh)
-    } label: {
-      HStack(spacing: 8) {
-        Text(host.initials)
-          .font(MTFont.mono(10, .medium))
-          .foregroundColor(theme.bg.color)
-          .frame(width: 22, height: 22)
-          .background(RoundedRectangle(cornerRadius: 6).fill(theme.accent.color))
-        VStack(alignment: .leading, spacing: 1) {
-          Text(host.alias)
-            .font(MTFont.ui(13))
-            .foregroundColor(theme.sub.color)
-            .lineLimit(1)
-          Text(host.display)
-            .font(MTFont.mono(10))
-            .foregroundColor(theme.muted.color)
-            .lineLimit(1)
-        }
-        Spacer()
+    HStack(spacing: 8) {
+      Text(host.initials)
+        .font(MTFont.mono(10, .medium))
+        .foregroundColor(theme.bg.color)
+        .frame(width: 24, height: 24)
+        .background(RoundedRectangle(cornerRadius: 6).fill(theme.accent.color))
+      VStack(alignment: .leading, spacing: 1) {
+        Text(host.alias)
+          .font(MTFont.ui(13))
+          .foregroundColor(theme.sub.color)
+          .lineLimit(1)
+        Text(host.display)
+          .font(MTFont.mono(10))
+          .foregroundColor(theme.muted.color)
+          .lineLimit(1)
       }
-      .padding(.vertical, 1)
+      Spacer()
     }
-    .buttonStyle(.plain)
+    .padding(.vertical, 6)
+    .contentShape(Rectangle())
+    .onTapGesture { onConnect(host.alias, .mosh) }
     .contextMenu {
       Button(MTConnectKind.mosh.label) { onConnect(host.alias, .mosh) }
       Button(MTConnectKind.ssh.label) { onConnect(host.alias, .ssh) }
     }
+    .accessibilityElement(children: .ignore)
+    .accessibilityAddTraits(.isButton)
     .accessibilityLabel(Text("\(host.alias) に Mosh で接続"))
   }
 }
