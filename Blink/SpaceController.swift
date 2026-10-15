@@ -509,6 +509,19 @@ Please go to your subscriptions and cancel one of them!
     }
     currentTerm()?.activateInput()
   }
+
+  /// タブ切替直後に端末がファーストレスポンダに復帰しない問題への対策（MoshTerm）。
+  /// タブ（SwiftUI ボタン）のタップ処理と端末の becomeFirstResponder が競合し、Mosh のように
+  /// 復帰が重いセッションでは定着タイミングを逃すことがある（ローカルや画面タップは競合なく成功する）。
+  /// 切替直後に加えて、ビューが定着したあと（次のラン・短い遅延）にも現在の端末へフォーカスし直す。
+  /// 対象は常に currentTerm なので、途中でタブが変わっても誤って別端末を握ることはない。
+  private func _refocusCurrentTermSoon() {
+    _attachInputToCurrentTerm()
+    DispatchQueue.main.async { [weak self] in self?._attachInputToCurrentTerm() }
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+      self?._attachInputToCurrentTerm()
+    }
+  }
   
   var currentDevice: TermDevice? {
     currentTerm()?.termDevice
@@ -1185,7 +1198,7 @@ extension SpaceController: UIPageViewControllerDelegate {
     termController.resumeIfNeeded()
     _currentKey = termController.meta.key
     _displayHUD()
-    _attachInputToCurrentTerm()
+    _refocusCurrentTermSoon()
 
   }
 }
@@ -1757,7 +1770,7 @@ extension SpaceController {
       term.resumeIfNeeded()
       self._currentKey = term.meta.key
       self._displayHUD()
-      self._attachInputToCurrentTerm()
+      self._refocusCurrentTermSoon()
       self._spaceControllerAnimating = false
     }
   }
