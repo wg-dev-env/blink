@@ -546,6 +546,40 @@ Please go to your subscriptions and cancel one of them!
     #endif
   }
 
+  /// MT の「表示専用オーバーレイ」を安全に追加する共通経路（再発防止 A）。
+  ///
+  /// ここを通す限り、次の 2 つが構造的に保証される:
+  ///  - `isUserInteractionEnabled = false` を既定にする（下のタブバー・端末へタッチを通す）
+  ///  - `belowTabBar = true` でタブバー領域（上端 + `MTTabBarHost.height`）に重ねない
+  ///    → タブバーの ＋・一覧・設定のタップを塞がない
+  ///
+  /// 個別に `addSubview` + 制約を手書きすると、どれか 1 つで「false 指定漏れ」や
+  /// 「タブバー被り」が起きる（実際に draftHost で発生した）。追加は必ずこの経路に寄せる。
+  /// タッチを受けたいオーバーレイは、返り値のビューで必要なときだけ true にする。
+  @discardableResult
+  private func _mtAddOverlay(_ vc: UIViewController,
+                             into container: UIView,
+                             belowTabBar: Bool = true,
+                             bottom: NSLayoutYAxisAnchor) -> UIView {
+    addChild(vc)
+    let v: UIView = vc.view
+    v.backgroundColor = .clear
+    // 既定は非インタラクティブ。タッチを受けたいものだけ呼び出し側で true にする
+    v.isUserInteractionEnabled = false
+    v.translatesAutoresizingMaskIntoConstraints = false
+    container.addSubview(v)
+    // container が self.view のときはセーフエリア基準、それ以外は container の上端基準
+    let top = (container === view) ? view.safeAreaLayoutGuide.topAnchor : container.topAnchor
+    NSLayoutConstraint.activate([
+      v.topAnchor.constraint(equalTo: top, constant: belowTabBar ? MTTabBarHost.height : 0),
+      v.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+      v.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+      v.bottomAnchor.constraint(equalTo: bottom),
+    ])
+    vc.didMove(toParent: self)
+    return v
+  }
+
   private func _setupMTTabBar() {
     // 通常のアプリウィンドウにだけ出す（外部ディスプレイ等には出さない）
     guard sceneRole == .windowApplication else { return }
@@ -582,20 +616,9 @@ Please go to your subscriptions and cancel one of them!
       _setupMTSidebar(sharing: host.model)
     }
 
-    // 状態バナー・トースト（表示専用、_overlay はタッチを通す）
+    // 状態バナー・トースト（表示専用、常にタッチを通す）
     let statusHost = UIHostingController(rootView: MTStatusOverlayView())
-    statusHost.view.backgroundColor = .clear
-    statusHost.view.isUserInteractionEnabled = false
-    addChild(statusHost)
-    statusHost.view.translatesAutoresizingMaskIntoConstraints = false
-    _overlay.addSubview(statusHost.view)
-    NSLayoutConstraint.activate([
-      statusHost.view.topAnchor.constraint(equalTo: _overlay.topAnchor, constant: MTTabBarHost.height),
-      statusHost.view.leadingAnchor.constraint(equalTo: _overlay.leadingAnchor),
-      statusHost.view.trailingAnchor.constraint(equalTo: _overlay.trailingAnchor),
-      statusHost.view.bottomAnchor.constraint(equalTo: _overlay.bottomAnchor),
-    ])
-    statusHost.didMove(toParent: self)
+    _mtAddOverlay(statusHost, into: _overlay, bottom: _overlay.bottomAnchor)
 
     // 回線状態の監視を開始（圏外・回線切替をセッション状態へ変換）
     MTConnectivityMonitor.shared.startIfNeeded()
@@ -603,60 +626,26 @@ Please go to your subscriptions and cancel one of them!
     // テーマとターミナル配色の同期ずれを自己修復（新規セッションはここから正しい配色になる）
     MTThemeStore.shared.syncTerminalStyleIfNeeded()
 
-    // 圏外ドラフトのカード（表示専用。_overlay はタッチを通さないので別ホスト）
+    // 圏外ドラフトのカード（表示専用。カードが出ている時だけタッチを受ける）
     let draftHost = UIHostingController(rootView: MTDraftOverlayView(onSend: { [weak self] lines in
       self?._mtSendDraftLines(lines)
     }))
-    draftHost.view.backgroundColor = .clear
-    addChild(draftHost)
-    draftHost.view.translatesAutoresizingMaskIntoConstraints = false
-    view.addSubview(draftHost.view)
-    NSLayoutConstraint.activate([
-      // タブバーの下から配置する（タブバーの ＋・一覧・設定のタップを塞がない）
-      draftHost.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor,
-                                          constant: MTTabBarHost.height),
-      draftHost.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      draftHost.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      draftHost.view.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor),
-    ])
-    draftHost.didMove(toParent: self)
+    _mtAddOverlay(draftHost, into: view, bottom: view.keyboardLayoutGuide.topAnchor)
     _mtDraftHost = draftHost
-    // 表示専用。ドラフトのカードが出ている時だけタッチを受ける（下のクローム・端末へ通す）
-    draftHost.view.isUserInteractionEnabled = false
     _mtDraftCancellable = MTDraftStore.shared.$drafts.sink { [weak self] _ in
       self?._mtApplyDraftInteractivity()
     }
 
-    // 危険コマンドの長押しリング（最前面・タッチを受ける）
+    // 危険コマンドの長押しリング。確定中だけ全画面でタッチを受けるモーダル。
+    // belowTabBar=false で全画面を覆うが、pending の間だけ true にするので
+    // 通常時はタブバー・端末へタッチが通る（下の sink 参照）。
     let ringHost = UIHostingController(rootView: MTDangerRingView())
-    ringHost.view.backgroundColor = .clear
-    addChild(ringHost)
-    ringHost.view.translatesAutoresizingMaskIntoConstraints = false
-    view.addSubview(ringHost.view)
-    NSLayoutConstraint.activate([
-      ringHost.view.topAnchor.constraint(equalTo: view.topAnchor),
-      ringHost.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      ringHost.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      ringHost.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-    ])
-    ringHost.didMove(toParent: self)
+    _mtAddOverlay(ringHost, into: view, belowTabBar: false, bottom: view.bottomAnchor)
     _mtRingHost = ringHost
 
-    // スクラブ中の読み取り専用オーバーレイ（07 #01）
+    // スクラブ中の読み取り専用オーバーレイ（07 #01）。スクラブ中だけタッチを受ける
     let scrubHost = UIHostingController(rootView: MTScrubOverlayView())
-    scrubHost.view.backgroundColor = .clear
-    addChild(scrubHost)
-    scrubHost.view.translatesAutoresizingMaskIntoConstraints = false
-    view.addSubview(scrubHost.view)
-    NSLayoutConstraint.activate([
-      scrubHost.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor,
-                                          constant: MTTabBarHost.height),
-      scrubHost.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      scrubHost.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      scrubHost.view.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor),
-    ])
-    scrubHost.didMove(toParent: self)
-    scrubHost.view.isUserInteractionEnabled = false
+    _mtAddOverlay(scrubHost, into: view, bottom: view.keyboardLayoutGuide.topAnchor)
     _mtScrubCancellable = MTScreenHistory.shared.$scrubbing.sink { [weak scrubHost] snapshot in
       scrubHost?.view.isUserInteractionEnabled = snapshot != nil
     }
@@ -674,19 +663,7 @@ Please go to your subscriptions and cancel one of them!
       onNewConnection: { [weak self] in self?._mtShowConnectSheet() },
       onCloseTab: { [weak self] in self?._closeCurrentSpace() }
     ))
-    endHost.view.backgroundColor = .clear
-    addChild(endHost)
-    endHost.view.translatesAutoresizingMaskIntoConstraints = false
-    view.addSubview(endHost.view)
-    NSLayoutConstraint.activate([
-      endHost.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor,
-                                        constant: MTTabBarHost.height),
-      endHost.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      endHost.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      endHost.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-    ])
-    endHost.didMove(toParent: self)
-    endHost.view.isUserInteractionEnabled = false
+    _mtAddOverlay(endHost, into: view, bottom: view.bottomAnchor)
     _mtEndHost = endHost
     // 案内の有無が変わったときも、タブを切り替えたときも、タッチ可否を再計算する
     _mtEndCancellable = MTSessionEndCenter.shared.$ended.sink { [weak self] _ in
@@ -727,8 +704,7 @@ Please go to your subscriptions and cancel one of them!
         }
         self._mtTakeSnapshot(reason: reason)
       }
-    // 長押し待ちが無い間はタッチを下へ通す
-    ringHost.view.isUserInteractionEnabled = false
+    // 既定は非インタラクティブ（_mtAddOverlay が設定済み）。長押し待ちの間だけ受ける
     _mtRingCancellable = MTDangerGuard.shared.$pending.sink { [weak ringHost] pending in
       ringHost?.view.isUserInteractionEnabled = pending != nil
     }
