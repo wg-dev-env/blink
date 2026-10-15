@@ -61,6 +61,16 @@ struct MTColor: Equatable {
 
   var color: Color { Color(uiColor) }
 
+  /// "#RRGGBB" から作る（額縁の色など、保存された文字列を戻すのに使う）
+  init?(hex: String) {
+    var text = hex.trimmingCharacters(in: .whitespaces)
+    if text.hasPrefix("#") { text.removeFirst() }
+    guard text.count == 6, let value = UInt32(text, radix: 16) else { return nil }
+    self.init(value)
+  }
+
+  var hexString: String { String(format: "#%02X%02X%02X", r, g, b) }
+
   func withAlpha(_ alpha: Double) -> MTColor {
     MTColor(r: r, g: g, b: b, a: alpha)
   }

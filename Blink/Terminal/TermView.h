@@ -88,6 +88,12 @@ extern NSString * TermViewBrowserReadyNotificationKey;
 
 - (void)setCmdKeyPressed:(BOOL)pressed;
 
+/// MoshTerm: ホストの額縁（07 #03）。width=0 で消す。label は左上に出す（本番のみ）
+- (void)setMTFrameWithColor:(nullable UIColor *)color
+                      width:(CGFloat)width
+                      label:(nullable NSString *)label
+    NS_SWIFT_NAME(setMTFrame(color:width:label:));
+
 - (CGRect)webViewFrame;
 - (void)load;
 - (void)applyTermUIState:(nonnull TermUIState *)termUIState;

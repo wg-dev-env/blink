@@ -85,6 +85,9 @@
 		4D540001000000000000B018 /* MTSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A018 /* MTSettingsView.swift */; };
 		4D540001000000000000B021 /* MTHostsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A021 /* MTHostsView.swift */; };
 		4D540001000000000000B022 /* MTSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A022 /* MTSidebarView.swift */; };
+		4D540001000000000000B023 /* MTHostContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A023 /* MTHostContext.swift */; };
+		4D540001000000000000B024 /* MTInputGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A024 /* MTInputGuard.swift */; };
+		4D540001000000000000B025 /* MTSafetyViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A025 /* MTSafetyViews.swift */; };
 		4D540001000000000000B011 /* IBMPlexSansJP-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */; };
 		4D540001000000000000B012 /* IBMPlexSansJP-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */; };
 		4D540001000000000000B013 /* IBMPlexSansJP-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */; };
@@ -242,6 +245,7 @@
 		BDFA97322D7F49EF0020BBF2 /* ConfettiSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = BDFA97312D7F49EF0020BBF2 /* ConfettiSwiftUI */; };
 		BDFA97352D959BC90020BBF2 /* TypingText.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFA97342D959BC90020BBF2 /* TypingText.swift */; };
 		C064A00000000000000000B1 /* TmuxAutoAttach.swift in Sources */ = {isa = PBXBuildFile; fileRef = C064A00000000000000000F1 /* TmuxAutoAttach.swift */; };
+		C064A00000000000000000B2 /* MTSafety.swift in Sources */ = {isa = PBXBuildFile; fileRef = C064A00000000000000000F2 /* MTSafety.swift */; };
 		C94437571D8311960096F84E /* BKResource.m in Sources */ = {isa = PBXBuildFile; fileRef = C94437561D8311960096F84E /* BKResource.m */; };
 		C94437601D831CD30096F84E /* Themes in Resources */ = {isa = PBXBuildFile; fileRef = C944375F1D831CD30096F84E /* Themes */; };
 		C94437651D838ABF0096F84E /* Fonts in Resources */ = {isa = PBXBuildFile; fileRef = C94437641D838ABF0096F84E /* Fonts */; };
@@ -852,6 +856,9 @@
 		4D540001000000000000A018 /* MTSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTSettingsView.swift; sourceTree = "<group>"; };
 		4D540001000000000000A021 /* MTHostsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTHostsView.swift; sourceTree = "<group>"; };
 		4D540001000000000000A022 /* MTSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTSidebarView.swift; sourceTree = "<group>"; };
+		4D540001000000000000A023 /* MTHostContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTHostContext.swift; sourceTree = "<group>"; };
+		4D540001000000000000A024 /* MTInputGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTInputGuard.swift; sourceTree = "<group>"; };
+		4D540001000000000000A025 /* MTSafetyViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTSafetyViews.swift; sourceTree = "<group>"; };
 		4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Regular.ttf"; sourceTree = "<group>"; };
 		4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Medium.ttf"; sourceTree = "<group>"; };
 		4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Bold.ttf"; sourceTree = "<group>"; };
@@ -1004,6 +1011,7 @@
 		BDF40FE92C14A6CE00DF41C1 /* AgentSettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AgentSettingsView.swift; sourceTree = "<group>"; };
 		BDFA97342D959BC90020BBF2 /* TypingText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingText.swift; sourceTree = "<group>"; };
 		C064A00000000000000000F1 /* TmuxAutoAttach.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TmuxAutoAttach.swift; sourceTree = "<group>"; };
+		C064A00000000000000000F2 /* MTSafety.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MTSafety.swift; sourceTree = "<group>"; };
 		C94437551D8311960096F84E /* BKResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BKResource.h; sourceTree = "<group>"; };
 		C94437561D8311960096F84E /* BKResource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BKResource.m; sourceTree = "<group>"; };
 		C944375F1D831CD30096F84E /* Themes */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Themes; sourceTree = "<group>"; };
@@ -1750,6 +1758,7 @@
 				4D540001000000000000C004 /* Tabs */,
 				4D540001000000000000C005 /* Settings */,
 				4D540001000000000000C006 /* Hosts */,
+				4D540001000000000000C007 /* Safety */,
 				4D540001000000000000A017 /* COPYING */,
 			);
 			path = Custom;
@@ -1779,6 +1788,16 @@
 				4D540001000000000000A016 /* OFL-JetBrainsMono.txt */,
 			);
 			path = Fonts;
+			sourceTree = "<group>";
+		};
+		4D540001000000000000C007 /* Safety */ = {
+			isa = PBXGroup;
+			children = (
+				4D540001000000000000A023 /* MTHostContext.swift */,
+				4D540001000000000000A024 /* MTInputGuard.swift */,
+				4D540001000000000000A025 /* MTSafetyViews.swift */,
+			);
+			path = Safety;
 			sourceTree = "<group>";
 		};
 		4D540001000000000000C006 /* Hosts */ = {
@@ -2018,6 +2037,7 @@
 				BDCB716C268E15A1007D7047 /* BKHosts.m */,
 				BDCB716B268E15A0007D7047 /* BKHosts.swift */,
 				C064A00000000000000000F1 /* TmuxAutoAttach.swift */,
+				C064A00000000000000000F2 /* MTSafety.swift */,
 				BDD6D14427594E6500E76F1F /* BKSSHHost.swift */,
 				BDCB716F268E15A1007D7047 /* BKPubKey.h */,
 				BDCB7174268E15A2007D7047 /* BKPubKey.m */,
@@ -3484,6 +3504,7 @@
 				BDCB7182268E15A2007D7047 /* SEKey.swift in Sources */,
 				BDCB7178268E15A2007D7047 /* BKHosts.swift in Sources */,
 				C064A00000000000000000B1 /* TmuxAutoAttach.swift in Sources */,
+				C064A00000000000000000B2 /* MTSafety.swift in Sources */,
 				D2AE682828D05FD0003E4338 /* WebAuthnKey.swift in Sources */,
 				D22378FF27A7B8DA002D5C6D /* XCConfig.m in Sources */,
 				BDCB7181268E15A2007D7047 /* BKPubKey.m in Sources */,
@@ -3734,6 +3755,9 @@
 				4D540001000000000000B018 /* MTSettingsView.swift in Sources */,
 				4D540001000000000000B021 /* MTHostsView.swift in Sources */,
 				4D540001000000000000B022 /* MTSidebarView.swift in Sources */,
+				4D540001000000000000B023 /* MTHostContext.swift in Sources */,
+				4D540001000000000000B024 /* MTInputGuard.swift in Sources */,
+				4D540001000000000000B025 /* MTSafetyViews.swift in Sources */,
 				BD55D69A2F7D743500EE80EA /* TerminalStyleBundle.swift in Sources */,
 				D2D8DD9023C84A6E00BFF223 /* StuckView.swift in Sources */,
 				B7A487651DC7BD65007BA809 /* BKDefaultUserViewController.m in Sources */,

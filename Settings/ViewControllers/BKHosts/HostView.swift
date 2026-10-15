@@ -469,6 +469,9 @@ struct HostView: View {
   @State private var _tmuxAutoAttach: Bool = false
   @State private var _tmuxSessionName: String = ""
   @ObservedObject private var _mtThemeStore = MTThemeStore.shared
+  // 64_MoshTerm カスタム: 安全機能（07 #02/#03/#04）
+  @State private var _mtEnvironment: MTEnvironment = .none
+  @State private var _mtFrameStyle: MTFrameStyle = .auto
 
   @State private var _errorMessage: String = ""
 
@@ -590,6 +593,28 @@ struct HostView: View {
         }
       }.disabled(!_enabled)
 
+      // MoshTerm: 安全（07 #02/#03/#04）。環境を選ぶと額縁・危険コマンド・圏外ドラフトが連動する
+      Section(
+        header: Text("安全（Safety）"),
+        footer: Text(_mtEnvironment == .production
+          ? "本番では、太い枠と「本番 · ホスト名」のラベルが出ます。危険なコマンドと、履歴・補完で中身を確認できない行は、Return が 1 秒の長押しになります。圏外で打った行は必ず確認してから送ります。"
+          : "環境を選ぶと、ターミナルの枠や安全の効き方が変わります。額縁は個別に上書きできます。")
+      ) {
+        Picker("環境", selection: $_mtEnvironment) {
+          ForEach(MTEnvironment.allCases, id: \.rawValue) { env in
+            Text(env.label).tag(env)
+          }
+        }
+        .pickerStyle(.segmented)
+
+        Picker("額縁", selection: $_mtFrameStyle) {
+          ForEach(MTFrameStyle.allCases, id: \.rawValue) { style in
+            Text(style.label).tag(style)
+          }
+        }
+        .pickerStyle(.segmented)
+      }.disabled(!_enabled)
+
       Section(
         header: Text("SSH AGENT")
       ) {
@@ -690,6 +715,8 @@ struct HostView: View {
     // 64_MoshTerm カスタム
     _tmuxAutoAttach = host.tmuxAutoAttach?.boolValue ?? false
     _tmuxSessionName = host.tmuxSessionName ?? ""
+    _mtEnvironment = MTEnvironment(rawValue: host.environment?.intValue ?? 0) ?? .none
+    _mtFrameStyle = MTFrameStyle(rawValue: host.frameStyle?.intValue ?? 0) ?? .auto
     _enabled = !( _conflictedICloudHost != nil || _iCloudVersion)
 
     if _duplicatedHost == nil {
@@ -765,6 +792,8 @@ struct HostView: View {
     // 64_MoshTerm カスタム: saveHost のシグネチャを変えずに専用フィールドを保存する
     host.tmuxAutoAttach = NSNumber(value: _tmuxAutoAttach)
     host.tmuxSessionName = _tmuxSessionName.trimmingCharacters(in: .whitespacesAndNewlines)
+    host.environment = NSNumber(value: _mtEnvironment.rawValue)
+    host.frameStyle = NSNumber(value: _mtFrameStyle.rawValue)
     BKHosts.save()
 
     BKHosts.updateHost(host.host, withiCloudId: host.iCloudRecordId, andLastModifiedTime: Date())

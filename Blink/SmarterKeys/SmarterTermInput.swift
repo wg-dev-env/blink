@@ -326,8 +326,15 @@ extension SmarterTermInput {
         return
     }
     
+    // MoshTerm: 圏外ドラフト（07 #02）と危険コマンドの長押し確定（07 #04）。
+    // 飲み込む場合は端末へ書かない（ドラフトへ回す / 長押し待ち）
+    let decision = MTInputGuard.handle(data) { [weak device] pending in
+      device?.write(pending)
+    }
+    guard decision == .send else { return }
+
     deviceView.displayInput(data)
-    
+
     device.write(data)
   }
   

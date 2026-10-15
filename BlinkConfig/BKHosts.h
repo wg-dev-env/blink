@@ -82,6 +82,13 @@ enum BKAgentForward {
 // 64_MoshTerm カスタム: 接続時に tmux セッションへ自動アタッチする（TmuxAutoAttach.swift 参照）
 @property (nonatomic, strong) NSNumber *tmuxAutoAttach;
 @property (nonatomic, strong) NSString *tmuxSessionName;
+// 64_MoshTerm カスタム: 安全機能（07 #02/#03/#04）
+// environment: 0=なし 1=本番 2=検証 3=開発。額縁・危険コマンド・圏外ドラフトが参照する
+@property (nonatomic, strong) NSNumber *environment;
+// frameStyle: 0=環境の既定にまかせる 1=なし 2=細 3=太
+@property (nonatomic, strong) NSNumber *frameStyle;
+// frameColor: 額縁の色（"#RRGGBB"）。nil なら環境の既定色
+@property (nonatomic, strong) NSString *frameColor;
 
 + (instancetype)withHost:(NSString *)ID;
 + (void)loadHosts NS_SWIFT_NAME(loadHosts());

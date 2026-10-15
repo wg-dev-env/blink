@@ -82,6 +82,9 @@ static UICKeyChainStore *__get_keychain() {
   // 64_MoshTerm カスタム
   _tmuxAutoAttach = [coder decodeObjectOfClasses:numbers forKey:@"tmuxAutoAttach"];
   _tmuxSessionName = [coder decodeObjectOfClasses:strings forKey:@"tmuxSessionName"];
+  _environment = [coder decodeObjectOfClasses:numbers forKey:@"environment"];
+  _frameStyle = [coder decodeObjectOfClasses:numbers forKey:@"frameStyle"];
+  _frameColor = [coder decodeObjectOfClasses:strings forKey:@"frameColor"];
   return self;
 }
 
@@ -112,6 +115,9 @@ static UICKeyChainStore *__get_keychain() {
   // 64_MoshTerm カスタム
   [encoder encodeObject:_tmuxAutoAttach forKey:@"tmuxAutoAttach"];
   [encoder encodeObject:_tmuxSessionName forKey:@"tmuxSessionName"];
+  [encoder encodeObject:_environment forKey:@"environment"];
+  [encoder encodeObject:_frameStyle forKey:@"frameStyle"];
+  [encoder encodeObject:_frameColor forKey:@"frameColor"];
 }
 
 - (id)initWithAlias:(NSString *)alias

@@ -34,6 +34,7 @@
 }
 
 
+import Combine
 import MBProgressHUD
 import SwiftUI
 
@@ -426,7 +427,13 @@ Please go to your subscriptions and cancel one of them!
     }
     
     SessionRegistry.shared.track(session: term)
-    
+
+    // MoshTerm: 接続コマンドから拾った alias をこのセッションに紐付ける
+    if let alias = _mtPendingAlias {
+      MTHostContext.shared.bind(alias: alias, to: term.meta.key)
+      _mtPendingAlias = nil
+    }
+
     _currentKey = term.meta.key
     
     _viewportsController.setViewControllers([term], direction: .forward, animated: animated) { (didComplete) in
@@ -451,6 +458,8 @@ Please go to your subscriptions and cancel one of them!
     currentTerm()?.delegate = nil
     SessionRegistry.shared.remove(forKey: currentKey)
     MTSessionStateCenter.shared.clear(for: currentKey)
+    MTHostContext.shared.clear(for: currentKey)
+    MTInputGuard.clear(for: currentKey)
     _viewportsKeys.remove(at: idx)
     if _viewportsKeys.isEmpty {
       _newShellAction(animated: false)
@@ -502,6 +511,10 @@ Please go to your subscriptions and cancel one of them!
 
   private var _mtTabBar: MTTabBarHost? = nil
   private var _mtTabBarLeading: NSLayoutConstraint? = nil
+  /// 接続コマンドから拾った alias（_createTerminal でセッションに紐付ける）
+  private var _mtPendingAlias: String? = nil
+  private var _mtRingHost: UIViewController? = nil
+  private var _mtRingCancellable: AnyCancellable? = nil
   private var _mtSidebarHost: UIViewController? = nil
   private var _mtSidebarLeading: NSLayoutConstraint? = nil
   private var _mtSidebarVisible = false
@@ -567,6 +580,72 @@ Please go to your subscriptions and cancel one of them!
 
     // テーマとターミナル配色の同期ずれを自己修復（新規セッションはここから正しい配色になる）
     MTThemeStore.shared.syncTerminalStyleIfNeeded()
+
+    // 圏外ドラフトのカード（表示専用。_overlay はタッチを通さないので別ホスト）
+    let draftHost = UIHostingController(rootView: MTDraftOverlayView(onSend: { [weak self] lines in
+      self?._mtSendDraftLines(lines)
+    }))
+    draftHost.view.backgroundColor = .clear
+    addChild(draftHost)
+    draftHost.view.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(draftHost.view)
+    NSLayoutConstraint.activate([
+      draftHost.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+      draftHost.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      draftHost.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      draftHost.view.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor),
+    ])
+    draftHost.didMove(toParent: self)
+
+    // 危険コマンドの長押しリング（最前面・タッチを受ける）
+    let ringHost = UIHostingController(rootView: MTDangerRingView())
+    ringHost.view.backgroundColor = .clear
+    addChild(ringHost)
+    ringHost.view.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(ringHost.view)
+    NSLayoutConstraint.activate([
+      ringHost.view.topAnchor.constraint(equalTo: view.topAnchor),
+      ringHost.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      ringHost.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      ringHost.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+    ])
+    ringHost.didMove(toParent: self)
+    _mtRingHost = ringHost
+    // 長押し待ちが無い間はタッチを下へ通す
+    ringHost.view.isUserInteractionEnabled = false
+    _mtRingCancellable = MTDangerGuard.shared.$pending.sink { [weak ringHost] pending in
+      ringHost?.view.isUserInteractionEnabled = pending != nil
+    }
+  }
+
+  /// ドラフトの行をまとめて送る（復帰後）
+  private func _mtSendDraftLines(_ lines: [String]) {
+    guard let device = currentDevice else { return }
+    for line in lines {
+      device.write(line + "\r")
+    }
+  }
+
+  /// 現在のセッションの接続先に応じて額縁を出す（07 #03）
+  private func _mtApplyHostFrame() {
+    guard let term = currentTerm() else { return }
+    let alias = MTHostContext.shared.alias(for: _currentKey)
+    let host = alias.flatMap { BKHosts.withHost($0) }
+    let frame = MTSafety.frame(for: host)
+    let theme = MTThemeStore.shared.currentTheme
+
+    guard frame.style != .none, frame.style != .auto else {
+      term.termView.setMTFrame(color: nil, width: 0, label: nil)
+      return
+    }
+
+    let env = MTSafety.environment(for: host)
+    let color: UIColor = frame.colorHex.flatMap { MTColor(hex: $0)?.uiColor }
+      ?? (env == .production ? theme.warn.uiColor : theme.accent.uiColor)
+    term.termView.setMTFrame(
+      color: color,
+      width: frame.style.width,
+      label: MTSafety.frameLabel(forAlias: alias))
   }
 
   /// セッション一覧（06 §6.2）をシートで表示する
@@ -753,6 +832,7 @@ Please go to your subscriptions and cancel one of them!
     }
     MTSessionStateCenter.shared.currentKey = _currentKey
     _mtTabBar?.update(items: items, current: _currentKey)
+    _mtApplyHostFrame()
   }
 
   private func _displayHUD() {
@@ -1045,6 +1125,8 @@ extension SpaceController {
     let params = MCPParams()
     if !command.isEmpty {
       params.initialCommand = command
+      // MoshTerm: 接続先ホストをセッションに紐付ける（額縁・安全機能が参照、07 #02/#03/#04）
+      _mtPendingAlias = MTHostContext.parseAlias(fromCommand: command)
     }
     let payload = MCPSessionPayload(params: params)
     _createTerminal(userActivity: nil, animated: animated, sessionPayload: payload)

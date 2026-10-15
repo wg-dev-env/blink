@@ -68,6 +68,9 @@ struct winsize __winSizeFromJSON(NSDictionary *json) {
   NSTimer *_layoutDebounceTimer;
   
   UIView *_coverView;
+  // MoshTerm: ホストの額縁（07 #03）
+  UIView *_mtFrameView;
+  UILabel *_mtFrameLabel;
   UIView *_parentScrollView;
   NSInteger _touchID;
   NSMutableArray *_touchesArray;
@@ -117,6 +120,61 @@ struct winsize __winSizeFromJSON(NSDictionary *json) {
 
   _coverView.frame = self.bounds;
   [self bringSubviewToFront:_coverView];
+
+  // MoshTerm: 額縁は端末の実描画域（タブバー・サイドバーを除いた領域）に合わせる
+  if (_mtFrameView) {
+    _mtFrameView.frame = [self webViewFrame];
+    [self bringSubviewToFront:_mtFrameView];
+    if (_mtFrameLabel) {
+      [_mtFrameLabel sizeToFit];
+      CGRect b = _mtFrameLabel.bounds;
+      CGFloat pad = 6;
+      _mtFrameLabel.frame = CGRectMake(_mtFrameView.frame.origin.x + 8,
+                                       _mtFrameView.frame.origin.y + 6,
+                                       b.size.width + pad * 2, b.size.height + 4);
+      [self bringSubviewToFront:_mtFrameLabel];
+    }
+  }
+}
+
+- (void)setMTFrameWithColor:(UIColor *)color width:(CGFloat)width label:(NSString *)label
+{
+  if (width <= 0 || color == nil) {
+    [_mtFrameView removeFromSuperview];
+    _mtFrameView = nil;
+    [_mtFrameLabel removeFromSuperview];
+    _mtFrameLabel = nil;
+    return;
+  }
+
+  if (!_mtFrameView) {
+    _mtFrameView = [[UIView alloc] initWithFrame:[self webViewFrame]];
+    _mtFrameView.userInteractionEnabled = NO;
+    _mtFrameView.backgroundColor = UIColor.clearColor;
+    [self addSubview:_mtFrameView];
+  }
+  _mtFrameView.layer.borderColor = color.CGColor;
+  _mtFrameView.layer.borderWidth = width;
+
+  if (label.length > 0) {
+    if (!_mtFrameLabel) {
+      _mtFrameLabel = [[UILabel alloc] init];
+      _mtFrameLabel.userInteractionEnabled = NO;
+      _mtFrameLabel.textAlignment = NSTextAlignmentCenter;
+      _mtFrameLabel.layer.cornerRadius = 4;
+      _mtFrameLabel.clipsToBounds = YES;
+      [self addSubview:_mtFrameLabel];
+    }
+    _mtFrameLabel.text = label;
+    _mtFrameLabel.font = [UIFont monospacedDigitSystemFontOfSize:11 weight:UIFontWeightSemibold];
+    _mtFrameLabel.backgroundColor = color;
+    _mtFrameLabel.textColor = [UIColor colorWithWhite:0 alpha:0.85];
+  } else {
+    [_mtFrameLabel removeFromSuperview];
+    _mtFrameLabel = nil;
+  }
+
+  [self setNeedsLayout];
 }
 
 
