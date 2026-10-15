@@ -82,9 +82,6 @@ void __setupProcessEnv(void) {
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 
-  // 64_MoshTerm: 前面/背面の状態をどのスレッドからでも見られるようにする
-  [MTAppState startObserving];
-
   [Migrator perform];
 
   [AppDelegate reloadDefaults];

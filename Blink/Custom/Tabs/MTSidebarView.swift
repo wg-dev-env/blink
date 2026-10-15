@@ -51,9 +51,9 @@ struct MTSidebarView: View {
         Spacer()
         Button(action: onSettings) {
           Image(systemName: "gearshape")
-            .font(.system(size: 14, weight: .medium))
+            .font(.system(size: 15, weight: .medium))
             .foregroundColor(theme.sub.color)
-            .frame(width: 36, height: 36)
+            .frame(width: 44, height: 44)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

@@ -49,6 +49,9 @@
 #include "ios_error.h"
 #include "Blink-Swift.h"
 
+// 64_MoshTerm: 接続終了通知の名前
+NSString * const MTRemoteSessionDidEndNotification = @"MTRemoteSessionDidEnd";
+
 
 @implementation MCPSession {
   NSString * _sessionUUID;
@@ -93,14 +96,18 @@
     // We are restoring mosh session if possible first.
     if ([@"mosh" isEqualToString:self.sessionParams.childSessionType] && self.sessionParams.hasEncodedState) {
       MoshParams *moshParams = (MoshParams *)self.sessionParams.childSessionParams;
+      moshParams.mtDidSuspendThisRun = NO;  // 64_MoshTerm: この再アタッチで中断されたかを追う
 
       BlinkMosh *mosh = [[BlinkMosh alloc] initWithMcpSession: self device:_device andParams:moshParams];
       _childSession = mosh;
       [_childSession executeAttachedWithArgs:@""];
       _childSession = nil;
-      if (self.sessionParams.hasEncodedState) {
+      // 64_MoshTerm: 再アタッチ中にまた中断されたときだけ、プロンプトを出さずに終わる。
+      // exit で戻ったときは古い状態が残っていても捨ててプロンプトへ（固まり防止）
+      if (moshParams.mtDidSuspendThisRun) {
         return;
       }
+      [self.sessionParams cleanEncodedState];
     }
     if ([@"mosh1" isEqualToString:self.sessionParams.childSessionType] && self.sessionParams.hasEncodedState) {
       MoshSession *mosh = [[MoshSession alloc] initWithDevice:_device andParams:self.sessionParams.childSessionParams];
@@ -164,22 +171,20 @@
 
 // 64_MoshTerm カスタム: mosh が戻ってきたとき、プロンプトを出さずに終わってよいかを判断する。
 //
-// 「保存された状態がある」= アプリが中断されて mosh の状態を保存した、という意味なので
-// その場合はプロンプトを出さずに返る（復元時に続きから再開する）のが本来の挙動。
-// ただしアプリが前面にあるまま mosh が戻ってきたときは、ユーザーが exit したということなので、
-// 古い保存状態が残っていてもそれを捨ててローカルシェルのプロンプトへ戻す。
-// （これをしないと exit 後に何も表示されず、固まったように見える）
+// mosh が「中断（detach）」で戻ったなら状態が保存され、再開のために待つ（プロンプトを出さない）。
+// 「exit」で戻ったなら状態は保存されない。この区別を mtDidSuspendThisRun（今回の実行で
+// 状態保存が起きたか）で行う。前面/背面には依存しないので、前面での意図的 detach も
+// 複数ウィンドウも正しく扱える。exit なのに古い状態が残っていたら捨てる（固まり防止）。
 - (BOOL)_mtShouldSuspendAfterMosh
 {
-  if (!self.sessionParams.hasEncodedState) {
-    return NO;
+  MoshParams *moshParams = (MoshParams *)self.sessionParams.childSessionParams;
+  if (moshParams.mtDidSuspendThisRun) {
+    return YES;
   }
-  if (MTAppState.isForeground) {
-    // 前面にいる = 中断ではなく終了。残っている保存状態を捨てる
+  if (self.sessionParams.hasEncodedState) {
     [self.sessionParams cleanEncodedState];
-    return NO;
   }
-  return YES;
+  return NO;
 }
 
 - (BOOL)_runCommand:(NSString *)cmdline skipHistoryRecord: (BOOL) skipHistoryRecord {
@@ -289,12 +294,17 @@
     [_device prompt:@"blink> " secure:NO shell:YES];
   }
 
-  // 64_MoshTerm: 接続コマンドが終わったことを知らせる（終了後の案内を出すため）
+  // 64_MoshTerm: 接続コマンドが終わったことを知らせる（終了後の案内を出すため）。
+  // どのセッションが終わったかを載せて、正しいタブに案内を出す
   if ([cmd isEqualToString:@"mosh"] || [cmd isEqualToString:@"mosh1"] ||
       [cmd isEqualToString:@"ssh"] || [cmd isEqualToString:@"ssh2"]) {
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"MTRemoteSessionDidEnd"
+    NSMutableDictionary *info = [@{@"command": cmdline ?: @""} mutableCopy];
+    if (_mtSessionKey) {
+      info[@"sessionKey"] = _mtSessionKey;
+    }
+    [[NSNotificationCenter defaultCenter] postNotificationName:MTRemoteSessionDidEndNotification
                                                         object:nil
-                                                      userInfo:@{@"command": cmdline ?: @""}];
+                                                      userInfo:info];
   }
 
   return YES;

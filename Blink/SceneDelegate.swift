@@ -427,10 +427,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     _spCtrl.mtOpenHandoff(payload)
   }
 
-  func scene(_ scene: UIScene, willContinueUserActivityWithType userActivityType: String) {
-    // 受け取る準備だけ（画面はそのまま）
-  }
-
   func stateRestorationActivity(for scene: UIScene) -> NSUserActivity? {
     _setDummyVC()
     return _spCtrl.stateRestorationActivity()

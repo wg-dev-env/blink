@@ -92,7 +92,6 @@
 		4D540001000000000000B027 /* MTHistoryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A027 /* MTHistoryViews.swift */; };
 		4D540001000000000000B028 /* MTShield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A028 /* MTShield.swift */; };
 		4D540001000000000000B030 /* MTHandoff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A030 /* MTHandoff.swift */; };
-		4D540001000000000000B031 /* MTAppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A031 /* MTAppState.swift */; };
 		4D540001000000000000B032 /* MTSessionEndView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A032 /* MTSessionEndView.swift */; };
 		4D540001000000000000B029 /* KBKeyViewDial.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A029 /* KBKeyViewDial.swift */; };
 		4D540001000000000000B011 /* IBMPlexSansJP-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */; };
@@ -870,7 +869,6 @@
 		4D540001000000000000A027 /* MTHistoryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTHistoryViews.swift; sourceTree = "<group>"; };
 		4D540001000000000000A028 /* MTShield.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTShield.swift; sourceTree = "<group>"; };
 		4D540001000000000000A030 /* MTHandoff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTHandoff.swift; sourceTree = "<group>"; };
-		4D540001000000000000A031 /* MTAppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTAppState.swift; sourceTree = "<group>"; };
 		4D540001000000000000A032 /* MTSessionEndView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTSessionEndView.swift; sourceTree = "<group>"; };
 		4D540001000000000000A029 /* KBKeyViewDial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KBKeyViewDial.swift; sourceTree = "<group>"; };
 		4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Regular.ttf"; sourceTree = "<group>"; };
@@ -1814,7 +1812,6 @@
 				4D540001000000000000A027 /* MTHistoryViews.swift */,
 				4D540001000000000000A028 /* MTShield.swift */,
 				4D540001000000000000A030 /* MTHandoff.swift */,
-				4D540001000000000000A031 /* MTAppState.swift */,
 				4D540001000000000000A032 /* MTSessionEndView.swift */,
 			);
 			path = Safety;
@@ -3783,7 +3780,6 @@
 				4D540001000000000000B027 /* MTHistoryViews.swift in Sources */,
 				4D540001000000000000B028 /* MTShield.swift in Sources */,
 				4D540001000000000000B030 /* MTHandoff.swift in Sources */,
-				4D540001000000000000B031 /* MTAppState.swift in Sources */,
 				4D540001000000000000B032 /* MTSessionEndView.swift in Sources */,
 				4D540001000000000000B029 /* KBKeyViewDial.swift in Sources */,
 				BD55D69A2F7D743500EE80EA /* TerminalStyleBundle.swift in Sources */,

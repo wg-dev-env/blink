@@ -91,6 +91,7 @@ class MCPSessionPayload : TermSessionPayload {
       _snapshot = nil
     }
     self._session = MCPSession(device: device, andParams: _initialParams)
+    _session!.mtSessionKey = sessionKey  // 64_MoshTerm: 終了案内を正しいタブへ出すため
     _session!.execute(withArgs: "")
   }
 

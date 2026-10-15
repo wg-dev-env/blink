@@ -71,17 +71,24 @@ public extension EncodedStateBacked {
   
   // Snapshot storage (backing for the default behavior)
   @objc dynamic public var encodedStateStorage: Data? = nil
-  
+
+  /// 64_MoshTerm: この実行の間に mosh が中断（detach）で状態を保存したか。
+  /// 永続化しない一時フラグ。exit（状態保存なし）と中断（状態保存あり）を区別する
+  @objc public var mtDidSuspendThisRun: Bool = false
+
   override init() { super.init() }
-  
+
   private enum Key: String, CodingKey {
     case ip, port, key, predictionMode, predictOverwrite, startupCmd, serverPath, experimentalRemoteIp
   }
-  
+
   // Satisfy @objc protocol by forwarding to helpers:
   @objc func hasEncodedState() -> Bool { _hasEncodedStateDefault() }
   @objc func takeEncodedState() -> Data? { _takeEncodedStateDefault() }
-  @objc func putEncodedState(_ data: Data) { _putEncodedStateDefault(data) }
+  @objc func putEncodedState(_ data: Data) {
+    _putEncodedStateDefault(data)
+    mtDidSuspendThisRun = true  // 64_MoshTerm: 中断で状態が保存された印
+  }
   
   func encode(with coder: NSCoder) {
     coder.bk_encode(ip, for: Key.ip)

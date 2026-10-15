@@ -41,6 +41,8 @@ class KBKeyViewDial: KBKeyView {
   private var _didRotate = false
   /// 回し始めの向き（縦回し = 履歴、横回し = カーソル）
   private var _vertical = true
+  private var _startPoint: CGPoint = .zero
+  private var _axisLocked = false
 
   private let _haptics = UISelectionFeedbackGenerator()
 
@@ -105,6 +107,8 @@ class KBKeyViewDial: KBKeyView {
     _didRotate = false
     _accumulated = 0
     _lastAngle = _angle(of: touch)
+    _startPoint = touch.location(in: self)
+    _axisLocked = false
   }
 
   override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -114,11 +118,13 @@ class KBKeyViewDial: KBKeyView {
     let point = touch.location(in: self)
     let angle = _angle(of: touch)
 
-    // 最初の動きで、縦回し（履歴）か横回し（カーソル）かを決める
-    if !_didRotate {
-      let dx = abs(point.x - _center.x)
-      let dy = abs(point.y - _center.y)
-      _vertical = dy >= dx
+    // 最初に十分動いた向き（＝指の移動方向）で、縦回し（履歴）か横回し（カーソル）かを決める
+    if !_axisLocked {
+      let moved = CGPoint(x: point.x - _startPoint.x, y: point.y - _startPoint.y)
+      if abs(moved.x) > 8 || abs(moved.y) > 8 {
+        _vertical = abs(moved.y) >= abs(moved.x)
+        _axisLocked = true
+      }
     }
 
     var delta = angle - last

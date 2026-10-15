@@ -39,11 +39,17 @@
 @class MCPParams;
 @class BlinkSSH;
 
+// 64_MoshTerm: 接続（mosh/ssh）が終了したときに飛ぶ通知。userInfo に command / sessionKey
+extern NSString * const MTRemoteSessionDidEndNotification;
+
 @interface MCPSession : Session <TermDeviceReadlineListener>
 
 @property (strong) MCPParams *sessionParams;
 @property (readonly) dispatch_queue_t cmdQueue;
 @property (strong) TokioSignals *tokioSignals;
+// 64_MoshTerm: このセッションの識別子（TermController.meta.key の uuidString）。
+// 接続終了の案内を正しいタブへ出すために使う
+@property (copy) NSString *mtSessionKey;
 
 - (void)registerSSHClient:(id __weak)sshClient;
 - (void)unregisterSSHClient:(id __weak)sshClient;

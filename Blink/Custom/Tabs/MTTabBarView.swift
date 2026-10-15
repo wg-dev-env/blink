@@ -182,10 +182,11 @@ private struct MTTabView: View {
         // アクティブタブの「×」= このセッションを閉じる（06 §5.1）
         Button(action: onClose) {
           Image(systemName: "xmark")
-            .font(.system(size: 10, weight: .semibold))
+            .font(.system(size: 11, weight: .semibold))
             .foregroundColor(theme.muted.color)
-            .frame(width: 30, height: 36)
-            .contentShape(Rectangle())
+            // 見た目は小さく、当たり判定は 44pt 相当に広げる
+            .frame(width: 32, height: 36)
+            .contentShape(Rectangle().inset(by: -6))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text("\(item.title) を閉じる"))

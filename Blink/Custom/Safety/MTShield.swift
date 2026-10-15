@@ -22,7 +22,6 @@
 import BlinkConfig
 import Combine
 import Foundation
-import LocalAuthentication
 
 /// 覗き見防止で画面を伏せる（07 #08）。
 ///
@@ -84,7 +83,9 @@ final class MTShieldCenter: ObservableObject {
     shielded.insert(key)
   }
 
-  /// 戻す。Face ID を要求する設定なら認証してから
+  /// 戻す。Face ID を要求する設定なら認証してから。
+  /// 認証できない環境では開かない（fail-closed）。既存の LocalAuth を使い、
+  /// 多重プロンプトを防ぐガードも共有する。
   func reveal(_ key: UUID) {
     guard shielded.contains(key) else { return }
     noteInteraction()
@@ -94,20 +95,11 @@ final class MTShieldCenter: ObservableObject {
       return
     }
 
-    let context = LAContext()
-    var error: NSError?
-    guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else {
-      shielded.remove(key)
-      return
-    }
-    context.evaluatePolicy(.deviceOwnerAuthentication,
-                           localizedReason: "伏せている画面を表示します") { [weak self] ok, _ in
-      guard ok else { return }
-      DispatchQueue.main.async {
-        self?.shielded.remove(key)
-        self?.noteInteraction()
-      }
-    }
+    LocalAuth.shared.authenticate(callback: { [weak self] ok in
+      guard ok else { return }  // 失敗・不可時は伏せたまま
+      self?.shielded.remove(key)
+      self?.noteInteraction()
+    }, reason: "伏せている画面を表示します")
   }
 
   func clear(for key: UUID) {

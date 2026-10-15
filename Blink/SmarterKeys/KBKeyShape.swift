@@ -69,6 +69,10 @@ enum KBKeyShape: Hashable {
       self = .arrows
       return
     }
+    if container.contains(.dial) {
+      self = .dial
+      return
+    }
     
     if let values = try container.decodeIfPresent([KBKeyValue].self, forKey: .vertical2),
       values.count == 2  {

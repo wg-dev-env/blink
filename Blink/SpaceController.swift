@@ -216,6 +216,9 @@ class SpaceController: UIViewController {
   
   deinit {
     NotificationCenter.default.removeObserver(self)
+    // MoshTerm: 繰り返しタイマーを止める（ウィンドウを閉じても残らないように）
+    _mtSnapshotTimer?.invalidate()
+    _mtShieldTimer?.invalidate()
   }
 
   @objc private func _setupAppearance() {
@@ -526,6 +529,7 @@ Please go to your subscriptions and cancel one of them!
   private var _mtShieldCancellable: AnyCancellable? = nil
   private var _mtRevealTap: UITapGestureRecognizer? = nil
   private var _mtEndCancellable: AnyCancellable? = nil
+  private weak var _mtEndHost: UIViewController? = nil
   private var _mtSidebarHost: UIViewController? = nil
   private var _mtSidebarLeading: NSLayoutConstraint? = nil
   private var _mtSidebarVisible = false
@@ -670,13 +674,14 @@ Please go to your subscriptions and cancel one of them!
     ])
     endHost.didMove(toParent: self)
     endHost.view.isUserInteractionEnabled = false
-    _mtEndCancellable = MTSessionEndCenter.shared.$ended.sink { [weak endHost, weak self] ended in
-      let key = self?._currentKey
-      endHost?.view.isUserInteractionEnabled = key.map { ended[$0] != nil } ?? false
+    _mtEndHost = endHost
+    // 案内の有無が変わったときも、タブを切り替えたときも、タッチ可否を再計算する
+    _mtEndCancellable = MTSessionEndCenter.shared.$ended.sink { [weak self] _ in
+      DispatchQueue.main.async { self?._mtApplyEndView() }
     }
     NotificationCenter.default.addObserver(
       self, selector: #selector(_mtRemoteSessionDidEnd(_:)),
-      name: NSNotification.Name("MTRemoteSessionDidEnd"), object: nil)
+      name: .MTRemoteSessionDidEnd, object: nil)
 
     // 覗き見防止（07 #08）: 無操作が続いたら本番ホストのタブを伏せる
     _mtShieldTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
@@ -726,26 +731,48 @@ Please go to your subscriptions and cancel one of them!
     }
   }
 
-  /// 今のセッションを他の端末へ広告する（07 #07）
+  /// 今広告している Handoff の内容（alias|title）。同じなら作り直さない
+  private var _mtHandoffSignature: String? = nil
+
+  /// 今のセッションを他の端末へ広告する（07 #07）。
+  /// _mtTabBarUpdate はキーボード開閉などでも呼ばれるため、内容が変わらなければ何もしない
   private func _mtUpdateHandoffActivity() {
     guard let key = _currentKey, let alias = MTHostContext.shared.alias(for: key) else {
-      userActivity?.invalidate()
-      userActivity = nil
+      if _mtHandoffSignature != nil {
+        userActivity?.invalidate()
+        userActivity = nil
+        _mtHandoffSignature = nil
+      }
       return
     }
     let title = MTSessionsStore.shared.title(for: key) ?? alias
+    let signature = "\(alias)|\(title)"
+    guard signature != _mtHandoffSignature else { return }
+
     guard let activity = MTHandoff.makeActivity(alias: alias, title: title) else { return }
+    userActivity?.invalidate()
     userActivity = activity
     activity.becomeCurrent()
+    _mtHandoffSignature = signature
   }
 
-  /// リモート接続が終わった（exit した）ときの案内を出す
+  /// リモート接続が終わった（exit した）ときの案内を出す。
+  /// どのセッションが終わったかは通知の sessionKey で判断する（現在タブとは限らない）
   @objc private func _mtRemoteSessionDidEnd(_ note: Notification) {
-    guard let key = _currentKey else { return }
     let command = (note.userInfo?["command"] as? String) ?? ""
+    let keyString = note.userInfo?["sessionKey"] as? String
     DispatchQueue.main.async {
+      guard let keyString, let key = UUID(uuidString: keyString) else { return }
+      // このウィンドウが持っているセッションのときだけ記録する（複数ウィンドウ対応）
+      guard self._viewportsKeys.contains(key) else { return }
       MTSessionEndCenter.shared.note(command: command, for: key)
     }
+  }
+
+  /// 終了案内のタッチ可否を、現在タブに案内が出ているかで決める
+  private func _mtApplyEndView() {
+    let show = _currentKey.map { MTSessionEndCenter.shared.ended(for: $0) != nil } ?? false
+    _mtEndHost?.view.isUserInteractionEnabled = show
   }
 
   /// 伏せる・戻すを端末へ反映する（07 #08）
@@ -761,8 +788,12 @@ Please go to your subscriptions and cancel one of them!
         background: theme.bg.uiColor,
         barColor: theme.raised.uiColor,
         textColor: theme.muted.uiColor)
+      // 伏せている間は入力を受け付けない（不可視のまま打鍵が端末に届くのを防ぐ）
+      KBTracker.shared.input?.reset()
+      _ = KBTracker.shared.input?.resignFirstResponder()
     } else {
       term.termView.setMTShield(message: nil, background: nil, barColor: nil, textColor: nil)
+      _attachInputToCurrentTerm()
     }
   }
 
@@ -1029,6 +1060,7 @@ Please go to your subscriptions and cancel one of them!
     _mtTabBar?.update(items: items, current: _currentKey)
     _mtApplyHostFrame()
     _mtApplyShield()
+    _mtApplyEndView()
     _mtUpdateHandoffActivity()
   }
 
