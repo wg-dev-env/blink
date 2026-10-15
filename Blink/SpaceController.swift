@@ -650,10 +650,17 @@ Please go to your subscriptions and cancel one of them!
 
   /// セッション一覧（06 §6.2）をシートで表示する
   private func _mtShowSessionsList() {
-    let items = _viewportsKeys.map { key -> MTTabItem in
+    let items = _viewportsKeys.enumerated().map { index, key -> MTTabItem in
+      let number = index + 1
+      if let custom = MTSessionsStore.shared.title(for: key) {
+        return MTTabItem(key: key, title: custom, index: number)
+      }
+      if let alias = MTHostContext.shared.alias(for: key) {
+        return MTTabItem(key: key, title: alias, index: number)
+      }
       let term: TermController = SessionRegistry.shared[key]
       let title = term.title ?? ""
-      return MTTabItem(key: key, title: title.isEmpty ? "shell" : title)
+      return MTTabItem(key: key, title: title.isEmpty ? "shell" : title, index: number)
     }
     let view = MTSessionsView(
       items: items,
@@ -745,11 +752,16 @@ Please go to your subscriptions and cancel one of them!
     let term: TermController = SessionRegistry.shared[key]
     let current = store.title(for: key) ?? (term.title ?? "")
 
-    let alert = UIAlertController(title: "名前を変更", message: "空にすると自動タイトルに戻ります", preferredStyle: .alert)
+    let number = (_viewportsKeys.firstIndex(of: key).map { $0 + 1 }).map { "\($0) 番 · " } ?? ""
+    let alert = UIAlertController(
+      title: "\(number)名前を変更",
+      message: "空にすると、接続先のホスト名（ローカルは shell）に戻ります",
+      preferredStyle: .alert)
     alert.addTextField { field in
       field.text = current
-      field.placeholder = "セッション名"
+      field.placeholder = MTHostContext.shared.alias(for: key) ?? "セッション名"
       field.clearButtonMode = .whileEditing
+      field.autocapitalizationType = .none
     }
     alert.addAction(UIAlertAction(title: "キャンセル", style: .cancel))
     alert.addAction(UIAlertAction(title: "保存", style: .default) { [weak self, weak alert] _ in
@@ -820,15 +832,20 @@ Please go to your subscriptions and cancel one of them!
 
   private func _mtTabBarUpdate() {
     guard _mtTabBar != nil else { return }
-    let items = _viewportsKeys.map { key -> MTTabItem in
+    let items = _viewportsKeys.enumerated().map { index, key -> MTTabItem in
       MTSessionStateCenter.shared.track(key)
+      let number = index + 1
       // 手動で付けた名前（06 §5.1）があれば自動タイトルより優先
       if let custom = MTSessionsStore.shared.title(for: key) {
-        return MTTabItem(key: key, title: custom)
+        return MTTabItem(key: key, title: custom, index: number)
+      }
+      // 次点は接続先のホスト名（ローカルシェルは shell）
+      if let alias = MTHostContext.shared.alias(for: key) {
+        return MTTabItem(key: key, title: alias, index: number)
       }
       let term: TermController = SessionRegistry.shared[key]
       let title = term.title ?? ""
-      return MTTabItem(key: key, title: title.isEmpty ? "shell" : title)
+      return MTTabItem(key: key, title: title.isEmpty ? "shell" : title, index: number)
     }
     MTSessionStateCenter.shared.currentKey = _currentKey
     _mtTabBar?.update(items: items, current: _currentKey)

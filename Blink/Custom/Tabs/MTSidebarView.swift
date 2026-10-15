@@ -116,6 +116,9 @@ struct MTSidebarView: View {
     } label: {
       HStack(spacing: 8) {
         MTStateBadge(state: state, theme: theme)
+        Text("\(item.index)")
+          .font(MTFont.mono(11, .medium))
+          .foregroundColor(isActive ? theme.ok.color : theme.muted.color)
         Text(item.title)
           .font(MTFont.ui(13, isActive ? .medium : .regular))
           .foregroundColor(isActive ? theme.text.color : theme.sub.color)
@@ -125,6 +128,7 @@ struct MTSidebarView: View {
       .padding(.vertical, 2)
     }
     .buttonStyle(.plain)
+    .simultaneousGesture(TapGesture(count: 2).onEnded { onRename(item.key) })
     .listRowBackground(isActive ? theme.okBg.color : Color.clear)
     .contextMenu {
       Button("名前を変更") { onRename(item.key) }

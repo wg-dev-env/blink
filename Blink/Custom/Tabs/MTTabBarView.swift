@@ -27,6 +27,8 @@ import UIKit
 struct MTTabItem: Identifiable, Equatable {
   let key: UUID
   let title: String
+  /// 1 始まりの連番。iPad / Mac では ⌘1〜9 と一致する（06 §5.1）
+  let index: Int
   var id: UUID { key }
 }
 
@@ -78,6 +80,8 @@ struct MTTabBarView: View {
                 onSelect: { onSelect(item.key) },
                 onClose: { onClose(item.key) }
               )
+              // ダブルタップでも名前を変えられる（長押しメニューに加えて）
+              .simultaneousGesture(TapGesture(count: 2).onEnded { onRename(item.key) })
               .contextMenu {
                 Button("名前を変更") { onRename(item.key) }
                 Button("隠す") { sessionsStore.hide(item.key) }
@@ -138,19 +142,23 @@ private struct MTTabView: View {
       Button(action: onSelect) {
         HStack(spacing: 6) {
           MTStateBadge(state: state, theme: theme)
+          // 連番（iPad / Mac は ⌘1〜9 と対応）
+          Text("\(item.index)")
+            .font(MTFont.mono(11, .medium))
+            .foregroundColor(isActive ? theme.ok.color : theme.muted.color)
           Text(item.title)
             .font(MTFont.ui(13, isActive ? .medium : .regular))
             .foregroundColor(isActive ? theme.text.color : theme.sub.color)
             .lineLimit(1)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.leading, 12)
-        .padding(.trailing, isActive ? 0 : 12)
+        .padding(.leading, 10)
+        .padding(.trailing, isActive ? 0 : 10)
         .frame(height: 36)
         .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
-      .accessibilityLabel(Text("\(item.title)。\(state.label)"))
+      .accessibilityLabel(Text("\(item.index) 番 \(item.title)。\(state.label)"))
       .accessibilityAddTraits(isActive ? .isSelected : [])
 
       if isActive {

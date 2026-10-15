@@ -225,6 +225,10 @@ struct MTSessionsView: View {
     } label: {
       HStack(spacing: 10) {
         MTStateBadge(state: state, theme: theme)
+        Text("\(item.index)")
+          .font(MTFont.mono(12, .medium))
+          .foregroundColor(theme.muted.color)
+          .frame(minWidth: 14)
         VStack(alignment: .leading, spacing: 2) {
           Text(concealed ? "●●●●●" : item.title)
             .font(MTFont.ui(15, item.key == currentKey ? .medium : .regular))
