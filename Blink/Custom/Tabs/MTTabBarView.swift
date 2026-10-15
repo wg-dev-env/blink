@@ -46,6 +46,8 @@ struct MTTabBarView: View {
   let onSelect: (UUID) -> Void
   let onNew: () -> Void
   let onList: () -> Void
+  let onRename: (UUID) -> Void
+  let onClose: (UUID) -> Void
 
   private var theme: MTTheme { themeStore.currentTheme }
 
@@ -71,9 +73,15 @@ struct MTTabBarView: View {
                 item: item,
                 state: stateCenter.state(for: item.key),
                 isActive: item.key == model.currentKey,
-                theme: theme
+                theme: theme,
+                onClose: { onClose(item.key) }
               )
               .onTapGesture { onSelect(item.key) }
+              .contextMenu {
+                Button("名前を変更") { onRename(item.key) }
+                Button("隠す") { sessionsStore.hide(item.key) }
+                Button("閉じる", role: .destructive) { onClose(item.key) }
+              }
               .id(item.key)
             }
           }
@@ -109,6 +117,7 @@ private struct MTTabView: View {
   let state: MTSessionState
   let isActive: Bool
   let theme: MTTheme
+  let onClose: () -> Void
 
   var body: some View {
     HStack(spacing: 6) {
@@ -117,8 +126,22 @@ private struct MTTabView: View {
         .font(MTFont.ui(13, isActive ? .medium : .regular))
         .foregroundColor(isActive ? theme.text.color : theme.sub.color)
         .lineLimit(1)
+        .frame(maxWidth: .infinity, alignment: .leading)
+      if isActive {
+        // アクティブタブの「×」= このセッションを閉じる（06 §5.1）
+        Button(action: onClose) {
+          Image(systemName: "xmark")
+            .font(.system(size: 10, weight: .semibold))
+            .foregroundColor(theme.muted.color)
+            .frame(width: 22, height: 22)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("\(item.title) を閉じる"))
+      }
     }
     .padding(.horizontal, 12)
+    .frame(minWidth: 110, maxWidth: 200)
     .frame(height: 36)
     .background(
       RoundedRectangle(cornerRadius: 10)
@@ -171,10 +194,13 @@ final class MTTabBarHost: UIViewController {
     let onSelect: (UUID) -> Void
     let onNew: () -> Void
     let onList: () -> Void
+    let onRename: (UUID) -> Void
+    let onClose: (UUID) -> Void
 
     var body: some View {
       VStack(spacing: 0) {
-        MTTabBarView(model: model, onSelect: onSelect, onNew: onNew, onList: onList)
+        MTTabBarView(model: model, onSelect: onSelect, onNew: onNew, onList: onList,
+                     onRename: onRename, onClose: onClose)
         MTLifelineView()
           .frame(height: 20)
       }
@@ -183,10 +209,13 @@ final class MTTabBarHost: UIViewController {
 
   init(onSelect: @escaping (UUID) -> Void,
        onNew: @escaping () -> Void,
-       onList: @escaping () -> Void) {
+       onList: @escaping () -> Void,
+       onRename: @escaping (UUID) -> Void,
+       onClose: @escaping (UUID) -> Void) {
     super.init(nibName: nil, bundle: nil)
     let hosting = UIHostingController(
-      rootView: ChromeView(model: model, onSelect: onSelect, onNew: onNew, onList: onList))
+      rootView: ChromeView(model: model, onSelect: onSelect, onNew: onNew, onList: onList,
+                           onRename: onRename, onClose: onClose))
     addChild(hosting)
     hosting.view.backgroundColor = .clear
     hosting.view.translatesAutoresizingMaskIntoConstraints = false

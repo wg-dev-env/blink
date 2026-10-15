@@ -28,6 +28,8 @@ struct MTSidebarView: View {
   let onSelect: (UUID) -> Void
   let onConnect: (String, MTConnectKind) -> Void
   let onNewConnection: () -> Void
+  let onRename: (UUID) -> Void
+  let onClose: (UUID) -> Void
 
   @ObservedObject private var stateCenter = MTSessionStateCenter.shared
   @ObservedObject private var sessionsStore = MTSessionsStore.shared
@@ -104,6 +106,11 @@ struct MTSidebarView: View {
     }
     .buttonStyle(.plain)
     .listRowBackground(isActive ? theme.okBg.color : Color.clear)
+    .contextMenu {
+      Button("名前を変更") { onRename(item.key) }
+      Button("隠す") { sessionsStore.hide(item.key) }
+      Button("閉じる", role: .destructive) { onClose(item.key) }
+    }
     .accessibilityLabel(Text("\(item.title)。\(state.label)"))
     .accessibilityAddTraits(isActive ? .isSelected : [])
   }

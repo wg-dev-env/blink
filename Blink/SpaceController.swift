@@ -522,7 +522,9 @@ Please go to your subscriptions and cancel one of them!
     let host = MTTabBarHost(
       onSelect: { [weak self] key in self?._moveToShell(key: key) },
       onNew: { [weak self] in self?._mtShowConnectSheet() },
-      onList: { [weak self] in self?._mtShowSessionsList() }
+      onList: { [weak self] in self?._mtShowSessionsList() },
+      onRename: { [weak self] key in self?._mtRenameSession(key) },
+      onClose: { [weak self] key in self?._mtCloseSession(key) }
     )
     addChild(host)
     host.view.translatesAutoresizingMaskIntoConstraints = false
@@ -594,7 +596,9 @@ Please go to your subscriptions and cancel one of them!
       onConnect: { [weak self] alias, kind in
         self?._newShellAction(command: "\(kind.command) \(alias)", animated: true)
       },
-      onNewConnection: { [weak self] in self?._mtShowConnectSheet() }
+      onNewConnection: { [weak self] in self?._mtShowConnectSheet() },
+      onRename: { [weak self] key in self?._mtRenameSession(key) },
+      onClose: { [weak self] key in self?._mtCloseSession(key) }
     )
     let host = UIHostingController(rootView: view)
     host.view.backgroundColor = .clear
@@ -636,6 +640,44 @@ Please go to your subscriptions and cancel one of them!
     }
   }
 
+  /// セッション名の手動変更（タブ長押し →「名前を変更」）。シェルの自動タイトルより優先される。
+  private func _mtRenameSession(_ key: UUID) {
+    let store = MTSessionsStore.shared
+    let term: TermController = SessionRegistry.shared[key]
+    let current = store.title(for: key) ?? (term.title ?? "")
+
+    let alert = UIAlertController(title: "名前を変更", message: "空にすると自動タイトルに戻ります", preferredStyle: .alert)
+    alert.addTextField { field in
+      field.text = current
+      field.placeholder = "セッション名"
+      field.clearButtonMode = .whileEditing
+    }
+    alert.addAction(UIAlertAction(title: "キャンセル", style: .cancel))
+    alert.addAction(UIAlertAction(title: "保存", style: .default) { [weak self, weak alert] _ in
+      store.setTitle(alert?.textFields?.first?.text, for: key)
+      self?._mtTabBarUpdate()
+    })
+    present(alert, animated: true)
+  }
+
+  /// 任意のセッションを閉じる（タブの「×」・長押しメニュー）
+  private func _mtCloseSession(_ key: UUID) {
+    if key == _currentKey {
+      _closeCurrentSpace()
+      return
+    }
+    let term: TermController = SessionRegistry.shared[key]
+    term.delegate = nil
+    term.terminate()
+    SessionRegistry.shared.remove(forKey: key)
+    MTSessionStateCenter.shared.clear(for: key)
+    MTSessionsStore.shared.setTitle(nil, for: key)
+    if let idx = _viewportsKeys.firstIndex(of: key) {
+      _viewportsKeys.remove(at: idx)
+    }
+    _mtTabBarUpdate()
+  }
+
   /// 現在のセッションを非表示にして、見えている別のセッションへ移る（⌘⇧H）
   private func _mtHideCurrentSession() {
     guard let key = _currentKey else { return }
@@ -667,16 +709,24 @@ Please go to your subscriptions and cancel one of them!
         }
       )
     }
-    let sheet = UIHostingController(rootView: rootView)
-    sheet.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
-    sheet.modalPresentationStyle = .pageSheet
-    present(sheet, animated: true)
+    // NavView は navController を画面に組み込まないため、設定画面と同じく
+    // UINavigationController 自体を present する（push・ナビバーが機能する）
+    let content = UIHostingController(rootView: rootView)
+    navController.setViewControllers([content], animated: false)
+    navController.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
+    navController.modalPresentationStyle = .pageSheet
+    currentTerm()?.resignInput()
+    present(navController, animated: true)
   }
 
   private func _mtTabBarUpdate() {
     guard _mtTabBar != nil else { return }
     let items = _viewportsKeys.map { key -> MTTabItem in
       MTSessionStateCenter.shared.track(key)
+      // 手動で付けた名前（06 §5.1）があれば自動タイトルより優先
+      if let custom = MTSessionsStore.shared.title(for: key) {
+        return MTTabItem(key: key, title: custom)
+      }
       let term: TermController = SessionRegistry.shared[key]
       let title = term.title ?? ""
       return MTTabItem(key: key, title: title.isEmpty ? "shell" : title)

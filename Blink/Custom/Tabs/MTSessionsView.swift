@@ -30,14 +30,38 @@ final class MTSessionsStore: ObservableObject {
   static let shared = MTSessionsStore()
 
   private static let hiddenKey = "MTHiddenSessionKeys"
+  private static let titlesKey = "MTSessionCustomTitles"
 
   @Published private(set) var hiddenKeys: Set<UUID>
+  /// 手動で付けたセッション名（シェルの自動タイトルより優先。06 §5.1）
+  @Published private(set) var customTitles: [UUID: String]
   /// Face ID 解錠状態（アプリのプロセス中のみ有効。再起動でロックに戻る）
   @Published var unlocked = false
 
   private init() {
     let stored = UserDefaults.standard.stringArray(forKey: Self.hiddenKey) ?? []
     hiddenKeys = Set(stored.compactMap(UUID.init(uuidString:)))
+    let titles = UserDefaults.standard.dictionary(forKey: Self.titlesKey) as? [String: String] ?? [:]
+    customTitles = Dictionary(uniqueKeysWithValues: titles.compactMap { key, value in
+      UUID(uuidString: key).map { ($0, value) }
+    })
+  }
+
+  func title(for key: UUID) -> String? {
+    customTitles[key]
+  }
+
+  /// nil または空文字で手動名を解除する
+  func setTitle(_ title: String?, for key: UUID) {
+    let trimmed = title?.trimmingCharacters(in: .whitespacesAndNewlines)
+    if let trimmed, !trimmed.isEmpty {
+      customTitles[key] = trimmed
+    } else {
+      customTitles.removeValue(forKey: key)
+    }
+    UserDefaults.standard.set(
+      Dictionary(uniqueKeysWithValues: customTitles.map { ($0.key.uuidString, $0.value) }),
+      forKey: Self.titlesKey)
   }
 
   func hide(_ key: UUID) {
