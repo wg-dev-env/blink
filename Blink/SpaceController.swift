@@ -871,7 +871,7 @@ Please go to your subscriptions and cancel one of them!
       }
       let term: TermController = SessionRegistry.shared[key]
       let title = term.title ?? ""
-      return MTTabItem(key: key, title: title.isEmpty ? "shell" : title, index: number)
+      return MTTabItem(key: key, title: title.isEmpty ? MTDeviceInfo.name : title, index: number)
     }
     let view = MTSessionsView(
       items: items,
@@ -1058,7 +1058,7 @@ Please go to your subscriptions and cancel one of them!
       }
       let term: TermController = SessionRegistry.shared[key]
       let title = term.title ?? ""
-      return MTTabItem(key: key, title: title.isEmpty ? "shell" : title, index: number)
+      return MTTabItem(key: key, title: title.isEmpty ? MTDeviceInfo.name : title, index: number)
     }
     MTSessionStateCenter.shared.currentKey = _currentKey
     _mtTabBar?.update(items: items, current: _currentKey)

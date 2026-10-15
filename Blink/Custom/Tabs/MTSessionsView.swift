@@ -148,17 +148,16 @@ struct MTSessionsView: View {
                   }
               }
             } else {
-              Button {
-                sessionsStore.authenticate()
-              } label: {
-                HStack {
-                  Image(systemName: "faceid")
-                  Text("Face ID で表示")
-                  Spacer()
-                }
-                .foregroundColor(theme.accent.color)
-                .padding(.vertical, 6)
+              HStack {
+                Image(systemName: "faceid")
+                Text("Face ID で表示")
+                Spacer()
               }
+              .foregroundColor(theme.accent.color)
+              .padding(.vertical, 6)
+              .contentShape(Rectangle())
+              .onTapGesture { sessionsStore.authenticate() }
+              .accessibilityAddTraits(.isButton)
             }
           } header: {
             Text("非表示のセッション · \(hiddenItems.count)")
@@ -219,35 +218,38 @@ struct MTSessionsView: View {
     let state = stateCenter.state(for: item.key)
     let timeline = stateCenter.timeline(for: item.key)
 
-    Button {
+    // List 内の Button はタップに反応しないことがあるため onTapGesture を使う
+    HStack(spacing: 10) {
+      MTStateBadge(state: state, theme: theme)
+      Text("\(item.index)")
+        .font(MTFont.mono(12, .medium))
+        .foregroundColor(theme.muted.color)
+        .frame(minWidth: 14)
+      VStack(alignment: .leading, spacing: 2) {
+        Text(concealed ? "●●●●●" : item.title)
+          .font(MTFont.ui(15, item.key == currentKey ? .medium : .regular))
+          .foregroundColor(.primary)
+          .lineLimit(1)
+        Text("開始から \(MTLifelineView.duration(Date().timeIntervalSince(timeline.start))) · 回線切替 \(timeline.switchCount)")
+          .font(MTFont.ui(12))
+          .foregroundColor(.secondary)
+      }
+      Spacer()
+      Text(state.label)
+        .font(MTFont.ui(11, .medium))
+        .foregroundColor(pillColor(state))
+        .padding(.horizontal, 8)
+        .padding(.vertical, 3)
+        .background(Capsule().stroke(pillColor(state), lineWidth: 1))
+    }
+    .padding(.vertical, 6)
+    .contentShape(Rectangle())
+    .onTapGesture {
       dismiss()
       onSelect(item.key)
-    } label: {
-      HStack(spacing: 10) {
-        MTStateBadge(state: state, theme: theme)
-        Text("\(item.index)")
-          .font(MTFont.mono(12, .medium))
-          .foregroundColor(theme.muted.color)
-          .frame(minWidth: 14)
-        VStack(alignment: .leading, spacing: 2) {
-          Text(concealed ? "●●●●●" : item.title)
-            .font(MTFont.ui(15, item.key == currentKey ? .medium : .regular))
-            .foregroundColor(.primary)
-            .lineLimit(1)
-          Text("開始から \(MTLifelineView.duration(Date().timeIntervalSince(timeline.start))) · 回線切替 \(timeline.switchCount)")
-            .font(MTFont.ui(12))
-            .foregroundColor(.secondary)
-        }
-        Spacer()
-        Text(state.label)
-          .font(MTFont.ui(11, .medium))
-          .foregroundColor(pillColor(state))
-          .padding(.horizontal, 8)
-          .padding(.vertical, 3)
-          .background(Capsule().stroke(pillColor(state), lineWidth: 1))
-      }
-      .padding(.vertical, 2)
     }
+    .accessibilityElement(children: .ignore)
+    .accessibilityAddTraits(.isButton)
     .accessibilityLabel(Text("\(concealed ? "非表示のセッション" : item.title)。\(state.label)"))
   }
 

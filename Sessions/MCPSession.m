@@ -140,11 +140,11 @@ NSString * const MTRemoteSessionDidEndNotification = @"MTRemoteSessionDidEnd";
         NSString *sshcmd = [NSString stringWithFormat: @"ssh -A %@", localhost.host];
         [self enqueueCommand:sshcmd];
       } else {
-        [_device prompt:@"blink> " secure:NO shell:YES];
+        [_device prompt:MTDeviceInfo.localPrompt secure:NO shell:YES];
       }
     #else
     if (_device) {
-      [_device prompt:@"blink> " secure:NO shell:YES];
+      [_device prompt:MTDeviceInfo.localPrompt secure:NO shell:YES];
     }
     #endif
   });
@@ -291,7 +291,7 @@ NSString * const MTRemoteSessionDidEndNotification = @"MTRemoteSessionDidEnd";
     // TODO At the moment this is just a prompt instead of a readline. This needs to be fixed.
     // And bc of that, we need to check that there is a device. The MCP may be killed, but the loop here may still
     // try to write to the device.
-    [_device prompt:@"blink> " secure:NO shell:YES];
+    [_device prompt:MTDeviceInfo.localPrompt secure:NO shell:YES];
   }
 
   // 64_MoshTerm: 接続コマンドが終わったことを知らせる（終了後の案内を出すため）。

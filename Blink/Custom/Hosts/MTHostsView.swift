@@ -136,13 +136,12 @@ struct MTHostsView: View {
             Text("ホスト名・ユーザー・鍵・tmux 自動アタッチを登録すると、タップひとつで Mosh 接続できます。")
               .font(MTFont.ui(13))
               .foregroundColor(.secondary)
-            Button {
-              editHost(nil)
-            } label: {
-              Label("最初のホストを登録", systemImage: "plus")
-                .font(MTFont.ui(15, .medium))
-            }
-            .padding(.top, 4)
+            Label("最初のホストを登録", systemImage: "plus")
+              .font(MTFont.ui(15, .medium))
+              .foregroundColor(theme.accent.color)
+              .padding(.top, 4)
+              .contentShape(Rectangle())
+              .onTapGesture { editHost(nil) }
           }
           .padding(.vertical, 6)
         }
@@ -162,21 +161,23 @@ struct MTHostsView: View {
         }
 
         Section {
-          Button {
-            editHost(nil)
-          } label: {
-            Label("新規ホスト", systemImage: "plus")
-              .foregroundColor(theme.accent.color)
-          }
+          Label("新規ホスト", systemImage: "plus")
+            .foregroundColor(theme.accent.color)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 6)
+            .contentShape(Rectangle())
+            .onTapGesture { editHost(nil) }
         }
       }
 
       Section {
-        Button(action: onLocalShell) {
-          Label("ローカルシェル", systemImage: "terminal")
-            .foregroundColor(.primary)
-        }
-        .accessibilityHint(Text("接続せずに新しいタブを開きます"))
+        Label("ローカルシェル", systemImage: "terminal")
+          .foregroundColor(.primary)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .padding(.vertical, 6)
+          .contentShape(Rectangle())
+          .onTapGesture { onLocalShell() }
+          .accessibilityHint(Text("接続せずに新しいタブを開きます"))
       }
     }
     .navigationTitle("接続先")
@@ -193,45 +194,44 @@ struct MTHostsView: View {
 
   @ViewBuilder
   private func hostRow(_ item: MTHostItem) -> some View {
-    Button {
-      onConnect(item.alias, .mosh)
-    } label: {
-      HStack(spacing: 10) {
-        // 2 文字イニシャルの角丸（06 §6.3）
-        Text(item.initials)
-          .font(MTFont.mono(13, .medium))
-          .foregroundColor(theme.bg.color)
-          .frame(width: 34, height: 34)
-          .background(RoundedRectangle(cornerRadius: 8).fill(theme.accent.color))
+    // List 内の Button はタップに反応しないことがあるため onTapGesture を使う
+    HStack(spacing: 10) {
+      // 2 文字イニシャルの角丸（06 §6.3）
+      Text(item.initials)
+        .font(MTFont.mono(13, .medium))
+        .foregroundColor(theme.bg.color)
+        .frame(width: 34, height: 34)
+        .background(RoundedRectangle(cornerRadius: 8).fill(theme.accent.color))
 
-        VStack(alignment: .leading, spacing: 2) {
-          Text(item.alias)
-            .font(MTFont.ui(15, .medium))
-            .foregroundColor(.primary)
-            .lineLimit(1)
-          Text(item.display)
-            .font(MTFont.mono(12))
-            .foregroundColor(.secondary)
-            .lineLimit(1)
+      VStack(alignment: .leading, spacing: 2) {
+        Text(item.alias)
+          .font(MTFont.ui(15, .medium))
+          .foregroundColor(.primary)
+          .lineLimit(1)
+        Text(item.display)
+          .font(MTFont.mono(12))
+          .foregroundColor(.secondary)
+          .lineLimit(1)
+      }
+
+      Spacer()
+
+      HStack(spacing: 4) {
+        tag("mosh", color: theme.ok.color)
+        if let tmux = item.tmuxName {
+          tag("tmux:\(tmux)", color: theme.accent.color)
         }
-
-        Spacer()
-
-        HStack(spacing: 4) {
-          tag("mosh", color: theme.ok.color)
-          if let tmux = item.tmuxName {
-            tag("tmux:\(tmux)", color: theme.accent.color)
-          }
-          if item.hasKey {
-            tag("鍵", color: theme.sub.color)
-          }
-          if item.hasProxyJump {
-            tag("jump", color: theme.sub.color)
-          }
+        if item.hasKey {
+          tag("鍵", color: theme.sub.color)
+        }
+        if item.hasProxyJump {
+          tag("jump", color: theme.sub.color)
         }
       }
-      .padding(.vertical, 2)
     }
+    .padding(.vertical, 6)
+    .contentShape(Rectangle())
+    .onTapGesture { onConnect(item.alias, .mosh) }
     .contextMenu {
       Button(MTConnectKind.mosh.label) { onConnect(item.alias, .mosh) }
       Button(MTConnectKind.ssh.label) { onConnect(item.alias, .ssh) }
