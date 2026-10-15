@@ -114,8 +114,14 @@ class KBView: UIView {
       _scrollViewRightBorder.backgroundColor = UIColor.separator.withAlphaComponent(0.45)
     }
     
-    _indicatorLeft.backgroundColor = UIColor.blue.withAlphaComponent(0.45)
-    _indicatorRight.backgroundColor = UIColor.orange.withAlphaComponent(0.45)
+    // MoshTerm: スクロール端のインジケータをテーマ色に（06 §5.6）
+    if let theme = MTThemeStore.shared.selectedTheme {
+      _indicatorLeft.backgroundColor = theme.accent.uiColor.withAlphaComponent(0.45)
+      _indicatorRight.backgroundColor = theme.accent.uiColor.withAlphaComponent(0.45)
+    } else {
+      _indicatorLeft.backgroundColor = UIColor.blue.withAlphaComponent(0.45)
+      _indicatorRight.backgroundColor = UIColor.orange.withAlphaComponent(0.45)
+    }
     
     // // Setup glass material effect for iOS 26+ to handle transparency issues
     // if #available(iOS 26.0, *) {

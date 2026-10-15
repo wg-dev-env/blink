@@ -138,14 +138,15 @@ class KBKeyView: UIView {
       _updateLayerShapeMask()
     }
     
-    // Enhanced background for iOS 26+ glass material compatibility
-    if #available(iOS 26.0, *) {
-      // Use a more opaque background for better contrast with glass materials
+    // MoshTerm: 押下・ラッチ中はテーマの accent 系に（06 §5.6）
+    if let theme = MTThemeStore.shared.selectedTheme {
+      backgroundColor = theme.accent.uiColor.withAlphaComponent(0.28)
+    } else if #available(iOS 26.0, *) {
       backgroundColor = UIColor.systemBackground.withAlphaComponent(0.8)
     } else {
       backgroundColor = .tertiarySystemBackground
     }
-    
+
     keyDelegate.keyViewOn(keyView: self, value: currentValue)
     UIDevice.current.playInputClick()
   }

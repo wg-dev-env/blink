@@ -634,3 +634,19 @@ function mt_onShellMark(arg) {
     _mtBlock = null;
   }
 }
+
+// MoshTerm: 選択範囲の地色をテーマの accent 系に合わせる（06 §5.4）。
+// id 固定の <style> を置き換えるので、テーマを切り替えても重複しない。
+function term_setSelectionColor(cssColor) {
+  var id = 'mt-selection-style';
+  var style = document.getElementById(id);
+  if (!style) {
+    style = document.createElement('style');
+    style.id = id;
+    style.type = 'text/css';
+    document.head.appendChild(style);
+  }
+  // hterm のスクリーン（x-screen）内の選択に当てる
+  style.textContent =
+    'x-screen::selection, x-screen ::selection { background-color: ' + cssColor + ' !important; }';
+}

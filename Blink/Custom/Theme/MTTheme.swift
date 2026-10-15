@@ -230,6 +230,8 @@ extension MTTheme {
       "term_set('foreground-color', '\(term.css)');",
       // カーソルは hterm の慣習に合わせて半透明の accent
       "term_set('cursor-color', '\(accent.withAlpha(0.5).css)');",
+      // 選択範囲の地色を accent 系に（06 §5.4）
+      "term_setSelectionColor('\(accent.withAlpha(0.3).css)');",
     ].joined(separator: "\n")
   }
 }
