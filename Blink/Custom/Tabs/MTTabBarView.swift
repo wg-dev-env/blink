@@ -52,6 +52,7 @@ struct MTTabBarView: View {
   let onClose: (UUID) -> Void
   let onSettings: () -> Void
   let onCommandBlocks: () -> Void
+  let onShieldNow: () -> Void
 
   private var theme: MTTheme { themeStore.currentTheme }
 
@@ -109,6 +110,11 @@ struct MTTabBarView: View {
           onCommandBlocks()
         } label: {
           Label("コマンド履歴", systemImage: "list.bullet.rectangle")
+        }
+        Button {
+          onShieldNow()
+        } label: {
+          Label("今すぐ伏せる", systemImage: "eye.slash")
         }
       } label: {
         Image(systemName: "gearshape")
@@ -237,12 +243,13 @@ final class MTTabBarHost: UIViewController {
     let onClose: (UUID) -> Void
     let onSettings: () -> Void
     let onCommandBlocks: () -> Void
+    let onShieldNow: () -> Void
 
     var body: some View {
       VStack(spacing: 0) {
         MTTabBarView(model: model, onSelect: onSelect, onNew: onNew, onList: onList,
                      onRename: onRename, onClose: onClose, onSettings: onSettings,
-                     onCommandBlocks: onCommandBlocks)
+                     onCommandBlocks: onCommandBlocks, onShieldNow: onShieldNow)
         MTLifelineView()
           .frame(height: 20)
       }
@@ -255,12 +262,13 @@ final class MTTabBarHost: UIViewController {
        onRename: @escaping (UUID) -> Void,
        onClose: @escaping (UUID) -> Void,
        onSettings: @escaping () -> Void,
-       onCommandBlocks: @escaping () -> Void) {
+       onCommandBlocks: @escaping () -> Void,
+       onShieldNow: @escaping () -> Void) {
     super.init(nibName: nil, bundle: nil)
     let hosting = UIHostingController(
       rootView: ChromeView(model: model, onSelect: onSelect, onNew: onNew, onList: onList,
                            onRename: onRename, onClose: onClose, onSettings: onSettings,
-                     onCommandBlocks: onCommandBlocks))
+                     onCommandBlocks: onCommandBlocks, onShieldNow: onShieldNow))
     addChild(hosting)
     hosting.view.backgroundColor = .clear
     hosting.view.translatesAutoresizingMaskIntoConstraints = false

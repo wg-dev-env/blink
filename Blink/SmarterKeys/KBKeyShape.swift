@@ -45,6 +45,9 @@ enum KBKeyShape: Hashable {
   
   case arrows
   
+  // MoshTerm: 親指ダイヤル（07 #06）
+  case dial
+  
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     if let value: KBKeyValue = try container.decodeIfPresent(KBKeyValue.self, forKey: .icon) {
@@ -86,6 +89,7 @@ extension KBKeyShape: Identifiable {
     case .flexKey(let value): return "flexKey.\(value.id)"
     case .vertical2(let a, let b): return "vertical2.\(a.id),\(b.id)"
     case .arrows: return "arrows"
+    case .dial: return "dial"
     }
   }
 }
@@ -101,6 +105,7 @@ extension KBKeyShape {
     case .flexKey(let value): return value
     case .vertical2(let a, _): return a
     case .arrows: return .up
+    case .dial: return .up
     }
   }
   
@@ -133,6 +138,7 @@ extension KBKeyShape {
     case vertical2
     case triangle
     case arrows
+    case dial
   }
 
   func encode(to encoder: Encoder) throws {
@@ -150,6 +156,8 @@ extension KBKeyShape {
       try container.encode([a, b], forKey: .vertical2)
     case .arrows:
       try container.encode(true, forKey: .arrows)
+    case .dial:
+      try container.encode(true, forKey: .dial)
     }
     
   }

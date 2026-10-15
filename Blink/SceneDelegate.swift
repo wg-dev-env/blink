@@ -421,6 +421,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     input?.reportStateReset()
   }
 
+  // MoshTerm: Handoff（07 #07）。他の端末から渡されたセッションを開く
+  func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+    guard let payload = MTHandoff.payload(from: userActivity) else { return }
+    _spCtrl.mtOpenHandoff(payload)
+  }
+
+  func scene(_ scene: UIScene, willContinueUserActivityWithType userActivityType: String) {
+    // 受け取る準備だけ（画面はそのまま）
+  }
+
   func stateRestorationActivity(for scene: UIScene) -> NSUserActivity? {
     _setDummyVC()
     return _spCtrl.stateRestorationActivity()

@@ -52,6 +52,7 @@ struct KBKey: Hashable {
     case .flexKey:   return KBKeyViewFlexible(key: self, keyDelegate: keyDelegate)
     case .vertical2: return KBKeyViewVertical2(key: self, keyDelegate: keyDelegate)
     case .arrows:    return KBKeyViewArrows(key: self, keyDelegate: keyDelegate)
+    case .dial:      return KBKeyViewDial(key: self, keyDelegate: keyDelegate)
     }
   }
   
@@ -81,6 +82,11 @@ struct KBKey: Hashable {
   
   static func arrows(traits: KBTraits) -> Self {
     Self(.arrows, traits: traits)
+  }
+
+  /// MoshTerm: 親指ダイヤル（07 #06）
+  static func dial(traits: KBTraits) -> Self {
+    Self(.dial, traits: traits)
   }
   
   var isFlexible: Bool {

@@ -90,6 +90,8 @@ extension KBLayout {
       .flexKey(.esc,  traits: .default - .cmdOn - .skb + .hkb + .suggestionsOn),
     ],
     [
+      // MoshTerm: 親指ダイヤル（07 #06）。回すと矢印、タップで Return
+      .dial(traits: .default - .cmdOn - .hkb),
       .arrows(traits: .default - .cmdOn),
       .icon(.hideKB, traits: .default - .cmdOff),
       .wideKey(.cmd, traits: .default + .hkb),

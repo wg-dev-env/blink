@@ -140,6 +140,7 @@
 		<string>com.blink.cmdline</string>
 		<string>com.blink.session</string>
 		<string>com.blink.whatsnew</string>
+		<string>com.wgdevenv.moshterm.session</string>
 	</array>
 	<key>UIAppFonts</key>
 	<array>

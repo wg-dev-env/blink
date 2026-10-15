@@ -35,6 +35,7 @@ enum MTAppInfo {
 /// AI / エージェントの項目は作らない（要件）。
 struct MTSettingsView: View {
   @ObservedObject private var themeStore = MTThemeStore.shared
+  @ObservedObject private var shield = MTShieldCenter.shared
 
   private var theme: MTTheme { themeStore.currentTheme }
 
@@ -105,10 +106,21 @@ struct MTSettingsView: View {
         } details: {
           KeyListView()
         }
+        // 覗き見防止（07 #08）
+        Toggle("無操作で伏せる", isOn: $shield.enabled)
+        if shield.enabled {
+          Picker("伏せるまで", selection: $shield.timeout) {
+            Text("30 秒").tag(TimeInterval(30))
+            Text("1 分").tag(TimeInterval(60))
+            Text("3 分").tag(TimeInterval(180))
+          }
+          .pickerStyle(.segmented)
+          Toggle("戻すときに Face ID", isOn: $shield.requireAuth)
+        }
       } header: {
         Text("セキュリティ")
       } footer: {
-        Text("Face ID での画面ロックは従来の設定（Auto Lock）を使用します。非表示セッションの解錠はアプリを閉じるとリセットされます。")
+        Text("「無操作で伏せる」は、環境が本番のホストに繋いだタブが対象です。一定時間さわらないと中身を隠し、タップで戻します。Face ID での画面ロックは従来の設定（Auto Lock）を使用します。")
       }
 
       // 詳細（Blink の全設定: ホスト・鍵・Default User など）

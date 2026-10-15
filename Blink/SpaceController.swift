@@ -460,6 +460,9 @@ Please go to your subscriptions and cancel one of them!
     MTSessionStateCenter.shared.clear(for: currentKey)
     MTHostContext.shared.clear(for: currentKey)
     MTInputGuard.clear(for: currentKey)
+    MTShieldCenter.shared.clear(for: currentKey)
+    MTScreenHistory.shared.clear(for: currentKey)
+    MTCommandBlockStore.shared.clear(for: currentKey)
     _viewportsKeys.remove(at: idx)
     if _viewportsKeys.isEmpty {
       _newShellAction(animated: false)
@@ -518,6 +521,9 @@ Please go to your subscriptions and cancel one of them!
   private var _mtScrubCancellable: AnyCancellable? = nil
   private var _mtStateCancellable: AnyCancellable? = nil
   private var _mtSnapshotTimer: Timer? = nil
+  private var _mtShieldTimer: Timer? = nil
+  private var _mtShieldCancellable: AnyCancellable? = nil
+  private var _mtRevealTap: UITapGestureRecognizer? = nil
   private var _mtSidebarHost: UIViewController? = nil
   private var _mtSidebarLeading: NSLayoutConstraint? = nil
   private var _mtSidebarVisible = false
@@ -542,7 +548,8 @@ Please go to your subscriptions and cancel one of them!
       onRename: { [weak self] key in self?._mtRenameSession(key) },
       onClose: { [weak self] key in self?._mtCloseSession(key) },
       onSettings: { [weak self] in self?._mtShowSettings() },
-      onCommandBlocks: { [weak self] in self?._mtShowCommandBlocks() }
+      onCommandBlocks: { [weak self] in self?._mtShowCommandBlocks() },
+      onShieldNow: { [weak self] in self?._mtShieldNow() }
     )
     addChild(host)
     host.view.translatesAutoresizingMaskIntoConstraints = false
@@ -639,6 +646,20 @@ Please go to your subscriptions and cancel one of them!
     _mtSnapshotTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [weak self] _ in
       self?._mtTakeSnapshot(reason: "定期")
     }
+
+    // 覗き見防止（07 #08）: 無操作が続いたら本番ホストのタブを伏せる
+    _mtShieldTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
+      guard let self else { return }
+      MTShieldCenter.shared.checkIdle(currentKey: self._currentKey)
+    }
+    _mtShieldCancellable = MTShieldCenter.shared.$shielded.sink { [weak self] _ in
+      DispatchQueue.main.async { self?._mtApplyShield() }
+    }
+    // 伏せている間のタップで戻す
+    let revealTap = UITapGestureRecognizer(target: self, action: #selector(_mtRevealTapped))
+    revealTap.delegate = self
+    _mtRevealTap = revealTap
+    view.addGestureRecognizer(revealTap)
     // 回線が切れた・戻った・復元した瞬間も撮る
     _mtStateCancellable = MTSessionStateCenter.shared.$states
       .removeDuplicates { old, new in
@@ -662,6 +683,58 @@ Please go to your subscriptions and cancel one of them!
     _mtRingCancellable = MTDangerGuard.shared.$pending.sink { [weak ringHost] pending in
       ringHost?.view.isUserInteractionEnabled = pending != nil
     }
+  }
+
+  /// Handoff で渡されたセッションを開く（07 #07）
+  func mtOpenHandoff(_ payload: MTHandoff.Payload) {
+    _mtPendingAlias = payload.alias
+    _newShellAction(command: payload.command, animated: true)
+    if let title = payload.title, let key = _currentKey {
+      MTSessionsStore.shared.setTitle(title, for: key)
+      _mtTabBarUpdate()
+    }
+  }
+
+  /// 今のセッションを他の端末へ広告する（07 #07）
+  private func _mtUpdateHandoffActivity() {
+    guard let key = _currentKey, let alias = MTHostContext.shared.alias(for: key) else {
+      userActivity?.invalidate()
+      userActivity = nil
+      return
+    }
+    let title = MTSessionsStore.shared.title(for: key) ?? alias
+    guard let activity = MTHandoff.makeActivity(alias: alias, title: title) else { return }
+    userActivity = activity
+    activity.becomeCurrent()
+  }
+
+  /// 伏せる・戻すを端末へ反映する（07 #08）
+  private func _mtApplyShield() {
+    guard let term = currentTerm(), let key = _currentKey else { return }
+    let theme = MTThemeStore.shared.currentTheme
+    if MTShieldCenter.shared.isShielded(key) {
+      let message = MTShieldCenter.shared.requireAuth
+        ? "伏せています · タップして Face ID で戻す"
+        : "伏せています · タップで戻す"
+      term.termView.setMTShield(
+        message: message,
+        background: theme.bg.uiColor,
+        barColor: theme.raised.uiColor,
+        textColor: theme.muted.uiColor)
+    } else {
+      term.termView.setMTShield(message: nil, background: nil, barColor: nil, textColor: nil)
+    }
+  }
+
+  @objc private func _mtRevealTapped() {
+    guard let key = _currentKey, MTShieldCenter.shared.isShielded(key) else { return }
+    MTShieldCenter.shared.reveal(key)
+  }
+
+  /// 今すぐ伏せる（メニューから）
+  private func _mtShieldNow() {
+    guard let key = _currentKey else { return }
+    MTShieldCenter.shared.shield(key)
   }
 
   /// 今の画面を撮ってセッションの履歴に積む（07 #01）
@@ -915,6 +988,8 @@ Please go to your subscriptions and cancel one of them!
     MTSessionStateCenter.shared.currentKey = _currentKey
     _mtTabBar?.update(items: items, current: _currentKey)
     _mtApplyHostFrame()
+    _mtApplyShield()
+    _mtUpdateHandoffActivity()
   }
 
   private func _displayHUD() {
@@ -977,6 +1052,20 @@ Please go to your subscriptions and cancel one of them!
 }
 
 // MARK: UIStateRestorable
+// MoshTerm: 伏せているときだけタップを拾う（07 #08）
+extension SpaceController: UIGestureRecognizerDelegate {
+  public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
+                                shouldReceive touch: UITouch) -> Bool {
+    guard gestureRecognizer === _mtRevealTap else { return true }
+    return MTShieldCenter.shared.isShielded(_currentKey)
+  }
+
+  public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
+                                shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
+    true
+  }
+}
+
 extension SpaceController: UIStateRestorable {
   func restore(withState state: UIState) {
     _viewportsKeys = state.keys

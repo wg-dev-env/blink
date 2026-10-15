@@ -71,6 +71,9 @@ struct winsize __winSizeFromJSON(NSDictionary *json) {
   // MoshTerm: ホストの額縁（07 #03）
   UIView *_mtFrameView;
   UILabel *_mtFrameLabel;
+  // MoshTerm: 覗き見防止で中身を伏せるレイヤー（07 #08）
+  UIView *_mtShieldView;
+  UILabel *_mtShieldLabel;
   UIView *_parentScrollView;
   NSInteger _touchID;
   NSMutableArray *_touchesArray;
@@ -121,6 +124,14 @@ struct winsize __winSizeFromJSON(NSDictionary *json) {
   _coverView.frame = self.bounds;
   [self bringSubviewToFront:_coverView];
 
+  // MoshTerm: 伏せるレイヤーも端末の実描画域に合わせる
+  if (_mtShieldView) {
+    _mtShieldView.frame = [self webViewFrame];
+    [self bringSubviewToFront:_mtShieldView];
+    CGRect b = _mtShieldView.bounds;
+    _mtShieldLabel.frame = CGRectMake(16, CGRectGetMidY(b) - 24, b.size.width - 32, 48);
+  }
+
   // MoshTerm: 額縁は端末の実描画域（タブバー・サイドバーを除いた領域）に合わせる
   if (_mtFrameView) {
     _mtFrameView.frame = [self webViewFrame];
@@ -135,6 +146,63 @@ struct winsize __winSizeFromJSON(NSDictionary *json) {
       [self bringSubviewToFront:_mtFrameLabel];
     }
   }
+}
+
+- (void)setMTShieldWithMessage:(NSString *)message
+                    background:(UIColor *)background
+                      barColor:(UIColor *)barColor
+                     textColor:(UIColor *)textColor
+{
+  if (message.length == 0) {
+    if (_mtShieldView) {
+      UIView *old = _mtShieldView;
+      _mtShieldView = nil;
+      _mtShieldLabel = nil;
+      [UIView animateWithDuration:0.2 animations:^{ old.alpha = 0; }
+                       completion:^(BOOL finished) { [old removeFromSuperview]; }];
+    }
+    return;
+  }
+
+  if (!_mtShieldView) {
+    _mtShieldView = [[UIView alloc] initWithFrame:[self webViewFrame]];
+    // タップで戻せるよう、タッチは SpaceController 側のジェスチャで拾う
+    _mtShieldView.userInteractionEnabled = NO;
+    _mtShieldView.alpha = 0;
+    [self addSubview:_mtShieldView];
+
+    _mtShieldLabel = [[UILabel alloc] init];
+    _mtShieldLabel.textAlignment = NSTextAlignmentCenter;
+    _mtShieldLabel.numberOfLines = 2;
+    _mtShieldLabel.font = [UIFont systemFontOfSize:14 weight:UIFontWeightMedium];
+    [_mtShieldView addSubview:_mtShieldLabel];
+
+    [UIView animateWithDuration:0.2 animations:^{ self->_mtShieldView.alpha = 1; }];
+  }
+
+  _mtShieldView.backgroundColor = background ?: UIColor.blackColor;
+  _mtShieldLabel.text = message;
+  _mtShieldLabel.textColor = textColor ?: UIColor.lightGrayColor;
+
+  // 行を模した横棒に置き換える（中身は読めないが「端末がそこにある」ことは伝える）
+  for (UIView *bar in [_mtShieldView.subviews copy]) {
+    if (bar != _mtShieldLabel) { [bar removeFromSuperview]; }
+  }
+  CGFloat width = CGRectGetWidth(_mtShieldView.bounds);
+  CGFloat barHeight = 8;
+  CGFloat gap = 12;
+  NSArray *ratios = @[@0.55, @0.78, @0.40, @0.66, @0.30];
+  CGFloat y = 28;
+  for (NSNumber *ratio in ratios) {
+    CGRect frame = CGRectMake(24, y, MAX(40, (width - 48) * ratio.doubleValue), barHeight);
+    UIView *bar = [[UIView alloc] initWithFrame:frame];
+    bar.backgroundColor = barColor ?: UIColor.darkGrayColor;
+    bar.layer.cornerRadius = barHeight / 2;
+    [_mtShieldView insertSubview:bar belowSubview:_mtShieldLabel];
+    y += barHeight + gap;
+  }
+
+  [self setNeedsLayout];
 }
 
 - (void)mtSnapshotWithCompletion:(void (^)(NSDictionary *))completion

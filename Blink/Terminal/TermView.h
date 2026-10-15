@@ -98,6 +98,13 @@ extern NSString * TermViewBrowserReadyNotificationKey;
 - (void)mtSnapshotWithCompletion:(void (^_Nonnull)(NSDictionary *_Nullable))completion
     NS_SWIFT_NAME(mtSnapshot(completion:));
 
+/// MoshTerm: 中身を伏せる（07 #08）。message が nil なら元に戻す
+- (void)setMTShieldWithMessage:(nullable NSString *)message
+                    background:(nullable UIColor *)background
+                      barColor:(nullable UIColor *)barColor
+                     textColor:(nullable UIColor *)textColor
+    NS_SWIFT_NAME(setMTShield(message:background:barColor:textColor:));
+
 - (CGRect)webViewFrame;
 - (void)load;
 - (void)applyTermUIState:(nonnull TermUIState *)termUIState;

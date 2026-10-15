@@ -90,6 +90,9 @@
 		4D540001000000000000B025 /* MTSafetyViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A025 /* MTSafetyViews.swift */; };
 		4D540001000000000000B026 /* MTScreenHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A026 /* MTScreenHistory.swift */; };
 		4D540001000000000000B027 /* MTHistoryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A027 /* MTHistoryViews.swift */; };
+		4D540001000000000000B028 /* MTShield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A028 /* MTShield.swift */; };
+		4D540001000000000000B030 /* MTHandoff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A030 /* MTHandoff.swift */; };
+		4D540001000000000000B029 /* KBKeyViewDial.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A029 /* KBKeyViewDial.swift */; };
 		4D540001000000000000B011 /* IBMPlexSansJP-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */; };
 		4D540001000000000000B012 /* IBMPlexSansJP-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */; };
 		4D540001000000000000B013 /* IBMPlexSansJP-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */; };
@@ -863,6 +866,9 @@
 		4D540001000000000000A025 /* MTSafetyViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTSafetyViews.swift; sourceTree = "<group>"; };
 		4D540001000000000000A026 /* MTScreenHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTScreenHistory.swift; sourceTree = "<group>"; };
 		4D540001000000000000A027 /* MTHistoryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTHistoryViews.swift; sourceTree = "<group>"; };
+		4D540001000000000000A028 /* MTShield.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTShield.swift; sourceTree = "<group>"; };
+		4D540001000000000000A030 /* MTHandoff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTHandoff.swift; sourceTree = "<group>"; };
+		4D540001000000000000A029 /* KBKeyViewDial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KBKeyViewDial.swift; sourceTree = "<group>"; };
 		4D540001000000000000A011 /* IBMPlexSansJP-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Regular.ttf"; sourceTree = "<group>"; };
 		4D540001000000000000A012 /* IBMPlexSansJP-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Medium.ttf"; sourceTree = "<group>"; };
 		4D540001000000000000A013 /* IBMPlexSansJP-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansJP-Bold.ttf"; sourceTree = "<group>"; };
@@ -1802,6 +1808,8 @@
 				4D540001000000000000A025 /* MTSafetyViews.swift */,
 				4D540001000000000000A026 /* MTScreenHistory.swift */,
 				4D540001000000000000A027 /* MTHistoryViews.swift */,
+				4D540001000000000000A028 /* MTShield.swift */,
+				4D540001000000000000A030 /* MTHandoff.swift */,
 			);
 			path = Safety;
 			sourceTree = "<group>";
@@ -2322,6 +2330,7 @@
 				D241CBCD23040734003D64A5 /* KBKeyAccessibilityElement.swift */,
 				D241CBC723040733003D64A5 /* KBKeyView.swift */,
 				D241CBBF23040732003D64A5 /* KBKeyViewArrows.swift */,
+				4D540001000000000000A029 /* KBKeyViewDial.swift */,
 				D241CBBE23040732003D64A5 /* KBKeyViewFlexible.swift */,
 				D241CBCE23040734003D64A5 /* KBKeyViewSymbol.swift */,
 				D241CBCA23040733003D64A5 /* KBKeyViewVertical2.swift */,
@@ -3766,6 +3775,9 @@
 				4D540001000000000000B025 /* MTSafetyViews.swift in Sources */,
 				4D540001000000000000B026 /* MTScreenHistory.swift in Sources */,
 				4D540001000000000000B027 /* MTHistoryViews.swift in Sources */,
+				4D540001000000000000B028 /* MTShield.swift in Sources */,
+				4D540001000000000000B030 /* MTHandoff.swift in Sources */,
+				4D540001000000000000B029 /* KBKeyViewDial.swift in Sources */,
 				BD55D69A2F7D743500EE80EA /* TerminalStyleBundle.swift in Sources */,
 				D2D8DD9023C84A6E00BFF223 /* StuckView.swift in Sources */,
 				B7A487651DC7BD65007BA809 /* BKDefaultUserViewController.m in Sources */,
