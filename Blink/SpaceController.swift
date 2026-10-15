@@ -461,6 +461,7 @@ Please go to your subscriptions and cancel one of them!
     MTHostContext.shared.clear(for: currentKey)
     MTInputGuard.clear(for: currentKey)
     MTShieldCenter.shared.clear(for: currentKey)
+    MTSessionEndCenter.shared.clear(for: currentKey)
     MTScreenHistory.shared.clear(for: currentKey)
     MTCommandBlockStore.shared.clear(for: currentKey)
     _viewportsKeys.remove(at: idx)
@@ -524,6 +525,7 @@ Please go to your subscriptions and cancel one of them!
   private var _mtShieldTimer: Timer? = nil
   private var _mtShieldCancellable: AnyCancellable? = nil
   private var _mtRevealTap: UITapGestureRecognizer? = nil
+  private var _mtEndCancellable: AnyCancellable? = nil
   private var _mtSidebarHost: UIViewController? = nil
   private var _mtSidebarLeading: NSLayoutConstraint? = nil
   private var _mtSidebarVisible = false
@@ -647,6 +649,35 @@ Please go to your subscriptions and cancel one of them!
       self?._mtTakeSnapshot(reason: "定期")
     }
 
+    // 接続終了の案内（exit 後に固まって見える問題への対応）
+    let endHost = UIHostingController(rootView: MTSessionEndView(
+      onReconnect: { [weak self] command in
+        self?._newShellAction(command: command, animated: false)
+      },
+      onNewConnection: { [weak self] in self?._mtShowConnectSheet() },
+      onCloseTab: { [weak self] in self?._closeCurrentSpace() }
+    ))
+    endHost.view.backgroundColor = .clear
+    addChild(endHost)
+    endHost.view.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(endHost.view)
+    NSLayoutConstraint.activate([
+      endHost.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor,
+                                        constant: MTTabBarHost.height),
+      endHost.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      endHost.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      endHost.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+    ])
+    endHost.didMove(toParent: self)
+    endHost.view.isUserInteractionEnabled = false
+    _mtEndCancellable = MTSessionEndCenter.shared.$ended.sink { [weak endHost, weak self] ended in
+      let key = self?._currentKey
+      endHost?.view.isUserInteractionEnabled = key.map { ended[$0] != nil } ?? false
+    }
+    NotificationCenter.default.addObserver(
+      self, selector: #selector(_mtRemoteSessionDidEnd(_:)),
+      name: NSNotification.Name("MTRemoteSessionDidEnd"), object: nil)
+
     // 覗き見防止（07 #08）: 無操作が続いたら本番ホストのタブを伏せる
     _mtShieldTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
       guard let self else { return }
@@ -706,6 +737,15 @@ Please go to your subscriptions and cancel one of them!
     guard let activity = MTHandoff.makeActivity(alias: alias, title: title) else { return }
     userActivity = activity
     activity.becomeCurrent()
+  }
+
+  /// リモート接続が終わった（exit した）ときの案内を出す
+  @objc private func _mtRemoteSessionDidEnd(_ note: Notification) {
+    guard let key = _currentKey else { return }
+    let command = (note.userInfo?["command"] as? String) ?? ""
+    DispatchQueue.main.async {
+      MTSessionEndCenter.shared.note(command: command, for: key)
+    }
   }
 
   /// 伏せる・戻すを端末へ反映する（07 #08）

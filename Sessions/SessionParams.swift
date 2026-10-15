@@ -161,4 +161,8 @@ public extension EncodedStateBacked {
   @objc func hasEncodedState() -> Bool { childSessionParams?.hasEncodedState() ?? false }
   @objc func takeEncodedState() -> Data? { childSessionParams?.takeEncodedState() }
   @objc func putEncodedState(_ data: Data) { childSessionParams?.putEncodedState(data) }
+
+  /// 64_MoshTerm: 保存された状態を捨てる。
+  /// 前面にいるまま mosh が終了した（ユーザーが exit した）ときに使う。
+  @objc func cleanEncodedState() { _ = childSessionParams?.takeEncodedState() }
 }

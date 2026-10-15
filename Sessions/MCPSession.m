@@ -162,6 +162,26 @@
   });
 }
 
+// 64_MoshTerm カスタム: mosh が戻ってきたとき、プロンプトを出さずに終わってよいかを判断する。
+//
+// 「保存された状態がある」= アプリが中断されて mosh の状態を保存した、という意味なので
+// その場合はプロンプトを出さずに返る（復元時に続きから再開する）のが本来の挙動。
+// ただしアプリが前面にあるまま mosh が戻ってきたときは、ユーザーが exit したということなので、
+// 古い保存状態が残っていてもそれを捨ててローカルシェルのプロンプトへ戻す。
+// （これをしないと exit 後に何も表示されず、固まったように見える）
+- (BOOL)_mtShouldSuspendAfterMosh
+{
+  if (!self.sessionParams.hasEncodedState) {
+    return NO;
+  }
+  if (MTAppState.isForeground) {
+    // 前面にいる = 中断ではなく終了。残っている保存状態を捨てる
+    [self.sessionParams cleanEncodedState];
+    return NO;
+  }
+  return YES;
+}
+
 - (BOOL)_runCommand:(NSString *)cmdline skipHistoryRecord: (BOOL) skipHistoryRecord {
   
   cmdline = [cmdline stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
@@ -198,12 +218,12 @@
   
   if ([cmd isEqualToString:@"mosh"]) {
     [self _runMoshWithArgs:cmdline];
-    if (self.sessionParams.hasEncodedState) {
+    if ([self _mtShouldSuspendAfterMosh]) {
       return NO;
     }
   } else if ([cmd isEqualToString:@"mosh1"]) {
     [self _runMosh1WithArgs:cmdline];
-    if (self.sessionParams.hasEncodedState) {
+    if ([self _mtShouldSuspendAfterMosh]) {
       return NO;
     }
   } else if ([cmd isEqualToString:@"ssh2"]) {
@@ -268,7 +288,15 @@
     // try to write to the device.
     [_device prompt:@"blink> " secure:NO shell:YES];
   }
-  
+
+  // 64_MoshTerm: 接続コマンドが終わったことを知らせる（終了後の案内を出すため）
+  if ([cmd isEqualToString:@"mosh"] || [cmd isEqualToString:@"mosh1"] ||
+      [cmd isEqualToString:@"ssh"] || [cmd isEqualToString:@"ssh2"]) {
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"MTRemoteSessionDidEnd"
+                                                        object:nil
+                                                      userInfo:@{@"command": cmdline ?: @""}];
+  }
+
   return YES;
 }
 
