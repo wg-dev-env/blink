@@ -61,10 +61,24 @@ struct MTHostItem: Identifiable {
 
 /// BKHosts の読み込みと検索絞り込み
 final class MTHostsModel: ObservableObject {
+  /// ホストの追加・編集後に全モデル（サイドバー・接続シート）へ再読込を知らせる
+  static let changedNotification = Notification.Name("MTHostsChanged")
+
   @Published private(set) var items: [MTHostItem] = []
 
   init() {
     reload()
+    NotificationCenter.default.addObserver(
+      self, selector: #selector(handleChanged),
+      name: Self.changedNotification, object: nil)
+  }
+
+  @objc private func handleChanged() {
+    reload()
+  }
+
+  static func notifyChanged() {
+    NotificationCenter.default.post(name: changedNotification, object: nil)
   }
 
   func reload() {
@@ -240,7 +254,8 @@ struct MTHostsView: View {
   // MARK: 登録・編集（既存 HostView を流用）
 
   private func editHost(_ host: BKHosts?) {
-    let view = HostView(host: host, reloadList: { model.reload() })
+    // サイドバー側の一覧も更新されるよう、保存後は通知で全モデルを再読込する
+    let view = HostView(host: host, reloadList: { MTHostsModel.notifyChanged() })
       .environmentObject(nav)
     let vc = UIHostingController(rootView: view)
     vc.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
