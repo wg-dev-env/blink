@@ -217,7 +217,20 @@ class KeyShortcut: ObservableObject, Codable, Identifiable {
 
       KeyShortcut(.configShow, .command, ","),
       Self.snippetsShowShortcut,
-      Self.scratchShowShortcut
+      Self.scratchShowShortcut,
+
+      // MoshTerm（06 §7）: サイドバー開閉・セッションを隠す・⌘1〜9 のタブ切替
+      KeyShortcut(.sidebarToggle, [.command, .shift], "s"),
+      KeyShortcut(.sessionHide, [.command, .shift], "h"),
+      KeyShortcut(.tab1, .command, "1"),
+      KeyShortcut(.tab2, .command, "2"),
+      KeyShortcut(.tab3, .command, "3"),
+      KeyShortcut(.tab4, .command, "4"),
+      KeyShortcut(.tab5, .command, "5"),
+      KeyShortcut(.tab6, .command, "6"),
+      KeyShortcut(.tab7, .command, "7"),
+      KeyShortcut(.tab8, .command, "8"),
+      KeyShortcut(.tab9, .command, "9"),
     ]
   }
 }

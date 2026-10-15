@@ -217,13 +217,14 @@ NSString *const BKAppearanceChanged = @"BKAppearanceChanged";
   }
   
   if (!defaults.fontSize) {
+    // MoshTerm: 既定サイズは 06 §7 に合わせる（TerminalStyle.makeBuiltInDefault と同値に保つ）
     #if TARGET_OS_MACCATALYST
-      [defaults setFontSize:[NSNumber numberWithInt:22]];
+      [defaults setFontSize:[NSNumber numberWithInt:13]];
     #else
     if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
-      [defaults setFontSize:[NSNumber numberWithInt:18]];
+      [defaults setFontSize:[NSNumber numberWithInt:14]];
     } else {
-      [defaults setFontSize:[NSNumber numberWithInt:10]];
+      [defaults setFontSize:[NSNumber numberWithInt:13]];
     }
     #endif
   }

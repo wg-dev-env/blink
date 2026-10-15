@@ -260,8 +260,10 @@
         }
     }
 
-    // MoshTerm: タブバー分の上インセット（SpaceController がタブバー設置時に設定）
+    // MoshTerm: タブバー分の上インセットとサイドバー分の左インセット
+    // （SpaceController が設置・開閉時に設定し、updateLayoutMode: で再計算させる）
     result.top += MTChrome.tabBarTopInset;
+    result.left += MTChrome.sidebarLeftInset;
 
     return result;
 }

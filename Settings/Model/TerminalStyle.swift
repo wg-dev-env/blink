@@ -53,12 +53,13 @@ struct TerminalStyle: Codable, Identifiable, Equatable {
     Bundle.main.infoDictionary?["BLINK_APP_FONT"] as? String ?? "JetBrains Mono"
 
   static func makeBuiltInDefault() -> TerminalStyle {
+    // MoshTerm: 既定サイズは 06 §7（iPhone 12.5→13 / iPad 14 / Mac 13。整数制約で丸め）
     let fontSize: CGFloat = {
       #if targetEnvironment(macCatalyst)
-      return 22
+      return 13
       #else
-      if UIDevice.current.userInterfaceIdiom == .pad { return 18 }
-      return 10
+      if UIDevice.current.userInterfaceIdiom == .pad { return 14 }
+      return 13
       #endif
     }()
 

@@ -162,7 +162,8 @@ struct MTStateBadge: View {
 final class MTTabBarHost: UIViewController {
   static let height: CGFloat = 64  // タブ 44（36pt + 上下 4pt）+ ライフライン 20
 
-  private let model = MTTabBarModel()
+  /// サイドバー（MTSidebarView）と共有する（SpaceController の update で両方へ反映される）
+  let model = MTTabBarModel()
 
   /// タブバー＋直下のライフライン（06 §2）
   private struct ChromeView: View {

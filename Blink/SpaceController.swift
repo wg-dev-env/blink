@@ -498,9 +498,22 @@ Please go to your subscriptions and cancel one of them!
     currentTerm()?.termDevice
   }
   
-  // MARK: - MoshTerm タブバー（S3）
+  // MARK: - MoshTerm タブバー（S3）・サイドバー（S9）
 
   private var _mtTabBar: MTTabBarHost? = nil
+  private var _mtTabBarLeading: NSLayoutConstraint? = nil
+  private var _mtSidebarHost: UIViewController? = nil
+  private var _mtSidebarLeading: NSLayoutConstraint? = nil
+  private var _mtSidebarVisible = false
+
+  /// iPad / Mac はサイドバーを使う（06 §7。共通実装）
+  private var _mtSupportsSidebar: Bool {
+    #if targetEnvironment(macCatalyst)
+    return true
+    #else
+    return UIDevice.current.userInterfaceIdiom == .pad
+    #endif
+  }
 
   private func _setupMTTabBar() {
     // 通常のアプリウィンドウにだけ出す（外部ディスプレイ等には出さない）
@@ -514,16 +527,22 @@ Please go to your subscriptions and cancel one of them!
     addChild(host)
     host.view.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(host.view)
+    let tabLeading = host.view.leadingAnchor.constraint(equalTo: view.leadingAnchor)
     NSLayoutConstraint.activate([
       host.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-      host.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      tabLeading,
       host.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       host.view.heightAnchor.constraint(equalToConstant: MTTabBarHost.height),
     ])
     host.didMove(toParent: self)
     _mtTabBar = host
+    _mtTabBarLeading = tabLeading
     // 端末ビューの上インセットに加算される（LayoutConstraintManager）
     MTChrome.tabBarTopInset = MTTabBarHost.height
+
+    if _mtSupportsSidebar {
+      _setupMTSidebar(sharing: host.model)
+    }
 
     // 状態バナー・トースト（表示専用、_overlay はタッチを通す）
     let statusHost = UIHostingController(rootView: MTStatusOverlayView())
@@ -565,6 +584,65 @@ Please go to your subscriptions and cancel one of them!
     let vc = UIHostingController(rootView: view)
     vc.modalPresentationStyle = .pageSheet
     present(vc, animated: true)
+  }
+
+  /// サイドバー（06 §7、幅 264pt、⌘⇧S で開閉）。タブバーとモデルを共有する。
+  private func _setupMTSidebar(sharing model: MTTabBarModel) {
+    let view = MTSidebarView(
+      model: model,
+      onSelect: { [weak self] key in self?._moveToShell(key: key) },
+      onConnect: { [weak self] alias, kind in
+        self?._newShellAction(command: "\(kind.command) \(alias)", animated: true)
+      },
+      onNewConnection: { [weak self] in self?._mtShowConnectSheet() }
+    )
+    let host = UIHostingController(rootView: view)
+    host.view.backgroundColor = .clear
+    addChild(host)
+    host.view.translatesAutoresizingMaskIntoConstraints = false
+    self.view.addSubview(host.view)
+    let leading = host.view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor)
+    NSLayoutConstraint.activate([
+      leading,
+      host.view.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
+      host.view.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+      host.view.widthAnchor.constraint(equalToConstant: MTSidebarView.width),
+    ])
+    host.didMove(toParent: self)
+    _mtSidebarHost = host
+
+    // 既定で表示（⌘⇧S で開閉）
+    _mtSidebarVisible = true
+    _mtSidebarLeading = leading
+    leading.constant = 0
+    _mtTabBarLeading?.constant = MTSidebarView.width
+    MTChrome.sidebarLeftInset = MTSidebarView.width
+  }
+
+  private func _mtToggleSidebar() {
+    guard let sidebarLeading = _mtSidebarLeading else { return }
+    _mtSidebarVisible.toggle()
+    let visible = _mtSidebarVisible
+    sidebarLeading.constant = visible ? 0 : -MTSidebarView.width
+    _mtTabBarLeading?.constant = visible ? MTSidebarView.width : 0
+    MTChrome.sidebarLeftInset = visible ? MTSidebarView.width : 0
+
+    UIView.animate(withDuration: 0.25) {
+      self.view.layoutIfNeeded()
+    }
+    // 開いている全端末のインセットを再計算させる
+    forEachActive { term in
+      term.termView.constraintManager?.update(term.termView.currentLayoutMode())
+    }
+  }
+
+  /// 現在のセッションを非表示にして、見えている別のセッションへ移る（⌘⇧H）
+  private func _mtHideCurrentSession() {
+    guard let key = _currentKey else { return }
+    MTSessionsStore.shared.hide(key)
+    if let next = _viewportsKeys.first(where: { $0 != key && !MTSessionsStore.shared.hiddenKeys.contains($0) }) {
+      _moveToShell(key: next)
+    }
   }
 
   /// 接続先を選ぶシート（06 §5.1・§6.3）。ホストを選んで Mosh/SSH 接続、
@@ -879,7 +957,8 @@ extension SpaceController {
     case .zoomOut: currentTerm()?.termView.decreaseFontSize()
     case .zoomReset: currentTerm()?.termView.resetFontSize()
     case .hideKeyboard: KBTracker.shared.input?.resignFirstResponder()
-
+    case .sidebarToggle: _mtToggleSidebar()
+    case .sessionHide: _mtHideCurrentSession()
     }
   }
   

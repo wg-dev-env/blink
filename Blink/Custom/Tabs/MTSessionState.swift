@@ -145,4 +145,6 @@ final class MTSessionStateCenter: ObservableObject {
 /// タブバー設置時に SpaceController が設定し、端末ビューの上インセットに加算される。
 @objc class MTChrome: NSObject {
   @objc static var tabBarTopInset: CGFloat = 0
+  /// iPad / Mac のサイドバー（06 §7）表示中の左インセット
+  @objc static var sidebarLeftInset: CGFloat = 0
 }
