@@ -530,6 +530,9 @@ Please go to your subscriptions and cancel one of them!
   private var _mtRevealTap: UITapGestureRecognizer? = nil
   private var _mtEndCancellable: AnyCancellable? = nil
   private weak var _mtEndHost: UIViewController? = nil
+  // 圏外ドラフトのカード。表示専用（ドラフトがある時だけタッチを受ける）
+  private var _mtDraftCancellable: AnyCancellable? = nil
+  private weak var _mtDraftHost: UIViewController? = nil
   private var _mtSidebarHost: UIViewController? = nil
   private var _mtSidebarLeading: NSLayoutConstraint? = nil
   private var _mtSidebarVisible = false
@@ -609,12 +612,20 @@ Please go to your subscriptions and cancel one of them!
     draftHost.view.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(draftHost.view)
     NSLayoutConstraint.activate([
-      draftHost.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+      // タブバーの下から配置する（タブバーの ＋・一覧・設定のタップを塞がない）
+      draftHost.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor,
+                                          constant: MTTabBarHost.height),
       draftHost.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
       draftHost.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       draftHost.view.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor),
     ])
     draftHost.didMove(toParent: self)
+    _mtDraftHost = draftHost
+    // 表示専用。ドラフトのカードが出ている時だけタッチを受ける（下のクローム・端末へ通す）
+    draftHost.view.isUserInteractionEnabled = false
+    _mtDraftCancellable = MTDraftStore.shared.$drafts.sink { [weak self] _ in
+      self?._mtApplyDraftInteractivity()
+    }
 
     // 危険コマンドの長押しリング（最前面・タッチを受ける）
     let ringHost = UIHostingController(rootView: MTDangerRingView())
@@ -1065,7 +1076,15 @@ Please go to your subscriptions and cancel one of them!
     _mtApplyHostFrame()
     _mtApplyShield()
     _mtApplyEndView()
+    _mtApplyDraftInteractivity()
     _mtUpdateHandoffActivity()
+  }
+
+  /// 圏外ドラフトのカードが出ている時だけ、ドラフトのオーバーレイにタッチを通す。
+  /// 出ていない間はタブバー・端末へタッチを素通りさせる（タップ無反応の防止）。
+  private func _mtApplyDraftInteractivity() {
+    let hasDrafts = _currentKey.map { MTDraftStore.shared.count(for: $0) > 0 } ?? false
+    _mtDraftHost?.view.isUserInteractionEnabled = hasDrafts
   }
 
   private func _displayHUD() {
