@@ -508,7 +508,7 @@ Please go to your subscriptions and cancel one of them!
 
     let host = MTTabBarHost(
       onSelect: { [weak self] key in self?._moveToShell(key: key) },
-      onNew: { [weak self] in self?.newShellAction() },
+      onNew: { [weak self] in self?._mtShowConnectSheet() },
       onList: { [weak self] in self?._mtShowSessionsList() }
     )
     addChild(host)
@@ -555,11 +555,44 @@ Please go to your subscriptions and cancel one of them!
       items: items,
       currentKey: _currentKey,
       onSelect: { [weak self] key in self?._moveToShell(key: key) },
-      onNew: { [weak self] in self?.newShellAction() }
+      onNew: { [weak self] in
+        // 一覧シートの dismiss と競合しないよう、閉じ終わってから接続シートを開く
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+          self?._mtShowConnectSheet()
+        }
+      }
     )
     let vc = UIHostingController(rootView: view)
     vc.modalPresentationStyle = .pageSheet
     present(vc, animated: true)
+  }
+
+  /// 接続先を選ぶシート（06 §5.1・§6.3）。ホストを選んで Mosh/SSH 接続、
+  /// ローカルシェル、新規ホスト登録（既存 HostView）をまとめた入口。
+  private func _mtShowConnectSheet() {
+    let navController = UINavigationController()
+    let rootView = NavView(navController: navController) {
+      MTHostsView(
+        onConnect: { [weak self] alias, kind in
+          self?.dismiss(animated: true) {
+            // mosh/ssh はエイリアス 1 語で BKHosts の設定を解決する
+            self?._newShellAction(command: "\(kind.command) \(alias)", animated: true)
+          }
+        },
+        onLocalShell: { [weak self] in
+          self?.dismiss(animated: true) {
+            self?.newShellAction()
+          }
+        },
+        onClose: { [weak self] in
+          self?.dismiss(animated: true)
+        }
+      )
+    }
+    let sheet = UIHostingController(rootView: rootView)
+    sheet.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
+    sheet.modalPresentationStyle = .pageSheet
+    present(sheet, animated: true)
   }
 
   private func _mtTabBarUpdate() {
