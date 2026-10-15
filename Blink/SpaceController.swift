@@ -564,6 +564,9 @@ Please go to your subscriptions and cancel one of them!
 
     // 回線状態の監視を開始（圏外・回線切替をセッション状態へ変換）
     MTConnectivityMonitor.shared.startIfNeeded()
+
+    // テーマとターミナル配色の同期ずれを自己修復（新規セッションはここから正しい配色になる）
+    MTThemeStore.shared.syncTerminalStyleIfNeeded()
   }
 
   /// セッション一覧（06 §6.2）をシートで表示する

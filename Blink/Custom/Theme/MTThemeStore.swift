@@ -105,6 +105,16 @@ final class MTThemeStore: ObservableObject {
     applyToLiveSessions(theme)
   }
 
+  /// 起動時に、ターミナル側スタイルの themeName が選択テーマとずれていたら直す。
+  /// （スタイルの再生成・移行などで同期が切れた場合の自己修復。UI はテーマ色なのに
+  /// ターミナルだけ旧配色のままになる症状を防ぐ）
+  func syncTerminalStyleIfNeeded() {
+    guard let theme = selectedTheme else { return }
+    if MTTheme.named(TerminalStyleStore.shared.selectedStyle.themeName)?.id != theme.id {
+      applyToTerminalStyle(theme)
+    }
+  }
+
   /// ターミナル側の選択スタイル（TerminalStyleStore）の themeName を差し替える
   private func applyToTerminalStyle(_ theme: MTTheme) {
     let store = TerminalStyleStore.shared

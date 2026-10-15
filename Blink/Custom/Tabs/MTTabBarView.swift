@@ -75,9 +75,9 @@ struct MTTabBarView: View {
                 state: stateCenter.state(for: item.key),
                 isActive: item.key == model.currentKey,
                 theme: theme,
+                onSelect: { onSelect(item.key) },
                 onClose: { onClose(item.key) }
               )
-              .onTapGesture { onSelect(item.key) }
               .contextMenu {
                 Button("名前を変更") { onRename(item.key) }
                 Button("隠す") { sessionsStore.hide(item.key) }
@@ -129,32 +129,44 @@ private struct MTTabView: View {
   let state: MTSessionState
   let isActive: Bool
   let theme: MTTheme
+  let onSelect: () -> Void
   let onClose: () -> Void
 
   var body: some View {
-    HStack(spacing: 6) {
-      MTStateBadge(state: state, theme: theme)
-      Text(item.title)
-        .font(MTFont.ui(13, isActive ? .medium : .regular))
-        .foregroundColor(isActive ? theme.text.color : theme.sub.color)
-        .lineLimit(1)
-        .frame(maxWidth: .infinity, alignment: .leading)
+    HStack(spacing: 0) {
+      // 選択（onTapGesture でなく Button にして「×」との競合を避ける）
+      Button(action: onSelect) {
+        HStack(spacing: 6) {
+          MTStateBadge(state: state, theme: theme)
+          Text(item.title)
+            .font(MTFont.ui(13, isActive ? .medium : .regular))
+            .foregroundColor(isActive ? theme.text.color : theme.sub.color)
+            .lineLimit(1)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.leading, 12)
+        .padding(.trailing, isActive ? 0 : 12)
+        .frame(height: 36)
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel(Text("\(item.title)。\(state.label)"))
+      .accessibilityAddTraits(isActive ? .isSelected : [])
+
       if isActive {
         // アクティブタブの「×」= このセッションを閉じる（06 §5.1）
         Button(action: onClose) {
           Image(systemName: "xmark")
             .font(.system(size: 10, weight: .semibold))
             .foregroundColor(theme.muted.color)
-            .frame(width: 22, height: 22)
+            .frame(width: 30, height: 36)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text("\(item.title) を閉じる"))
       }
     }
-    .padding(.horizontal, 12)
     .frame(minWidth: 110, maxWidth: 200)
-    .frame(height: 36)
     .background(
       RoundedRectangle(cornerRadius: 10)
         .fill(isActive ? theme.okBg.color : theme.surface.color)
@@ -163,10 +175,6 @@ private struct MTTabView: View {
       RoundedRectangle(cornerRadius: 10)
         .stroke(isActive ? theme.ok.color : theme.line.color, lineWidth: 1)
     )
-    .contentShape(Rectangle())
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel(Text("\(item.title)。\(state.label)"))
-    .accessibilityAddTraits(isActive ? [.isButton, .isSelected] : .isButton)
   }
 }
 

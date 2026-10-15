@@ -99,9 +99,13 @@ struct MTTheme: Identifiable, Equatable {
   /// 復元済み状態は accent と同値（06 §3.1）
   var restore: MTColor { accent }
 
+  /// 改名したテーマの旧名 → id（保存済みの themeName を解決するため）
+  private static let legacyNames: [String: String] = ["駒鳥": "robin"]
+
   static func named(_ name: String?) -> MTTheme? {
     guard let name else { return nil }
-    return all.first { $0.name == name || $0.id == name }
+    let id = Self.legacyNames[name]
+    return all.first { $0.name == name || $0.id == name || $0.id == id }
   }
 
   static let all: [MTTheme] = [
@@ -154,16 +158,17 @@ struct MTTheme: Identifiable, Equatable {
       toggleOff: MTColor(0xC3C9CC)
     ),
     MTTheme(
-      id: "robin", name: "駒鳥", subtitle: "Robin", isLight: true,
-      summary: "コマドリの卵のような淡い青緑。明るい屋内向けのライト配色。",
-      bg: MTColor(0xDDF1EE), surface: MTColor(0xF4FBFA), raised: MTColor(0xE8F5F3),
-      line: MTColor(0xB9DCD7), text: MTColor(0x0F2A2A), sub: MTColor(0x24443F),
-      muted: MTColor(0x436560), term: MTColor(0x17312F), ghost: MTColor(0x8FB3AE),
-      accent: MTColor(0x0B7E77), ok: MTColor(0x1D7F56), okBg: MTColor(0xD3EEE2),
-      warn: MTColor(0x9A5F00), bad: MTColor(0xC2362E),
+      // 旧「駒鳥」。id は選択状態の互換のため robin のまま（2026-10-15 改定、06 §3.3）
+      id: "robin", name: "セルリアン", subtitle: "Cerulean", isLight: true,
+      summary: "セルリアングリーンの明るい青緑。明るい屋内向けのライト配色。",
+      bg: MTColor(0xCFEFE9), surface: MTColor(0xF3FBF9), raised: MTColor(0xE2F5F1),
+      line: MTColor(0xA9DCD3), text: MTColor(0x0C2B27), sub: MTColor(0x1E4942),
+      muted: MTColor(0x3C6B63), term: MTColor(0x11332E), ghost: MTColor(0x7FB4AC),
+      accent: MTColor(0x0FB5A6), ok: MTColor(0x0E8C66), okBg: MTColor(0xD4F0E3),
+      warn: MTColor(0x9A6200), bad: MTColor(0xC23A32),
       diffDelText: MTColor(0xA9520E), diffDelBg: MTColor(r: 230, g: 130, b: 40, a: 0.14),
       diffAddText: MTColor(0x1C55B5), diffAddBg: MTColor(r: 42, g: 111, b: 224, a: 0.12),
-      toggleOff: MTColor(0xA9C9C4)
+      toggleOff: MTColor(0x9CCFC6)
     ),
     MTTheme(
       id: "canvas", name: "帆布", subtitle: "Canvas", isLight: false,
