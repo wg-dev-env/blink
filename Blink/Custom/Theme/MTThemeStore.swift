@@ -139,25 +139,65 @@ final class MTThemeStore: ObservableObject {
 
   /// ターミナル側の選択スタイル（TerminalStyleStore）の themeName を差し替える
   private func applyToTerminalStyle(_ theme: MTTheme) {
-    let store = TerminalStyleStore.shared
-    if store.selectedStyleID == nil {
-      // 組み込み Default は編集不可のため、Custom スタイルを作って選択する
-      // （StyleCustomizationView.ensureEditableStyle と同じ流儀）
-      let base = store.builtInDefault
-      let custom = store.createStyle(
-        name: "Custom",
-        themeName: theme.name,
-        fontName: base.fontName,
-        fontSize: base.fontSize,
-        cursorBlink: base.cursorBlink,
-        boldMode: base.boldMode,
-        boldAsBright: base.boldAsBright
-      )
-      store.setSelected(custom.id)
-    } else {
-      store.setStyleThemeName(theme.name)
-    }
+    ensureEditableStyle()
+    TerminalStyleStore.shared.setStyleThemeName(theme.name)
     BLKDefaults.save()
+  }
+
+  /// 組み込み Default は編集不可のため、未選択なら Custom スタイルを作って選択する
+  /// （StyleCustomizationView.ensureEditableStyle と同じ流儀）。テーマ名は現在選択を引き継ぐ。
+  private func ensureEditableStyle() {
+    let store = TerminalStyleStore.shared
+    guard store.selectedStyleID == nil else { return }
+    let base = store.builtInDefault
+    let custom = store.createStyle(
+      name: "Custom",
+      themeName: selectedTheme?.name ?? base.themeName,
+      fontName: base.fontName,
+      fontSize: base.fontSize,
+      cursorBlink: base.cursorBlink,
+      boldMode: base.boldMode,
+      boldAsBright: base.boldAsBright
+    )
+    store.setSelected(custom.id)
+  }
+
+  // MARK: - 端末フォント（S15）
+
+  /// 現在の端末フォント名
+  var terminalFontName: String { TerminalStyleStore.shared.selectedStyle.fontName }
+  /// 現在の端末フォントサイズ
+  var terminalFontSize: Int { Int(TerminalStyleStore.shared.selectedStyle.fontSize) }
+
+  /// 選べる端末フォント（BKFont の一覧。同梱 CSS フォント＋システム等幅）
+  var availableTerminalFonts: [String] {
+    ((BKFont.all() as? [BKFont]) ?? []).compactMap { $0.name }
+  }
+
+  /// 端末フォントを変更して即時反映する
+  func setTerminalFont(name: String) {
+    ensureEditableStyle()
+    TerminalStyleStore.shared.setStyleFontName(name)
+    BLKDefaults.save()
+    applyStyleToLiveSessions()
+    objectWillChange.send()
+  }
+
+  /// 端末フォントサイズを変更して即時反映する
+  func setTerminalFontSize(_ size: Int) {
+    ensureEditableStyle()
+    TerminalStyleStore.shared.setStyleFontSize(NSNumber(value: size))
+    BLKDefaults.save()
+    applyStyleToLiveSessions()
+    objectWillChange.send()
+  }
+
+  /// 開いているセッションへ、現在の端末スタイル（フォント・サイズ・テーマ）を一括再適用する
+  private func applyStyleToLiveSessions() {
+    let style = TerminalStyleStore.shared.selectedStyle
+    SessionRegistry.shared.forEachSession { session in
+      (session as? TermController)?.termView.applyTermUIState(TermUIState(style: style))
+    }
   }
 
   private func notifyAppearanceChanged() {

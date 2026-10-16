@@ -66,6 +66,33 @@ struct MTAppearanceView: View {
         Text("他ツールで見慣れた配色を端末に適用します（ANSI 16 色）。UI の配色は上の「配色」のままです。")
       }
 
+      Section {
+        Picker("フォント", selection: Binding(
+          get: { store.terminalFontName },
+          set: { store.setTerminalFont(name: $0) }
+        )) {
+          ForEach(store.availableTerminalFonts, id: \.self) { name in
+            Text(name).tag(name)
+          }
+        }
+
+        Stepper(value: Binding(
+          get: { store.terminalFontSize },
+          set: { store.setTerminalFontSize($0) }
+        ), in: 8...32) {
+          HStack {
+            Text("サイズ")
+            Spacer()
+            Text("\(store.terminalFontSize) pt")
+              .foregroundColor(.secondary)
+          }
+        }
+      } header: {
+        Text("端末フォント")
+      } footer: {
+        Text("選ぶと開いているセッションにもすぐ反映されます。合字（リガチャ）は現在の描画方式では表示されません。")
+      }
+
       Section("外観モード") {
         Picker("外観モード", selection: $store.appearanceMode) {
           Text("システムに合わせる").tag(MTThemeStore.AppearanceMode.system)
