@@ -151,6 +151,7 @@
 		BD7810A52640C36100114700 /* NWConnection+WriterTo.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7810A42640C36100114700 /* NWConnection+WriterTo.swift */; };
 		BD792A452A3B6A78009EE35F /* GitHubSnippets.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD792A442A3B6A78009EE35F /* GitHubSnippets.swift */; };
 		BD792A4F2A3BDAAA009EE35F /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = BD792A4E2A3BDAAA009EE35F /* ZIPFoundation */; };
+		CADE100000000000000000A3 /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = CADE100000000000000000A2 /* Citadel */; };
 		BD792A512A3BDAC4009EE35F /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = BD792A502A3BDAC4009EE35F /* ZIPFoundation */; };
 		BD7AFC4128E8E98C004BCDA4 /* Base32Kit in Frameworks */ = {isa = PBXBuildFile; productRef = BD7AFC4028E8E98C004BCDA4 /* Base32Kit */; };
 		BD7AFC4328E8E9A9004BCDA4 /* Base32Kit in Frameworks */ = {isa = PBXBuildFile; productRef = BD7AFC4228E8E9A9004BCDA4 /* Base32Kit */; };
@@ -1511,6 +1512,7 @@
 				D2A9B2F7272E6F26009FCBDE /* BlinkCode.framework in Frameworks */,
 				D2334EF225C1C28F00385378 /* files.xcframework in Frameworks */,
 				BD792A4F2A3BDAAA009EE35F /* ZIPFoundation in Frameworks */,
+				CADE100000000000000000A3 /* Citadel in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3025,6 +3027,7 @@
 				D222780E2A26217A00D4C708 /* Runestone */,
 				BD792A4E2A3BDAAA009EE35F /* ZIPFoundation */,
 				BDFA97312D7F49EF0020BBF2 /* ConfettiSwiftUI */,
+				CADE100000000000000000A2 /* Citadel */,
 			);
 			productName = Blink;
 			productReference = EA0BA18B1C0CC57B00719C1A /* Blink.app */;
@@ -3150,6 +3153,7 @@
 				D22278062A26216900D4C708 /* XCRemoteSwiftPackageReference "treesitterlanguages" */,
 				D222780D2A26217A00D4C708 /* XCRemoteSwiftPackageReference "Runestone" */,
 				BD792A4D2A3BDAAA009EE35F /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
+				CADE100000000000000000A1 /* XCRemoteSwiftPackageReference "Citadel" */,
 				BD4DBAF82CADA82700538194 /* XCRemoteSwiftPackageReference "SQLite" */,
 				BDA35C972D7F4955004CD75C /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */,
 			);
@@ -5746,6 +5750,14 @@
 				minimumVersion = 0.9.16;
 			};
 		};
+		CADE100000000000000000A1 /* XCRemoteSwiftPackageReference "Citadel" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/orlandos-nl/Citadel.git";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 0.12.0;
+			};
+		};
 		BD7AFC3F28E8E98C004BCDA4 /* XCRemoteSwiftPackageReference "Base32Kit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/jenslauterbach/Base32Kit.git";
@@ -5818,6 +5830,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BD792A4D2A3BDAAA009EE35F /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
 			productName = ZIPFoundation;
+		};
+		CADE100000000000000000A2 /* Citadel */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CADE100000000000000000A1 /* XCRemoteSwiftPackageReference "Citadel" */;
+			productName = Citadel;
 		};
 		BD792A502A3BDAC4009EE35F /* ZIPFoundation */ = {
 			isa = XCSwiftPackageProductDependency;
