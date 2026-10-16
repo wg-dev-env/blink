@@ -560,6 +560,7 @@ Please go to your subscriptions and cancel one of them!
   private var _mtSnapshotTimer: Timer? = nil
   private var _mtShieldTimer: Timer? = nil
   private var _mtShieldCancellable: AnyCancellable? = nil
+  private var _mtShieldEnabledCancellable: AnyCancellable? = nil
   private var _mtRevealTap: UITapGestureRecognizer? = nil
   private var _mtEndCancellable: AnyCancellable? = nil
   private weak var _mtEndHost: UIViewController? = nil
@@ -706,19 +707,14 @@ Please go to your subscriptions and cancel one of them!
       self, selector: #selector(_mtRemoteSessionDidEnd(_:)),
       name: .MTRemoteSessionDidEnd, object: nil)
 
-    // 覗き見防止（07 #08）: 無操作が続いたら本番ホストのタブを伏せる
-    _mtShieldTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
-      guard let self else { return }
-      MTShieldCenter.shared.checkIdle(currentKey: self._currentKey)
-    }
+    // 覗き見防止（07 #08、既定OFF）。有効なときだけ、5秒ごとの無操作判定と
+    // 「伏せている間のタップで戻す」ジェスチャを動かす。既定では何も足さない（タッチ層を軽くする）。
     _mtShieldCancellable = MTShieldCenter.shared.$shielded.sink { [weak self] _ in
       DispatchQueue.main.async { self?._mtApplyShield() }
     }
-    // 伏せている間のタップで戻す
-    let revealTap = UITapGestureRecognizer(target: self, action: #selector(_mtRevealTapped))
-    revealTap.delegate = self
-    _mtRevealTap = revealTap
-    view.addGestureRecognizer(revealTap)
+    _mtShieldEnabledCancellable = MTShieldCenter.shared.$enabled.sink { [weak self] _ in
+      DispatchQueue.main.async { self?._mtApplyShieldActivation() }
+    }
     // 回線が切れた・戻った・復元した瞬間も撮る
     _mtStateCancellable = MTSessionStateCenter.shared.$states
       .removeDuplicates { old, new in
@@ -795,6 +791,32 @@ Please go to your subscriptions and cancel one of them!
   private func _mtApplyEndView() {
     let show = _currentKey.map { MTSessionEndCenter.shared.ended(for: $0) != nil } ?? false
     _mtEndHost?.view.isUserInteractionEnabled = show
+  }
+
+  /// 覗き見防止の有効/無効に応じて、5秒タイマーとルートビューのタップジェスチャを付け外しする。
+  /// 既定（無効）ではどちらも存在しないので、ルートビューに常時ジェスチャが乗らず、タッチ層が軽い。
+  private func _mtApplyShieldActivation() {
+    if MTShieldCenter.shared.enabled {
+      if _mtShieldTimer == nil {
+        _mtShieldTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
+          guard let self else { return }
+          MTShieldCenter.shared.checkIdle(currentKey: self._currentKey)
+        }
+      }
+      if _mtRevealTap == nil {
+        let tap = UITapGestureRecognizer(target: self, action: #selector(_mtRevealTapped))
+        tap.delegate = self
+        _mtRevealTap = tap
+        view.addGestureRecognizer(tap)
+      }
+    } else {
+      _mtShieldTimer?.invalidate()
+      _mtShieldTimer = nil
+      if let tap = _mtRevealTap {
+        view.removeGestureRecognizer(tap)
+        _mtRevealTap = nil
+      }
+    }
   }
 
   /// 伏せる・戻すを端末へ反映する（07 #08）
