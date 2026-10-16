@@ -32,7 +32,9 @@
 #import "UIDevice+DeviceName.h"
 
 #define DEFAULT_USER_NAME @"user"
-#define DEFAULT_DEVICE_NAME @"blink"
+// MoshTerm: 端末名の既定を Iroha ブランドに（プロンプト user@iroha-term）。
+// iOS は実機名を渡さないためこの既定にフォールバックする。
+#define DEFAULT_DEVICE_NAME @"iroha-term"
 
 @implementation UIDevice (DeviceName)
 
