@@ -65,6 +65,8 @@ class SpaceController: UIViewController {
   
   private var _overlay = UIView()
   private var _spaceControllerAnimating: Bool = false
+  /// アニメーション中に要求された切替先（last-wins で完了後に 1 件だけ適用する）
+  private var _pendingMoveKey: UUID? = nil
   var stuckKeyCode: KeyCode? = nil
   
   private var _snippetsVC: SnippetsViewController? = nil
@@ -501,6 +503,7 @@ Please go to your subscriptions and cancel one of them!
         self._attachInputToCurrentTerm()
       }
       self._spaceControllerAnimating = false
+      self._applyPendingMoveIfNeeded(animated: true)
     }
   }
   
@@ -1953,6 +1956,15 @@ extension SpaceController {
   }
   
   private func _moveToShell(key: UUID, animated: Bool = true) {
+    // アニメーション中の再入を抑止する。UIPageViewController(.scroll) は
+    // setViewControllers(animated:) の完了前に再度呼ぶと内部（_UIQueuingScrollView）が
+    // 不整合を起こしてクラッシュする。連打・スワイプ中のタップは「最後の指定」だけを
+    // 完了後に 1 件適用する（last-wins）。
+    if _spaceControllerAnimating {
+      _pendingMoveKey = key
+      return
+    }
+
     guard
       let currentKey = _currentKey,
       let currentIdx = _viewportsKeys.firstIndex(of: currentKey),
@@ -1960,7 +1972,7 @@ extension SpaceController {
     else {
       return
     }
-    
+
     let term: TermController = SessionRegistry.shared[key]
     let direction: UIPageViewController.NavigationDirection = currentIdx < idx ? .forward : .reverse
 
@@ -1971,7 +1983,17 @@ extension SpaceController {
       self._displayHUD()
       self._refocusCurrentTermSoon()
       self._spaceControllerAnimating = false
+      self._applyPendingMoveIfNeeded(animated: animated)
     }
+  }
+
+  /// アニメーション完了後、保留していた切替先があれば 1 件だけ適用する。
+  /// 既に目的のセッションにいる場合（pending == 現在）は何もしない。
+  private func _applyPendingMoveIfNeeded(animated: Bool) {
+    guard let pending = _pendingMoveKey else { return }
+    _pendingMoveKey = nil
+    guard pending != _currentKey else { return }
+    _moveToShell(key: pending, animated: animated)
   }
   
   private func _advanceShell(by: Int, animated: Bool = true) {
