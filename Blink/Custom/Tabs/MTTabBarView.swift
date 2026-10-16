@@ -68,11 +68,26 @@ struct MTTabBarView: View {
   let onShieldNow: () -> Void
   /// タブバーに歯車を出すか（サイドバーがある iPad / Mac では false）
   var showSettings: Bool = true
+  /// サイドバーの表示切り替え（iPad / Mac のみ。nil のときは開閉ボタンを出さない）
+  var onToggleSidebar: (() -> Void)? = nil
 
   private var theme: MTTheme { themeStore.currentTheme }
 
   var body: some View {
     HStack(spacing: 6) {
+      // サイドバー開閉（iPad / Mac のみ。指だけでも左メニューを隠せるように）
+      if let onToggleSidebar {
+        Button(action: onToggleSidebar) {
+          Image(systemName: "sidebar.leading")
+            .font(.system(size: 15, weight: .medium))
+            .foregroundColor(theme.sub.color)
+            .frame(width: 44, height: 36)
+            .background(RoundedRectangle(cornerRadius: 10).fill(theme.raised.color))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("サイドバーの表示切り替え"))
+      }
+
       // 件数ボタン（タップでセッション一覧。一覧画面は S7、それまでは既存 HUD 表示）
       Button(action: onList) {
         Text("\(model.items.count)")
@@ -250,13 +265,14 @@ final class MTTabBarHost: UIViewController {
     let onCommandBlocks: () -> Void
     let onShieldNow: () -> Void
     let showSettings: Bool
+    let onToggleSidebar: (() -> Void)?
 
     var body: some View {
       VStack(spacing: 0) {
         MTTabBarView(model: model, onSelect: onSelect, onNew: onNew, onList: onList,
                      onRename: onRename, onClose: onClose, onSettings: onSettings,
                      onCommandBlocks: onCommandBlocks, onShieldNow: onShieldNow,
-                     showSettings: showSettings)
+                     showSettings: showSettings, onToggleSidebar: onToggleSidebar)
         MTLifelineView()
           .frame(height: 20)
       }
@@ -271,13 +287,14 @@ final class MTTabBarHost: UIViewController {
        onSettings: @escaping () -> Void,
        onCommandBlocks: @escaping () -> Void,
        onShieldNow: @escaping () -> Void,
-       showSettings: Bool = true) {
+       showSettings: Bool = true,
+       onToggleSidebar: (() -> Void)? = nil) {
     super.init(nibName: nil, bundle: nil)
     let hosting = UIHostingController(
       rootView: ChromeView(model: model, onSelect: onSelect, onNew: onNew, onList: onList,
                            onRename: onRename, onClose: onClose, onSettings: onSettings,
                      onCommandBlocks: onCommandBlocks, onShieldNow: onShieldNow,
-                     showSettings: showSettings))
+                     showSettings: showSettings, onToggleSidebar: onToggleSidebar))
     addChild(hosting)
     hosting.view.backgroundColor = .clear
     hosting.view.translatesAutoresizingMaskIntoConstraints = false

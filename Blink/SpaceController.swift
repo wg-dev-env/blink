@@ -660,7 +660,9 @@ Please go to your subscriptions and cancel one of them!
       onCommandBlocks: { [weak self] in self?._mtShowCommandBlocks() },
       onShieldNow: { [weak self] in self?._mtShieldNow() },
       // サイドバーがある iPad / Mac では歯車をサイドバー側に出すので、タブバーには出さない
-      showSettings: !_mtSupportsSidebar
+      showSettings: !_mtSupportsSidebar,
+      // サイドバーがある機種だけ、タブバー左端に開閉ボタンを出す（指だけで左メニューを隠せる）
+      onToggleSidebar: _mtSupportsSidebar ? { [weak self] in self?._mtToggleSidebar() } : nil
     )
     addChild(host)
     host.view.translatesAutoresizingMaskIntoConstraints = false
