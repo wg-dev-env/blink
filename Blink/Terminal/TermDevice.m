@@ -31,6 +31,9 @@
 
 #import "TermDevice.h"
 
+#import <errno.h>
+#import <unistd.h>
+
 static int __sizeOfIncompleteSequenceAtTheEnd(const char *buffer, size_t len) {
   // Find the first UTF mark and compare with the iterator.
   int i = 1;
@@ -243,8 +246,29 @@ static int __sizeOfIncompleteSequenceAtTheEnd(const char *buffer, size_t len) {
 
 - (void)writeInDirectly:(NSString *)input
 {
-  NSUInteger len = [input lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
-  write(_pinput[1], input.UTF8String, len);
+  // pty 入力 pipe への write() は一度に全バイトを書けるとは限らない（部分書き込み）。
+  // 返り値を見ずに 1 回だけ呼ぶと、ファイル全体など大量ペースト時にバッファが溢れた分が
+  // 黙って捨てられ「少量は貼れるが大量は途中で切れる」不具合になる。全バイトを書き切るまで
+  // ループし、シグナル割り込み（EINTR）や一時的に書けない状態（EAGAIN）も処理する。
+  const char *bytes = input.UTF8String;
+  if (bytes == NULL) {
+    return;
+  }
+  size_t len = [input lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+  size_t off = 0;
+  while (off < len) {
+    ssize_t n = write(_pinput[1], bytes + off, len - off);
+    if (n > 0) {
+      off += (size_t)n;
+    } else if (n == -1 && errno == EINTR) {
+      continue; // 割り込み。残りを書き続ける
+    } else if (n == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+      usleep(1000); // ノンブロッキング時の一時的な満杯。少し待って再試行
+      continue;
+    } else {
+      break; // 相手が閉じた等、これ以上書けない
+    }
+  }
 }
 
 - (void)writeIn:(NSString *)input
