@@ -517,6 +517,17 @@ Please go to your subscriptions and cancel one of them!
     currentTerm()?.activateInput()
   }
 
+  /// シート（設定・接続・一覧など）を出す前にキーボードを確実に閉じる。
+  /// resignInput だけでは端末のキーボードが残り、シート下部の行がキーボードに隠れて
+  /// タップできない（＝「反応しない」）ことがあるため、ビュー階層全体の編集も終了させる。
+  private func _mtDismissKeyboardForSheet() {
+    // キーボードを持つ実体は SmarterTermInput（KBTracker.shared.input）。resignInput() は
+    // ガードで効かないことがあるため、この実体を直接 resign し、ビュー階層の編集も終了させる。
+    currentTerm()?.resignInput()
+    _ = KBTracker.shared.input?.resignFirstResponder()
+    view.window?.endEditing(true)
+  }
+
   /// タブ切替直後に端末がファーストレスポンダに復帰しない問題への対策（MoshTerm）。
   /// タブ（SwiftUI ボタン）のタップ処理と端末の becomeFirstResponder が競合し、Mosh のように
   /// 復帰が重いセッションでは定着タイミングを逃すことがある（ローカルや画面タップは競合なく成功する）。
@@ -834,7 +845,7 @@ Please go to your subscriptions and cancel one of them!
     let vc = UIHostingController(rootView: MTCommandBlocksView(sessionKey: _currentKey))
     vc.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
     vc.modalPresentationStyle = .pageSheet
-    currentTerm()?.resignInput()
+    _mtDismissKeyboardForSheet()
     present(vc, animated: true)
   }
 
@@ -964,7 +975,7 @@ Please go to your subscriptions and cancel one of them!
     navController.setViewControllers([content], animated: false)
     navController.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
     navController.modalPresentationStyle = .pageSheet
-    currentTerm()?.resignInput()
+    _mtDismissKeyboardForSheet()
     present(navController, animated: true)
   }
 
@@ -1048,7 +1059,7 @@ Please go to your subscriptions and cancel one of them!
     navController.setViewControllers([content], animated: false)
     navController.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
     navController.modalPresentationStyle = .pageSheet
-    currentTerm()?.resignInput()
+    _mtDismissKeyboardForSheet()
     present(navController, animated: true)
   }
 

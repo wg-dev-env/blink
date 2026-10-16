@@ -55,7 +55,9 @@ final class MTShieldCenter: ObservableObject {
 
   private init() {
     let defaults = UserDefaults.standard
-    enabled = defaults.object(forKey: Self.enabledKey) as? Bool ?? true
+    // 安定化：Phase 7 の覗き見防止は既定 OFF（必要な人が設定で有効化する）。
+    // 既定 ON だと本番ホストで 5 秒ごとの無操作判定・画面を伏せる処理が常時動く。
+    enabled = defaults.object(forKey: Self.enabledKey) as? Bool ?? false
     let stored = defaults.double(forKey: Self.timeoutKey)
     timeout = stored > 0 ? stored : 60
     requireAuth = defaults.object(forKey: Self.requireAuthKey) as? Bool ?? false
