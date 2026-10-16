@@ -553,8 +553,12 @@ Please go to your subscriptions and cancel one of them!
   private var _mtPendingAlias: String? = nil
   /// 新規接続に割り当てた tmux セッション名（_createTerminal でセッションに紐付ける）
   private var _mtPendingTmuxName: String? = nil
+  // 第3段（常時オーバーレイの遅延生成）: 以下 4 つの表示専用オーバーレイは
+  // 起動時には生成せず、機能が初めて発火した瞬間（カード表示・長押し・スクラブ・終了案内）に
+  // 初回だけ生成する。普段使い（未発火）ではビュー階層に足さず、タッチ層を軽く保つ。
   private var _mtRingHost: UIViewController? = nil
   private var _mtRingCancellable: AnyCancellable? = nil
+  private var _mtScrubHost: UIViewController? = nil
   private var _mtScrubCancellable: AnyCancellable? = nil
   private var _mtStateCancellable: AnyCancellable? = nil
   private var _mtSnapshotTimer: Timer? = nil
@@ -563,10 +567,10 @@ Please go to your subscriptions and cancel one of them!
   private var _mtShieldEnabledCancellable: AnyCancellable? = nil
   private var _mtRevealTap: UITapGestureRecognizer? = nil
   private var _mtEndCancellable: AnyCancellable? = nil
-  private weak var _mtEndHost: UIViewController? = nil
+  private var _mtEndHost: UIViewController? = nil
   // 圏外ドラフトのカード。表示専用（ドラフトがある時だけタッチを受ける）
   private var _mtDraftCancellable: AnyCancellable? = nil
-  private weak var _mtDraftHost: UIViewController? = nil
+  private var _mtDraftHost: UIViewController? = nil
   private var _mtSidebarHost: UIViewController? = nil
   private var _mtSidebarLeading: NSLayoutConstraint? = nil
   private var _mtSidebarVisible = false
@@ -660,28 +664,22 @@ Please go to your subscriptions and cancel one of them!
     // テーマとターミナル配色の同期ずれを自己修復（新規セッションはここから正しい配色になる）
     MTThemeStore.shared.syncTerminalStyleIfNeeded()
 
-    // 圏外ドラフトのカード（表示専用。カードが出ている時だけタッチを受ける）
-    let draftHost = UIHostingController(rootView: MTDraftOverlayView(onSend: { [weak self] lines in
-      self?._mtSendDraftLines(lines)
-    }))
-    _mtAddOverlay(draftHost, into: view, bottom: view.keyboardLayoutGuide.topAnchor)
-    _mtDraftHost = draftHost
+    // 圏外ドラフトのカード（表示専用。カードが出ている時だけタッチを受ける）。
+    // 第3段：生成はドラフトが初めて貯まったときに _mtActivateDraftOverlay が行う。
     _mtDraftCancellable = MTDraftStore.shared.$drafts.sink { [weak self] _ in
       self?._mtApplyDraftInteractivity()
     }
 
     // 危険コマンドの長押しリング。確定中だけ全画面でタッチを受けるモーダル。
-    // belowTabBar=false で全画面を覆うが、pending の間だけ true にするので
-    // 通常時はタブバー・端末へタッチが通る（下の sink 参照）。
-    let ringHost = UIHostingController(rootView: MTDangerRingView())
-    _mtAddOverlay(ringHost, into: view, belowTabBar: false, bottom: view.bottomAnchor)
-    _mtRingHost = ringHost
+    // 第3段：生成は長押し判定が初めて走ったときに _mtActivateRingOverlay が行う。
+    _mtRingCancellable = MTDangerGuard.shared.$pending.sink { [weak self] pending in
+      self?._mtActivateRingOverlay(pending != nil)
+    }
 
-    // スクラブ中の読み取り専用オーバーレイ（07 #01）。スクラブ中だけタッチを受ける
-    let scrubHost = UIHostingController(rootView: MTScrubOverlayView())
-    _mtAddOverlay(scrubHost, into: view, bottom: view.keyboardLayoutGuide.topAnchor)
-    _mtScrubCancellable = MTScreenHistory.shared.$scrubbing.sink { [weak scrubHost] snapshot in
-      scrubHost?.view.isUserInteractionEnabled = snapshot != nil
+    // スクラブ中の読み取り専用オーバーレイ（07 #01）。スクラブ中だけタッチを受ける。
+    // 第3段：生成はスクラブが初めて始まったときに _mtActivateScrubOverlay が行う。
+    _mtScrubCancellable = MTScreenHistory.shared.$scrubbing.sink { [weak self] snapshot in
+      self?._mtActivateScrubOverlay(snapshot != nil)
     }
 
     // 画面スナップショットを定期的に撮る（07 #01）
@@ -689,16 +687,8 @@ Please go to your subscriptions and cancel one of them!
       self?._mtTakeSnapshot(reason: "定期")
     }
 
-    // 接続終了の案内（exit 後に固まって見える問題への対応）
-    let endHost = UIHostingController(rootView: MTSessionEndView(
-      onReconnect: { [weak self] command in
-        self?._newShellAction(command: command, animated: false)
-      },
-      onNewConnection: { [weak self] in self?._mtShowConnectSheet() },
-      onCloseTab: { [weak self] in self?._closeCurrentSpace() }
-    ))
-    _mtAddOverlay(endHost, into: view, bottom: view.bottomAnchor)
-    _mtEndHost = endHost
+    // 接続終了の案内（exit 後に固まって見える問題への対応）。
+    // 第3段：生成は初めて exit 案内が出たときに _mtActivateEndOverlay が行う。
     // 案内の有無が変わったときも、タブを切り替えたときも、タッチ可否を再計算する
     _mtEndCancellable = MTSessionEndCenter.shared.$ended.sink { [weak self] _ in
       DispatchQueue.main.async { self?._mtApplyEndView() }
@@ -733,10 +723,6 @@ Please go to your subscriptions and cancel one of them!
         }
         self._mtTakeSnapshot(reason: reason)
       }
-    // 既定は非インタラクティブ（_mtAddOverlay が設定済み）。長押し待ちの間だけ受ける
-    _mtRingCancellable = MTDangerGuard.shared.$pending.sink { [weak ringHost] pending in
-      ringHost?.view.isUserInteractionEnabled = pending != nil
-    }
   }
 
   /// Handoff で渡されたセッションを開く（07 #07）
@@ -787,10 +773,73 @@ Please go to your subscriptions and cancel one of them!
     }
   }
 
-  /// 終了案内のタッチ可否を、現在タブに案内が出ているかで決める
+  /// 終了案内のタッチ可否を、現在タブに案内が出ているかで決める。
+  /// 第3段：案内が初めて出るときにオーバーレイを生成する。
   private func _mtApplyEndView() {
     let show = _currentKey.map { MTSessionEndCenter.shared.ended(for: $0) != nil } ?? false
-    _mtEndHost?.view.isUserInteractionEnabled = show
+    _mtActivateEndOverlay(show)
+  }
+
+  // MARK: - MoshTerm 第3段：常時オーバーレイの遅延生成
+  //
+  // 下の 4 つは「初めて必要になった瞬間」に 1 度だけ生成し、以後は保持したまま
+  // isHidden / isUserInteractionEnabled の切り替えだけで出し入れする。
+  // 起動直後や、機能が一度も発火しないセッションではビュー階層に足さない。
+
+  /// 圏外ドラフトのカード（07 #02）を遅延生成する
+  private func _mtActivateDraftOverlay(_ active: Bool) {
+    if active && _mtDraftHost == nil {
+      let host = UIHostingController(rootView: MTDraftOverlayView(onSend: { [weak self] lines in
+        self?._mtSendDraftLines(lines)
+      }))
+      _mtAddOverlay(host, into: view, bottom: view.keyboardLayoutGuide.topAnchor)
+      _mtDraftHost = host
+    }
+    _mtSetOverlay(_mtDraftHost, active: active)
+  }
+
+  /// 危険コマンドの長押しリング（07 #04）を遅延生成する。
+  /// belowTabBar=false で全画面を覆うが、生成も表示も pending の間だけ。
+  private func _mtActivateRingOverlay(_ active: Bool) {
+    if active && _mtRingHost == nil {
+      let host = UIHostingController(rootView: MTDangerRingView())
+      _mtAddOverlay(host, into: view, belowTabBar: false, bottom: view.bottomAnchor)
+      _mtRingHost = host
+    }
+    _mtSetOverlay(_mtRingHost, active: active)
+  }
+
+  /// スクラブ中の読み取り専用オーバーレイ（07 #01）を遅延生成する
+  private func _mtActivateScrubOverlay(_ active: Bool) {
+    if active && _mtScrubHost == nil {
+      let host = UIHostingController(rootView: MTScrubOverlayView())
+      _mtAddOverlay(host, into: view, bottom: view.keyboardLayoutGuide.topAnchor)
+      _mtScrubHost = host
+    }
+    _mtSetOverlay(_mtScrubHost, active: active)
+  }
+
+  /// 接続終了の案内（exit 後に固まって見える問題への対応）を遅延生成する
+  private func _mtActivateEndOverlay(_ active: Bool) {
+    if active && _mtEndHost == nil {
+      let host = UIHostingController(rootView: MTSessionEndView(
+        onReconnect: { [weak self] command in
+          self?._newShellAction(command: command, animated: false)
+        },
+        onNewConnection: { [weak self] in self?._mtShowConnectSheet() },
+        onCloseTab: { [weak self] in self?._closeCurrentSpace() }
+      ))
+      _mtAddOverlay(host, into: view, bottom: view.bottomAnchor)
+      _mtEndHost = host
+    }
+    _mtSetOverlay(_mtEndHost, active: active)
+  }
+
+  /// 生成済みオーバーレイの表示・タッチ可否をまとめて切り替える（未生成なら何もしない）
+  private func _mtSetOverlay(_ host: UIViewController?, active: Bool) {
+    guard let v = host?.view else { return }
+    v.isHidden = !active
+    v.isUserInteractionEnabled = active
   }
 
   /// 覗き見防止の有効/無効に応じて、5秒タイマーとルートビューのタップジェスチャを付け外しする。
@@ -1115,7 +1164,7 @@ Please go to your subscriptions and cancel one of them!
   /// 出ていない間はタブバー・端末へタッチを素通りさせる（タップ無反応の防止）。
   private func _mtApplyDraftInteractivity() {
     let hasDrafts = _currentKey.map { MTDraftStore.shared.count(for: $0) > 0 } ?? false
-    _mtDraftHost?.view.isUserInteractionEnabled = hasDrafts
+    _mtActivateDraftOverlay(hasDrafts)
   }
 
   private func _displayHUD() {
