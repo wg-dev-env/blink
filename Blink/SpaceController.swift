@@ -1167,12 +1167,28 @@ Please go to your subscriptions and cancel one of them!
     // 閉じると対応表がクリアされるため、先に名前とホストを取り出す
     let tmuxName = MTTmuxSession.shared.name(for: key)
     let alias = MTHostContext.shared.alias(for: key)
-    if let tmuxName, let alias {
-      Task.detached {
-        try? await MTTmuxKiller.kill(alias: alias, sessionName: tmuxName)
+    _mtCloseSession(key)
+    // tmux 名 or ホストが記録されていない接続（手打ち mosh・tmux 無し・ローカル）は
+    // kill 対象が不明。以前は無言でスキップしていたが、破壊的操作が黙って no-op に
+    // なるのは誤解のもとなので明示する。
+    guard let tmuxName, let alias else {
+      _mtToast("このタブには tmux の記録がないため、サーバーのセッションは終了しませんでした")
+      return
+    }
+    Task { [weak self] in
+      do {
+        let gone = try await MTTmuxKiller.kill(alias: alias, sessionName: tmuxName)
+        if !gone {
+          await MainActor.run {
+            self?._mtToast("tmux「\(tmuxName)」を終了できませんでした（サーバーに残っています）")
+          }
+        }
+      } catch {
+        await MainActor.run {
+          self?._mtToast("tmux 終了に失敗：\(error.localizedDescription)")
+        }
       }
     }
-    _mtCloseSession(key)
   }
 
   /// 現在のセッションを非表示にして、見えている別のセッションへ移る（⌘⇧H）
@@ -1322,6 +1338,19 @@ Please go to your subscriptions and cancel one of them!
   private func _mtApplyDraftInteractivity() {
     let hasDrafts = _currentKey.map { MTDraftStore.shared.count(for: $0) > 0 } ?? false
     _mtActivateDraftOverlay(hasDrafts)
+  }
+
+  /// 短いメッセージを数秒だけ出すトースト（HUD のテキスト表示を流用）。
+  /// 破壊的操作の失敗など、黙って終わらせたくない通知に使う。
+  func _mtToast(_ message: String) {
+    let hud = MBProgressHUD.showAdded(to: _overlay, animated: true)
+    hud.mode = .text
+    hud.label.text = message
+    hud.label.numberOfLines = 0
+    hud.bezelView.color = .darkGray
+    hud.contentColor = .white
+    hud.isUserInteractionEnabled = false
+    hud.hide(animated: true, afterDelay: 3)
   }
 
   private func _displayHUD() {

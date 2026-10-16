@@ -32,17 +32,28 @@ import Foundation
 /// 接続経路は MTTmuxLister / MTSFTPClient と同じ使い捨て Citadel 接続。退行リスクを
 /// 避けるため既存 Mosh/SSH（libssh）の本接続とは独立して一瞬だけ張る。
 enum MTTmuxKiller {
-  /// サーバーで `tmux kill-session -t <name>` を実行する。
+  /// サーバーで `tmux kill-session -t <name>` を実行し、**本当に消えたか確認する**。
   ///
-  /// 既に存在しないセッション名でもエラーにはせず成功扱いにする（目的は「消えていること」）。
-  /// 接続自体に失敗した場合（鍵未設定・ホスト不明・ネットワーク断）は throw する。
-  static func kill(alias: String, sessionName: String) async throws {
+  /// 戻り値 `true` は「終了後にそのセッションが存在しない（＝成功。元々無かった場合も含む）」。
+  /// `false` は「接続はできたがセッションがまだ残っている」。接続自体に失敗した場合
+  /// （鍵未設定・ホスト不明・ネットワーク断）は throw する。
+  ///
+  /// 以前は `tmux kill-session ... 2>/dev/null` を `try?` で捨てていたため、名前が
+  /// サーバー上の実名と一致せず "can't find session" になっても成功扱いになり、
+  /// 「削除したのにサーバーに tmux が残る」症状の原因が一切表に出なかった。ここでは
+  /// kill 直後に `has-session` で生死を確認し、結果を呼び出し側へ返す。
+  static func kill(alias: String, sessionName: String) async throws -> Bool {
     let client = try await MTTmuxLister.connectClient(alias: alias)
     defer { Task { try? await client.close() } }
     // 名前は採番カウンタ由来（main-1 等）で記号を含まない前提だが、念のため
     // シングルクォートで囲み、含まれ得る ' を '\'' でエスケープする。
     let quoted = "'" + sessionName.replacingOccurrences(of: "'", with: "'\\''") + "'"
-    // セッションが無い場合の "can't find session" は stderr へ出るだけなので握りつぶす。
-    _ = try? await client.executeCommand("tmux kill-session -t \(quoted) 2>/dev/null")
+    // kill → has-session を 1 本のスクリプトで実行する。終了コードは必ず 0 に正規化
+    // して（Citadel の非ゼロ終了による throw を避ける）、最後に GONE / ALIVE を echo する。
+    let script = "tmux kill-session -t \(quoted) >/dev/null 2>&1; "
+      + "if tmux has-session -t \(quoted) 2>/dev/null; then echo ALIVE; else echo GONE; fi"
+    let buffer = try await client.executeCommand(script)
+    let out = buffer.getString(at: buffer.readerIndex, length: buffer.readableBytes) ?? ""
+    return out.contains("GONE")
   }
 }
