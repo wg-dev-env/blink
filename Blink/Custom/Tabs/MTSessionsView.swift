@@ -99,11 +99,16 @@ struct MTSessionsView: View {
   let currentKey: UUID?
   let onSelect: (UUID) -> Void
   let onNew: () -> Void
+  /// サーバーの tmux セッションごと終了して閉じる（破壊的・元に戻せない）
+  let onDelete: (UUID) -> Void
 
   @ObservedObject private var stateCenter = MTSessionStateCenter.shared
   @ObservedObject private var sessionsStore = MTSessionsStore.shared
   @ObservedObject private var themeStore = MTThemeStore.shared
   @Environment(\.dismiss) private var dismiss
+
+  /// 削除確認アラートの対象（nil のときは非表示）
+  @State private var pendingDelete: MTTabItem?
 
   private var theme: MTTheme { themeStore.currentTheme }
 
@@ -127,6 +132,12 @@ struct MTSessionsView: View {
           ForEach(visibleItems) { item in
             row(for: item, concealed: false)
               .swipeActions(edge: .trailing) {
+                // 破壊的操作が末尾（＝フルスワイプ側）に来ないよう「隠す」を後に置く
+                Button(role: .destructive) {
+                  pendingDelete = item
+                } label: {
+                  Label("削除", systemImage: "trash")
+                }
                 Button("隠す") {
                   sessionsStore.hide(item.key)
                 }
@@ -181,6 +192,20 @@ struct MTSessionsView: View {
       }
     }
     .navigationViewStyle(.stack)
+    .alert("セッションを削除", isPresented: Binding(
+      get: { pendingDelete != nil },
+      set: { if !$0 { pendingDelete = nil } }
+    ), presenting: pendingDelete) { item in
+      Button("削除", role: .destructive) {
+        let key = item.key
+        pendingDelete = nil
+        onDelete(key)
+        dismiss()
+      }
+      Button("キャンセル", role: .cancel) { pendingDelete = nil }
+    } message: { item in
+      Text("「\(item.title)」をサーバーの tmux セッションごと終了します。元に戻せません。")
+    }
   }
 
   // MARK: 集計

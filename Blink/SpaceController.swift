@@ -973,7 +973,8 @@ Please go to your subscriptions and cancel one of them!
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
           self?._mtShowConnectSheet()
         }
-      }
+      },
+      onDelete: { [weak self] key in self?._mtDeleteSession(key) }
     )
     let vc = UIHostingController(rootView: view)
     vc.modalPresentationStyle = .pageSheet
@@ -1085,12 +1086,33 @@ Please go to your subscriptions and cancel one of them!
     term.delegate = nil
     term.terminate()
     SessionRegistry.shared.remove(forKey: key)
+    // _removeCurrentSpace と同じ後始末を揃える（非カレント閉じで取り残しが出ないように）
     MTSessionStateCenter.shared.clear(for: key)
+    MTHostContext.shared.clear(for: key)
+    MTTmuxSession.shared.clear(for: key)
     MTSessionsStore.shared.setTitle(nil, for: key)
     if let idx = _viewportsKeys.firstIndex(of: key) {
       _viewportsKeys.remove(at: idx)
     }
     _mtTabBarUpdate()
+  }
+
+  /// セッションを削除する：サーバーの tmux セッションごと終了してから閉じる（破壊的・S削除機能）。
+  ///
+  /// 「閉じる／隠す」は iOS 側の接続を切るだけでサーバーの tmux は残す設計のため、
+  /// 不要セッションを根こそぎ消したいとき専用。tmux 名とホストを**閉じる前に**捕捉し、
+  /// 両方そろっていれば `tmux kill-session` を発行する。tmux を使っていない接続
+  /// （ローカルシェル・tmux 無し SSH 等）は kill をスキップして通常の閉じるに落ちる。
+  private func _mtDeleteSession(_ key: UUID) {
+    // 閉じると対応表がクリアされるため、先に名前とホストを取り出す
+    let tmuxName = MTTmuxSession.shared.name(for: key)
+    let alias = MTHostContext.shared.alias(for: key)
+    if let tmuxName, let alias {
+      Task.detached {
+        try? await MTTmuxKiller.kill(alias: alias, sessionName: tmuxName)
+      }
+    }
+    _mtCloseSession(key)
   }
 
   /// 現在のセッションを非表示にして、見えている別のセッションへ移る（⌘⇧H）

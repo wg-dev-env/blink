@@ -78,6 +78,7 @@
 		4D540001000000000000B036 /* MTSFTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A036 /* MTSFTPClient.swift */; };
 		4D540001000000000000B037 /* MTSFTPBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A037 /* MTSFTPBrowserView.swift */; };
 		4D540001000000000000B038 /* MTTmuxLister.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A038 /* MTTmuxLister.swift */; };
+		4D540001000000000000B040 /* MTTmuxKiller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A040 /* MTTmuxKiller.swift */; };
 		4D540001000000000000B039 /* MTTmuxPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A039 /* MTTmuxPickerView.swift */; };
 		4D540001000000000000B004 /* MTFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A004 /* MTFont.swift */; };
 		4D540001000000000000B005 /* MTSessionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A005 /* MTSessionState.swift */; };
@@ -863,6 +864,7 @@
 		4D540001000000000000A036 /* MTSFTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MTSFTPClient.swift; path = Blink/Custom/SFTP/MTSFTPClient.swift; sourceTree = SOURCE_ROOT; };
 		4D540001000000000000A037 /* MTSFTPBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MTSFTPBrowserView.swift; path = Blink/Custom/SFTP/MTSFTPBrowserView.swift; sourceTree = SOURCE_ROOT; };
 		4D540001000000000000A038 /* MTTmuxLister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MTTmuxLister.swift; path = Blink/Custom/Tmux/MTTmuxLister.swift; sourceTree = SOURCE_ROOT; };
+		4D540001000000000000A040 /* MTTmuxKiller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MTTmuxKiller.swift; path = Blink/Custom/Tmux/MTTmuxKiller.swift; sourceTree = SOURCE_ROOT; };
 		4D540001000000000000A039 /* MTTmuxPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MTTmuxPickerView.swift; path = Blink/Custom/Tmux/MTTmuxPickerView.swift; sourceTree = SOURCE_ROOT; };
 		4D540001000000000000A004 /* MTFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTFont.swift; sourceTree = "<group>"; };
 		4D540001000000000000A005 /* MTSessionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTSessionState.swift; sourceTree = "<group>"; };
@@ -1802,6 +1804,7 @@
 				4D540001000000000000A036 /* MTSFTPClient.swift */,
 				4D540001000000000000A037 /* MTSFTPBrowserView.swift */,
 				4D540001000000000000A038 /* MTTmuxLister.swift */,
+				4D540001000000000000A040 /* MTTmuxKiller.swift */,
 				4D540001000000000000A039 /* MTTmuxPickerView.swift */,
 				4D540001000000000000A004 /* MTFont.swift */,
 			);
@@ -3790,6 +3793,7 @@
 				4D540001000000000000B036 /* MTSFTPClient.swift in Sources */,
 				4D540001000000000000B037 /* MTSFTPBrowserView.swift in Sources */,
 				4D540001000000000000B038 /* MTTmuxLister.swift in Sources */,
+				4D540001000000000000B040 /* MTTmuxKiller.swift in Sources */,
 				4D540001000000000000B039 /* MTTmuxPickerView.swift in Sources */,
 				4D540001000000000000B002 /* MTThemeStore.swift in Sources */,
 				4D540001000000000000B003 /* MTAppearanceView.swift in Sources */,
