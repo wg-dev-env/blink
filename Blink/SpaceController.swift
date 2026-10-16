@@ -1019,7 +1019,14 @@ Please go to your subscriptions and cancel one of them!
           self?._mtShowConnectSheet()
         }
       },
-      onDelete: { [weak self] key in self?._mtDeleteSession(key) }
+      onDelete: { [weak self] key in
+        // onNew と同様、一覧シートの dismiss と競合しないよう閉じ終わってから削除する。
+        // 削除は内部で setViewControllers（ページ切替）を呼ぶため、シート dismiss と
+        // 重なると操作が落ちて「無反応・タブも消えない」症状になる。
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+          self?._mtDeleteSession(key)
+        }
+      }
     )
     let vc = UIHostingController(rootView: view)
     vc.modalPresentationStyle = .pageSheet

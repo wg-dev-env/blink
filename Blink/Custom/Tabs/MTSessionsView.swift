@@ -131,8 +131,8 @@ struct MTSessionsView: View {
         Section {
           ForEach(visibleItems) { item in
             row(for: item, concealed: false)
-              .swipeActions(edge: .trailing) {
-                // 破壊的操作が末尾（＝フルスワイプ側）に来ないよう「隠す」を後に置く
+              // フルスワイプで破壊的削除が即発火しないよう無効化（必ずボタンをタップさせる）
+              .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                 Button(role: .destructive) {
                   pendingDelete = item
                 } label: {
