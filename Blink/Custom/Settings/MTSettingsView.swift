@@ -36,6 +36,8 @@ enum MTAppInfo {
 struct MTSettingsView: View {
   @ObservedObject private var themeStore = MTThemeStore.shared
   @ObservedObject private var shield = MTShieldCenter.shared
+  // S17: 接続時に tmux セッションピッカーを出すか（既定 ON。OFF＝即接続）
+  @AppStorage("MTTmuxPickerEnabled") private var tmuxPickerEnabled = true
 
   private var theme: MTTheme { themeStore.currentTheme }
 
@@ -79,6 +81,15 @@ struct MTSettingsView: View {
           Text("システムのキーボードに従う")
             .foregroundColor(.secondary)
         }
+      }
+
+      // 4.5 tmux（S17）
+      Section {
+        Toggle("接続時にセッションを選ぶ", isOn: $tmuxPickerEnabled)
+      } header: {
+        Text("tmux")
+      } footer: {
+        Text("ON にすると、tmux 自動アタッチが有効なホストへ Mosh 接続するとき、サーバーの既存セッション一覧から選べます（新規作成・すべて開く・複数選択）。OFF では毎回まっさらな新規セッションに即接続します。")
       }
 
       // 5. 同期と通知（エンタイトルメント復活まで無効）

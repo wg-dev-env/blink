@@ -986,7 +986,7 @@ Please go to your subscriptions and cancel one of them!
       model: model,
       onSelect: { [weak self] key in self?._moveToShell(key: key) },
       onConnect: { [weak self] alias, kind in
-        self?._newShellAction(command: "\(kind.command) \(alias)", animated: true)
+        self?._mtConnect(alias: alias, kind: kind)
       },
       onNewConnection: { [weak self] in self?._mtShowConnectSheet() },
       onRename: { [weak self] key in self?._mtRenameSession(key) },
@@ -1110,8 +1110,8 @@ Please go to your subscriptions and cancel one of them!
       MTHostsView(
         onConnect: { [weak self] alias, kind in
           self?.dismiss(animated: true) {
-            // mosh/ssh はエイリアス 1 語で BKHosts の設定を解決する
-            self?._newShellAction(command: "\(kind.command) \(alias)", animated: true)
+            // mosh/ssh はエイリアス 1 語で BKHosts の設定を解決する（S17: 必要なら tmux ピッカーを挟む）
+            self?._mtConnect(alias: alias, kind: kind)
           }
         },
         onLocalShell: { [weak self] in
@@ -1137,6 +1137,47 @@ Please go to your subscriptions and cancel one of them!
     navController.modalPresentationStyle = .pageSheet
     _mtDismissKeyboardForSheet()
     present(navController, animated: true)
+  }
+
+  /// 接続の共通入口（接続シート・サイドバー）。S17: tmux 自動アタッチ ON の mosh ホストで
+  /// ピッカー設定が有効なら、先にサーバーの tmux セッションピッカーを出す。それ以外は即接続。
+  private func _mtConnect(alias: String, kind: MTConnectKind) {
+    let pickerOn = (UserDefaults.standard.object(forKey: "MTTmuxPickerEnabled") as? Bool) ?? true
+    let tmuxOn = BKHosts.withHost(alias)?.tmuxAutoAttach?.boolValue == true
+    var isMosh = false
+    if case .mosh = kind { isMosh = true }
+    if pickerOn, isMosh, tmuxOn {
+      _mtShowTmuxPicker(alias: alias, kind: kind)
+    } else {
+      _newShellAction(command: "\(kind.command) \(alias)", animated: true)
+    }
+  }
+
+  /// tmux セッションピッカー（S17）を出す。選択後に接続する。
+  private func _mtShowTmuxPicker(alias: String, kind: MTConnectKind) {
+    let view = MTTmuxPickerView(
+      alias: alias,
+      onAttach: { [weak self] names in
+        self?._mtOpenTmuxSessions(alias: alias, kind: kind, names: names)
+      },
+      onNew: { [weak self] in
+        self?._newShellAction(command: "\(kind.command) \(alias)", animated: true)
+      })
+    let content = UIHostingController(rootView: view)
+    content.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
+    content.modalPresentationStyle = .pageSheet
+    _mtDismissKeyboardForSheet()
+    present(content, animated: true)
+  }
+
+  /// 選択した tmux セッション名ぶんタブを開く（最後だけアニメーション）。
+  private func _mtOpenTmuxSessions(alias: String, kind: MTConnectKind, names: [String]) {
+    let safe = names.map { TmuxAutoAttach.sanitizedSessionName($0) }
+    guard !safe.isEmpty else { return }
+    for (i, name) in safe.enumerated() {
+      _newShellAction(command: "\(kind.command) \(alias) -- tmux new -A -s \(name)",
+                      animated: i == safe.count - 1)
+    }
   }
 
   /// SFTP ファイルブラウザ（S16）を presented sheet で開く
@@ -1502,6 +1543,12 @@ extension SpaceController {
   private func _mtAugmentWithUniqueTmux(command: String, alias: String?) -> String {
     _mtPendingTmuxName = nil
     let words = command.split(separator: " ").map(String.init)
+    // S17: ピッカーで `-- tmux new -A -s <name>` が既に焼き込まれている場合は、その名前を
+    // 記録してそのまま通す（複数接続や再接続との整合のため MTTmuxSession に残す）。
+    if words.contains("--"), let sIdx = words.firstIndex(of: "-s"), sIdx + 1 < words.count {
+      _mtPendingTmuxName = words[sIdx + 1]
+      return command
+    }
     guard
       let alias,
       words.first == "mosh",          // mosh のみ（SSH は ssh_config 側で別対応）
