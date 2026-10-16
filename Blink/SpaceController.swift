@@ -34,6 +34,7 @@
 }
 
 
+import BlinkConfig
 import Combine
 import MBProgressHUD
 import SwiftUI
@@ -436,6 +437,11 @@ Please go to your subscriptions and cancel one of them!
       MTHostContext.shared.bind(alias: alias, to: term.meta.key)
       _mtPendingAlias = nil
     }
+    // MoshTerm: 割り当てた tmux セッション名を記録する（次の接続の衝突判定に使う）
+    if let tmuxName = _mtPendingTmuxName {
+      MTTmuxSession.shared.store(tmuxName, for: term.meta.key)
+      _mtPendingTmuxName = nil
+    }
 
     _currentKey = term.meta.key
     
@@ -462,6 +468,7 @@ Please go to your subscriptions and cancel one of them!
     SessionRegistry.shared.remove(forKey: currentKey)
     MTSessionStateCenter.shared.clear(for: currentKey)
     MTHostContext.shared.clear(for: currentKey)
+    MTTmuxSession.shared.clear(for: currentKey)
     MTInputGuard.clear(for: currentKey)
     MTShieldCenter.shared.clear(for: currentKey)
     MTSessionEndCenter.shared.clear(for: currentKey)
@@ -533,6 +540,8 @@ Please go to your subscriptions and cancel one of them!
   private var _mtTabBarLeading: NSLayoutConstraint? = nil
   /// 接続コマンドから拾った alias（_createTerminal でセッションに紐付ける）
   private var _mtPendingAlias: String? = nil
+  /// 新規接続に割り当てた tmux セッション名（_createTerminal でセッションに紐付ける）
+  private var _mtPendingTmuxName: String? = nil
   private var _mtRingHost: UIViewController? = nil
   private var _mtRingCancellable: AnyCancellable? = nil
   private var _mtScrubCancellable: AnyCancellable? = nil
@@ -1379,12 +1388,37 @@ extension SpaceController {
   private func _newShellAction(command: String = "", animated: Bool = true) {
     let params = MCPParams()
     if !command.isEmpty {
-      params.initialCommand = command
       // MoshTerm: 接続先ホストをセッションに紐付ける（額縁・安全機能が参照、07 #02/#03/#04）
-      _mtPendingAlias = MTHostContext.parseAlias(fromCommand: command)
+      let alias = MTHostContext.parseAlias(fromCommand: command)
+      _mtPendingAlias = alias
+      // MoshTerm: 複数接続は別セッションにする（要件4）。bare な mosh 接続で tmux 自動
+      // アタッチが有効なら、同じホストの生存セッションと衝突しないユニークな tmux 名を
+      // 埋め込む。既に `--`（明示コマンド）があるものや再接続/Handoff の復元コマンドは触らない。
+      params.initialCommand = _mtAugmentWithUniqueTmux(command: command, alias: alias)
     }
     let payload = MCPSessionPayload(params: params)
     _createTerminal(userActivity: nil, animated: animated, sessionPayload: payload)
+  }
+
+  /// bare な `mosh <alias>` を、ユニークな tmux セッション名つきコマンドに変換する。
+  /// 対象外（ローカル・SSH・既に `--` 付き・tmux 自動アタッチ無効）はそのまま返す。
+  /// 割り当てた名前は `_mtPendingTmuxName` に控え、`_createTerminal` でセッションに記録する。
+  private func _mtAugmentWithUniqueTmux(command: String, alias: String?) -> String {
+    _mtPendingTmuxName = nil
+    let words = command.split(separator: " ").map(String.init)
+    guard
+      let alias,
+      words.first == "mosh",          // mosh のみ（SSH は ssh_config 側で別対応）
+      !words.contains("--"),          // 既に明示コマンドがあるものは触らない
+      let host = BKHosts.withHost(alias),
+      host.tmuxAutoAttach?.boolValue == true
+    else {
+      return command
+    }
+    let base = TmuxAutoAttach.sanitizedSessionName(host.tmuxSessionName)
+    let name = MTTmuxSession.shared.assignName(forAlias: alias, base: base)
+    _mtPendingTmuxName = name
+    return "\(command) -- tmux new -A -s \(name)"
   }
 
   @objc func newShellAction() {

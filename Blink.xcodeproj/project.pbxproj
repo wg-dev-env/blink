@@ -84,6 +84,7 @@
 		4D540001000000000000B017 /* COPYING in Resources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A017 /* COPYING */; };
 		4D540001000000000000B018 /* MTSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A018 /* MTSettingsView.swift */; };
 		4D540001000000000000B021 /* MTHostsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A021 /* MTHostsView.swift */; };
+		4D540001000000000000B034 /* MTTmuxSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A034 /* MTTmuxSession.swift */; };
 		4D540001000000000000B022 /* MTSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A022 /* MTSidebarView.swift */; };
 		4D540001000000000000B023 /* MTHostContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A023 /* MTHostContext.swift */; };
 		4D540001000000000000B024 /* MTInputGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A024 /* MTInputGuard.swift */; };
@@ -862,6 +863,7 @@
 		4D540001000000000000A017 /* COPYING */ = {isa = PBXFileReference; lastKnownFileType = text; path = COPYING; sourceTree = SOURCE_ROOT; };
 		4D540001000000000000A018 /* MTSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTSettingsView.swift; sourceTree = "<group>"; };
 		4D540001000000000000A021 /* MTHostsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTHostsView.swift; sourceTree = "<group>"; };
+		4D540001000000000000A034 /* MTTmuxSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTTmuxSession.swift; sourceTree = "<group>"; };
 		4D540001000000000000A022 /* MTSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTSidebarView.swift; sourceTree = "<group>"; };
 		4D540001000000000000A023 /* MTHostContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTHostContext.swift; sourceTree = "<group>"; };
 		4D540001000000000000A024 /* MTInputGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTInputGuard.swift; sourceTree = "<group>"; };
@@ -1824,6 +1826,7 @@
 			isa = PBXGroup;
 			children = (
 				4D540001000000000000A021 /* MTHostsView.swift */,
+				4D540001000000000000A034 /* MTTmuxSession.swift */,
 			);
 			path = Hosts;
 			sourceTree = "<group>";
@@ -3775,6 +3778,7 @@
 				4D540001000000000000B010 /* MTSessionsView.swift in Sources */,
 				4D540001000000000000B018 /* MTSettingsView.swift in Sources */,
 				4D540001000000000000B021 /* MTHostsView.swift in Sources */,
+				4D540001000000000000B034 /* MTTmuxSession.swift in Sources */,
 				4D540001000000000000B022 /* MTSidebarView.swift in Sources */,
 				4D540001000000000000B023 /* MTHostContext.swift in Sources */,
 				4D540001000000000000B024 /* MTInputGuard.swift in Sources */,
