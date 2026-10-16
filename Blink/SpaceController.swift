@@ -566,6 +566,13 @@ Please go to your subscriptions and cancel one of them!
   private func _mtDismissKeyboardForSheet() {
     // キーボードを持つ実体は SmarterTermInput（KBTracker.shared.input）。resignInput() は
     // ガードで効かないことがあるため、この実体を直接 resign し、ビュー階層の編集も終了させる。
+    //
+    // iPhone では resign だけでは不十分だった。シート表示中に端末デバイスが準備完了
+    // （kbDeviceReady）になると TermController が自動で _becomeFirstResponder() を呼び、
+    // せっかくシート内の TextField が取ったフォーカスを奪い返す。結果、ホスト追加画面の
+    // Alias などに入力できない（タップ無反応）。Snips 入力モード用の shouldBlockFirstResponder
+    // を立て、シートが閉じるまで端末入力のファーストレスポンダ化を禁止する（解除は dismiss 側）。
+    currentTerm()?.shouldBlockFirstResponder = true
     currentTerm()?.resignInput()
     _ = KBTracker.shared.input?.resignFirstResponder()
     view.window?.endEditing(true)
@@ -577,6 +584,11 @@ Please go to your subscriptions and cancel one of them!
   /// 切替直後に加えて、ビューが定着したあと（次のラン・短い遅延）にも現在の端末へフォーカスし直す。
   /// 対象は常に currentTerm なので、途中でタブが変わっても誤って別端末を握ることはない。
   private func _refocusCurrentTermSoon() {
+    // シート表示中に立てたブロック（_mtDismissKeyboardForSheet）を解除する。
+    // ここで戻さないと直後の _attachInputToCurrentTerm がフォーカスを取れない。
+    // この関数はシートが完全に閉じた時（presentedViewController == nil）だけ呼ばれるため、
+    // 連鎖提示の途中で誤って解除されることはない。
+    currentTerm()?.shouldBlockFirstResponder = false
     _attachInputToCurrentTerm()
     DispatchQueue.main.async { [weak self] in self?._attachInputToCurrentTerm() }
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
