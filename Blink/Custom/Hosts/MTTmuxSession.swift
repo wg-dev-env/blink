@@ -36,6 +36,8 @@ final class MTTmuxSession: ObservableObject {
   static let shared = MTTmuxSession()
 
   private static let storeKey = "MTSessionTmuxNames"
+  /// 新規接続に振る番号の採番カウンタ。一度使った番号は二度と再利用しない（永続）。
+  private static let counterKey = "MTSessionTmuxCounter"
 
   /// セッションキー → そのセッションが使っている tmux セッション名
   @Published private(set) var names: [UUID: String]
@@ -71,22 +73,29 @@ final class MTTmuxSession: ObservableObject {
   }
 
   /// 新規接続に割り当てる tmux セッション名を決める。
-  /// `base`（ホスト設定の名前。既定 "main"）から始め、同じ alias の生存セッションが
-  /// 既に使っている名前は避けて `base-2` `base-3` … と採番する。
+  ///
+  /// `base`（ホスト設定の名前。既定 "main"）に、**一度も使っていない番号**を付けて
+  /// `base-1` `base-2` … を返す。素の `base` は決して返さない。
+  ///
+  /// なぜ「使い回さない」か:
+  /// 以前は「今追跡しているセッションが使っていない最小の名前」を返していたため、
+  /// タブを閉じると名前が空き、次の新規接続で同じ名前を再利用していた。ところが
+  /// 閉じても**サーバー側の tmux セッションは生きたまま**なので、`tmux new -A -s <名前>`
+  /// が生き残った同名セッションへ再アタッチし、「閉じたタブの内容が新規タブに写る
+  /// （鏡写し）」不具合になっていた。番号を単調に増やして二度と再利用しないことで、
+  /// 新規接続は必ずサーバーに存在しない名前になり、独立したまっさらなセッションになる。
+  /// 再開（切れない）は接続コマンドに同名が焼き込まれているので従来どおり戻れる。
+  ///
+  /// カウンタは永続し、アプリ再起動後も続きから採番する（`forAlias` は将来の拡張用。
+  /// 現状は全ホスト共通のカウンタで一意性を保証する）。
   func assignName(forAlias alias: String, base: String) -> String {
-    // 同じ alias に紐づく生存セッションが使っている tmux 名を集める
-    let sameHostKeys = MTHostContext.shared.aliases
-      .filter { $0.value == alias }
-      .map { $0.key }
-    let used = Set(sameHostKeys.compactMap { names[$0] })
+    return "\(base)-\(nextCounter())"
+  }
 
-    if !used.contains(base) {
-      return base
-    }
-    var i = 2
-    while used.contains("\(base)-\(i)") {
-      i += 1
-    }
-    return "\(base)-\(i)"
+  /// 次の採番番号を返す（1 から始まり、呼ぶたびに +1 して永続）。
+  private func nextCounter() -> Int {
+    let next = UserDefaults.standard.integer(forKey: Self.counterKey) + 1
+    UserDefaults.standard.set(next, forKey: Self.counterKey)
+    return next
   }
 }

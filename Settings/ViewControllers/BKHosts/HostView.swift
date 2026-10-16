@@ -576,16 +576,16 @@ struct HostView: View {
       Section(
         header: Text("TMUX")
           .foregroundColor(_mtThemeStore.currentTheme.ok.color),
-        footer: Text("接続時に tmux セッションへ自動アタッチします（Mosh / SSH 共通）。セッションが無ければ作成します。コマンドの明示指定が優先されます。")
+        footer: Text("接続時に tmux セッションへ自動アタッチします（Mosh / SSH 共通）。新しい接続ごとに独立したセッション（例 \(TmuxAutoAttach.sanitizedSessionName(_tmuxSessionName))-1, -2 …）を作るので、既存のセッションを写しません。中断・再開では同じセッションへ戻ります。コマンドの明示指定が優先されます。")
       ) {
         Toggle("接続時に自動アタッチ", isOn: $_tmuxAutoAttach)
         if _tmuxAutoAttach {
-          Field("セッション名", $_tmuxSessionName, next: "Alias", placeholder: TmuxAutoAttach.defaultSessionName)
+          Field("セッション名（ベース）", $_tmuxSessionName, next: "Alias", placeholder: TmuxAutoAttach.defaultSessionName)
           HStack {
             Text("実行コマンド")
             Spacer()
-            // 実際に実行されるコマンドと同じサニタイズ結果を見せる
-            Text("tmux new -A -s \(TmuxAutoAttach.sanitizedSessionName(_tmuxSessionName))")
+            // 接続ごとにベース名へ連番を付けた独立セッションを作る（例 main-1）
+            Text("tmux new -A -s \(TmuxAutoAttach.sanitizedSessionName(_tmuxSessionName))-N")
               .font(MTFont.mono(12))
               .foregroundColor(_mtThemeStore.currentTheme.ok.color)
               .lineLimit(1)
