@@ -1121,6 +1121,11 @@ Please go to your subscriptions and cancel one of them!
         },
         onClose: { [weak self] in
           self?.dismiss(animated: true)
+        },
+        onSFTP: { [weak self] alias in
+          self?.dismiss(animated: true) {
+            self?._mtShowSFTP(alias: alias)
+          }
         }
       )
     }
@@ -1132,6 +1137,15 @@ Please go to your subscriptions and cancel one of them!
     navController.modalPresentationStyle = .pageSheet
     _mtDismissKeyboardForSheet()
     present(navController, animated: true)
+  }
+
+  /// SFTP ファイルブラウザ（S16）を presented sheet で開く
+  private func _mtShowSFTP(alias: String) {
+    let content = UIHostingController(rootView: MTSFTPBrowserView(alias: alias))
+    content.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
+    content.modalPresentationStyle = .pageSheet
+    _mtDismissKeyboardForSheet()
+    present(content, animated: true)
   }
 
   private func _mtTabBarUpdate() {

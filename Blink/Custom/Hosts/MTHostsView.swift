@@ -118,6 +118,8 @@ struct MTHostsView: View {
   let onConnect: (String, MTConnectKind) -> Void
   let onLocalShell: () -> Void
   let onClose: () -> Void
+  /// ファイル転送（SFTP, S16）を開く。未指定なら項目を出さない
+  var onSFTP: ((String) -> Void)? = nil
 
   @EnvironmentObject private var nav: Nav
   @ObservedObject private var themeStore = MTThemeStore.shared
@@ -235,6 +237,9 @@ struct MTHostsView: View {
     .contextMenu {
       Button(MTConnectKind.mosh.label) { onConnect(item.alias, .mosh) }
       Button(MTConnectKind.ssh.label) { onConnect(item.alias, .ssh) }
+      if let onSFTP {
+        Button("ファイル（SFTP）") { onSFTP(item.alias) }
+      }
       Button("編集") { editHost(BKHosts.withHost(item.alias)) }
     }
     .accessibilityElement(children: .ignore)
