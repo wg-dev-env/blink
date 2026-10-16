@@ -520,6 +520,31 @@ Please go to your subscriptions and cancel one of them!
     currentTerm()?.activateInput()
   }
 
+  // MARK: - シートを閉じたら端末へフォーカスを戻す（MoshTerm：コピペ・入力の復活）
+  //
+  // MT のシート提示（設定・一覧・接続など）は _mtDismissKeyboardForSheet() で端末の
+  // ファーストレスポンダを外すが、閉じたときに戻す口が無かった。そのため端末を 1 回
+  // タップするまで長押しの編集メニューや ⌘V が効かなくなっていた（WKWebView 側の
+  // 選択ジェスチャが focused を要求するため）。閉じ方 2 系統を両方拾って戻す：
+  //  ・スワイプで閉じる → presentationControllerDidDismiss（下の delegate 拡張）
+  //  ・プログラム/ボタンで閉じる → dismiss(animated:) の override
+  // 連鎖提示（閉じた直後に別シートを出す）時は presentedViewController != nil で見送る。
+  override func present(_ viewControllerToPresent: UIViewController, animated flag: Bool, completion: (() -> Void)? = nil) {
+    if viewControllerToPresent.presentationController?.delegate == nil {
+      viewControllerToPresent.presentationController?.delegate = self
+    }
+    super.present(viewControllerToPresent, animated: flag, completion: completion)
+  }
+
+  override func dismiss(animated flag: Bool, completion: (() -> Void)? = nil) {
+    super.dismiss(animated: flag) { [weak self] in
+      completion?()
+      if self?.presentedViewController == nil {
+        self?._refocusCurrentTermSoon()
+      }
+    }
+  }
+
   /// シート（設定・接続・一覧など）を出す前にキーボードを確実に閉じる。
   /// resignInput だけでは端末のキーボードが残り、シート下部の行がキーボードに隠れて
   /// タップできない（＝「反応しない」）ことがあるため、ビュー階層全体の編集も終了させる。
@@ -2099,4 +2124,14 @@ extension SpaceController {
     }
   }
 
+}
+
+// MARK: - シートのスワイプ下げ（ユーザー操作での dismiss）後の再フォーカス（MoshTerm）
+extension SpaceController: UIAdaptivePresentationControllerDelegate {
+  public func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+    // 連鎖提示していない時だけ端末へ戻す
+    if presentedViewController == nil {
+      _refocusCurrentTermSoon()
+    }
+  }
 }
