@@ -1012,7 +1012,15 @@ Please go to your subscriptions and cancel one of them!
     let view = MTSessionsView(
       items: items,
       currentKey: _currentKey,
-      onSelect: { [weak self] key in self?._moveToShell(key: key) },
+      onSelect: { [weak self] key in
+        // onNew / onDelete と同じ理由。行タップは dismiss() 直後に onSelect を呼ぶため、
+        // _moveToShell 内の setViewControllers（ページ切替）がシート dismiss と重なって
+        // 落ち、「タップしても該当セッションに切り替わらない」症状になる。閉じ終わって
+        // から切り替える。
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+          self?._moveToShell(key: key)
+        }
+      },
       onNew: { [weak self] in
         // 一覧シートの dismiss と競合しないよう、閉じ終わってから接続シートを開く
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
@@ -1231,11 +1239,19 @@ Please go to your subscriptions and cancel one of them!
   private func _mtShowTmuxPicker(alias: String, kind: MTConnectKind) {
     let view = MTTmuxPickerView(
       alias: alias,
+      // ピッカーは選択時に `dismiss(); onAttach()/onNew()` を同じターンで呼ぶため、
+      // シートの dismiss アニメーションと接続側の setViewControllers（ページ切替）が
+      // 重なって新規タブが前面に出ないことがある（アプリ再起動で復帰）。一覧シート
+      // （MTSessionsView の onSelect/onNew/onDelete）と同じく、閉じ終わってから接続する。
       onAttach: { [weak self] names in
-        self?._mtOpenTmuxSessions(alias: alias, kind: kind, names: names)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+          self?._mtOpenTmuxSessions(alias: alias, kind: kind, names: names)
+        }
       },
       onNew: { [weak self] in
-        self?._newShellAction(command: "\(kind.command) \(alias)", animated: true)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+          self?._newShellAction(command: "\(kind.command) \(alias)", animated: true)
+        }
       })
     let content = UIHostingController(rootView: view)
     content.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
