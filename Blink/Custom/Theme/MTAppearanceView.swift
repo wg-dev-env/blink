@@ -54,6 +54,18 @@ struct MTAppearanceView: View {
         Text("選ぶと開いているセッションにもすぐ反映されます。")
       }
 
+      Section {
+        // 「テーマに従う」＝プリセット無し（従来どおり）
+        paletteRow(nil)
+        ForEach(MTTerminalPalette.all) { palette in
+          paletteRow(palette)
+        }
+      } header: {
+        Text("端末の配色プリセット")
+      } footer: {
+        Text("他ツールで見慣れた配色を端末に適用します（ANSI 16 色）。UI の配色は上の「配色」のままです。")
+      }
+
       Section("外観モード") {
         Picker("外観モード", selection: $store.appearanceMode) {
           Text("システムに合わせる").tag(MTThemeStore.AppearanceMode.system)
@@ -105,6 +117,65 @@ struct MTAppearanceView: View {
       .background(colors.addBg.color)
     }
     .cornerRadius(6)
+  }
+
+  /// 端末配色プリセットの選択行（palette=nil は「テーマに従う」）。
+  /// List 内の行は Button が反応しにくい既知挙動があるため contentShape + onTapGesture で統一する。
+  @ViewBuilder
+  private func paletteRow(_ palette: MTTerminalPalette?) -> some View {
+    let isSelected = store.selectedPaletteID == palette?.id
+    HStack(spacing: 12) {
+      if let palette {
+        MTPaletteSwatch(palette: palette)
+      } else {
+        // 「テーマに従う」は現在テーマの地色＋accent で示す
+        MTPaletteSwatch(bg: store.currentTheme.bg, dots: [store.currentTheme.term, store.currentTheme.accent])
+      }
+      Text(palette?.name ?? "テーマに従う")
+        .font(MTFont.ui(15, relativeTo: .body))
+        .foregroundColor(.primary)
+      Spacer()
+      if isSelected {
+        Image(systemName: "checkmark")
+          .foregroundColor(store.currentTheme.accent.color)
+      }
+    }
+    .padding(.vertical, 2)
+    .contentShape(Rectangle())
+    .onTapGesture { store.selectPalette(palette) }
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(Text(palette?.name ?? "テーマに従う"))
+    .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+  }
+}
+
+/// プリセットのミニ見本（地色＋代表的な数色のドット）
+private struct MTPaletteSwatch: View {
+  let bg: MTColor
+  let dots: [MTColor]
+
+  init(palette: MTTerminalPalette) {
+    self.bg = palette.bg
+    // 赤・緑・青・マゼンタの 4 色で雰囲気を見せる（ANSI 1,2,4,5）
+    self.dots = [palette.ansi[1], palette.ansi[2], palette.ansi[4], palette.ansi[5]]
+  }
+
+  init(bg: MTColor, dots: [MTColor]) {
+    self.bg = bg
+    self.dots = dots
+  }
+
+  var body: some View {
+    ZStack {
+      RoundedRectangle(cornerRadius: 6).fill(bg.color)
+      HStack(spacing: 3) {
+        ForEach(Array(dots.enumerated()), id: \.offset) { _, c in
+          Circle().fill(c.color).frame(width: 6, height: 6)
+        }
+      }
+    }
+    .frame(width: 44, height: 28)
+    .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.primary.opacity(0.12), lineWidth: 1))
   }
 }
 

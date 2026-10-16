@@ -74,6 +74,7 @@
 		4D540001000000000000B001 /* MTTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A001 /* MTTheme.swift */; };
 		4D540001000000000000B002 /* MTThemeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A002 /* MTThemeStore.swift */; };
 		4D540001000000000000B003 /* MTAppearanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A003 /* MTAppearanceView.swift */; };
+		4D540001000000000000B035 /* MTAnsiPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A035 /* MTAnsiPalette.swift */; };
 		4D540001000000000000B004 /* MTFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A004 /* MTFont.swift */; };
 		4D540001000000000000B005 /* MTSessionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A005 /* MTSessionState.swift */; };
 		4D540001000000000000B006 /* MTTabBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A006 /* MTTabBarView.swift */; };
@@ -853,6 +854,7 @@
 		4D540001000000000000A001 /* MTTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTTheme.swift; sourceTree = "<group>"; };
 		4D540001000000000000A002 /* MTThemeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTThemeStore.swift; sourceTree = "<group>"; };
 		4D540001000000000000A003 /* MTAppearanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTAppearanceView.swift; sourceTree = "<group>"; };
+		4D540001000000000000A035 /* MTAnsiPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTAnsiPalette.swift; sourceTree = "<group>"; };
 		4D540001000000000000A004 /* MTFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTFont.swift; sourceTree = "<group>"; };
 		4D540001000000000000A005 /* MTSessionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTSessionState.swift; sourceTree = "<group>"; };
 		4D540001000000000000A006 /* MTTabBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTTabBarView.swift; sourceTree = "<group>"; };
@@ -1786,6 +1788,7 @@
 				4D540001000000000000A001 /* MTTheme.swift */,
 				4D540001000000000000A002 /* MTThemeStore.swift */,
 				4D540001000000000000A003 /* MTAppearanceView.swift */,
+				4D540001000000000000A035 /* MTAnsiPalette.swift */,
 				4D540001000000000000A004 /* MTFont.swift */,
 			);
 			path = Theme;
@@ -3767,6 +3770,7 @@
 				BD55D6982F7D743500EE80EA /* TerminalStyle.swift in Sources */,
 				BD55D6992F7D743500EE80EA /* TerminalStyleStore.swift in Sources */,
 				4D540001000000000000B001 /* MTTheme.swift in Sources */,
+				4D540001000000000000B035 /* MTAnsiPalette.swift in Sources */,
 				4D540001000000000000B002 /* MTThemeStore.swift in Sources */,
 				4D540001000000000000B003 /* MTAppearanceView.swift in Sources */,
 				4D540001000000000000B004 /* MTFont.swift in Sources */,

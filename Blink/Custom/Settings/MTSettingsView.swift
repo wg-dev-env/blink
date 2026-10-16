@@ -224,6 +224,21 @@ struct MTLicensesView: View {
         }
       }
       Section {
+        ForEach(MTTerminalPalette.all) { palette in
+          HStack {
+            Text(palette.name)
+            Spacer()
+            Text("\(palette.credit) · \(palette.license)")
+              .font(MTFont.ui(12, relativeTo: .caption))
+              .foregroundColor(.secondary)
+          }
+        }
+      } header: {
+        Text("端末の配色プリセット")
+      } footer: {
+        Text("配色（色の数値）のみを利用しています。各配色の名称・著作権は上記の権利者に帰属します（MIT / MIT-X11 / Apache-2.0）。")
+      }
+      Section {
         Link("ソースコードの入手先: \(MTAppInfo.sourceCodeDisplay)",
              destination: MTAppInfo.sourceCodeURL)
       } footer: {

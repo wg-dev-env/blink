@@ -44,8 +44,11 @@ final class MTThemeStore: ObservableObject {
   private static let themeKey = "MTSelectedThemeID"
   private static let modeKey = "MTAppearanceMode"
   private static let diffKey = "MTDiffPalette"
+  private static let terminalPaletteKey = "MTSelectedTerminalPaletteID"
 
   @Published private(set) var selectedThemeID: String?
+  /// 端末の配色プリセット（S14）。nil = 「テーマに従う」（従来どおり）
+  @Published private(set) var selectedPaletteID: String?
   @Published var appearanceMode: AppearanceMode {
     didSet {
       guard appearanceMode != oldValue else { return }
@@ -63,8 +66,27 @@ final class MTThemeStore: ObservableObject {
   private init() {
     let defaults = UserDefaults.standard
     selectedThemeID = defaults.string(forKey: Self.themeKey)
+    selectedPaletteID = defaults.string(forKey: Self.terminalPaletteKey)
     appearanceMode = AppearanceMode(rawValue: defaults.string(forKey: Self.modeKey) ?? "") ?? .system
     diffPalette = DiffPalette(rawValue: defaults.string(forKey: Self.diffKey) ?? "") ?? .orangeBlue
+  }
+
+  /// 選択中の端末配色プリセット（nil = テーマに従う）
+  var selectedPalette: MTTerminalPalette? {
+    selectedPaletteID.flatMap { MTTerminalPalette.named($0) }
+  }
+
+  /// 端末の配色プリセットを選ぶ（nil でクリア＝テーマに従う）。
+  /// 端末の見た目だけを差し替え、UI クロームは選択中テーマのまま。即時反映する。
+  func selectPalette(_ palette: MTTerminalPalette?) {
+    selectedPaletteID = palette?.id
+    if let id = palette?.id {
+      UserDefaults.standard.set(id, forKey: Self.terminalPaletteKey)
+    } else {
+      UserDefaults.standard.removeObject(forKey: Self.terminalPaletteKey)
+    }
+    // htermJS は適用時に selectedPalette を読むので、現在テーマを再適用すれば反映される
+    applyToLiveSessions(currentTheme)
   }
 
   /// 現在の設定での diff 配色（文字色・地色）。赤 / 緑選択時はテーマによらず共通値。

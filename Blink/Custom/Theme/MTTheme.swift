@@ -239,7 +239,19 @@ extension MTTheme {
 /// Obj-C（TermView.m）から MTTheme を引くための橋渡し
 @objc class MTThemeBridge: NSObject {
   /// テーマ名が MTTheme なら hterm 用 JS を返す。該当しなければ nil（既存の BKTheme 経路に委ねる）。
+  ///
+  /// S14: 端末の配色プリセット（MTTerminalPalette）が選ばれていれば、その JS を
+  /// テーマ JS の **後に** 連結して、端末の背景/前景/カーソル/選択と ANSI 16 色を上書きする。
+  /// プリセット未選択（＝「テーマに従う」）の間は従来どおりテーマ JS のみ。
   @objc static func htermJS(forName name: String?) -> String? {
-    MTTheme.named(name)?.htermJS
+    guard let theme = MTTheme.named(name) else { return nil }
+    var js = theme.htermJS
+    if let palette = MTThemeStore.shared.selectedPalette {
+      js += "\n" + palette.htermJS
+    } else {
+      // プリセット未選択（テーマに従う）：以前のプリセットで入れた ANSI 上書きを既定へ戻す
+      js += "\nterm_set('color-palette-overrides', null);"
+    }
+    return js
   }
 }
