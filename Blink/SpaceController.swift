@@ -413,10 +413,16 @@ Please go to your subscriptions and cancel one of them!
     _focusOnShell()
   }
   
+  /// - Parameter display: true なら生成直後に `setViewControllers` で前面表示する（既定）。
+  ///   false のときは `_viewportsKeys` の末尾に足して登録だけ行い、表示は呼び出し側に委ねる。
+  ///   「すべて開く」で多数のセッションを一括生成するとき、各生成で `setViewControllers` を
+  ///   連打すると UIPageViewController が内部不整合でクラッシュするため、背後で作って
+  ///   最後に 1 回だけ表示する用途に使う（セッションの接続は表示されるまで遅延される）。
   func _createTerminal(
     userActivity: NSUserActivity?,
     animated: Bool,
     sessionPayload: TermSessionPayload,
+    display: Bool = true,
     completion: ((Bool) -> Void)? = nil)
   {
     let term = TermController(sceneRole: sceneRole, sessionPayload: sessionPayload)
@@ -424,8 +430,11 @@ Please go to your subscriptions and cancel one of them!
     //term.layoutProvider = self
     term.userActivity = userActivity
     term.bgColor = view.backgroundColor ?? .black
-    
-    if let currentKey = _currentKey,
+
+    if !display {
+      // 背後生成：順序を保つため末尾に足す（現在位置の隣には割り込ませない）
+      _viewportsKeys.insert(term.meta.key, at: _viewportsKeys.count)
+    } else if let currentKey = _currentKey,
       let idx = _viewportsKeys.firstIndex(of: currentKey)?.advanced(by: 1) {
       _viewportsKeys.insert(term.meta.key, at: idx)
     } else {
@@ -445,8 +454,14 @@ Please go to your subscriptions and cancel one of them!
       _mtPendingTmuxName = nil
     }
 
+    guard display else {
+      // 背後生成：前面表示はしない。接続は表示時（deviceIsReady）まで遅延される。
+      completion?(true)
+      return
+    }
+
     _currentKey = term.meta.key
-    
+
     _viewportsController.setViewControllers([term], direction: .forward, animated: animated) { (didComplete) in
       self._displayHUD()
       self._attachInputToCurrentTerm()
@@ -1222,13 +1237,25 @@ Please go to your subscriptions and cancel one of them!
     present(content, animated: true)
   }
 
-  /// 選択した tmux セッション名ぶんタブを開く（最後だけアニメーション）。
+  /// 選択した tmux セッション名ぶんタブを開く。
+  ///
+  /// 以前は各セッションを即表示（`setViewControllers`）しながらループしていたため、
+  /// 「すべて開く」で 15 個ほど一括生成すると UIPageViewController が内部不整合で
+  /// クラッシュしていた。対策として、各タブは背後で登録だけ行い（`display: false`）、
+  /// 最後に 1 回だけガード付き `_moveToShell` で表示する。各セッションの接続は、
+  /// そのタブが表示された時点（`deviceIsReady`）まで遅延されるため、一度に大量の
+  /// Mosh/SSH 接続・WKWebView を張らずに済む（メモリ逼迫による kill も避けられる）。
   private func _mtOpenTmuxSessions(alias: String, kind: MTConnectKind, names: [String]) {
     let safe = names.map { TmuxAutoAttach.sanitizedSessionName($0) }
     guard !safe.isEmpty else { return }
-    for (i, name) in safe.enumerated() {
+    for name in safe {
       _newShellAction(command: "\(kind.command) \(alias) -- tmux new -A -s \(name)",
-                      animated: i == safe.count - 1)
+                      animated: false, display: false)
+    }
+    // 末尾（最後に生成したタブ）を 1 回だけ前面に出す。_moveToShell は
+    // アニメーション中の再入を抑止するため、ここでの単発呼び出しは安全。
+    if let lastKey = _viewportsKeys.last {
+      _moveToShell(key: lastKey, animated: true)
     }
   }
 
@@ -1574,7 +1601,7 @@ extension SpaceController {
     currentTerm()?.scaleWithPich(pinch)
   }
   
-  private func _newShellAction(command: String = "", animated: Bool = true) {
+  private func _newShellAction(command: String = "", animated: Bool = true, display: Bool = true) {
     let params = MCPParams()
     if !command.isEmpty {
       // MoshTerm: 接続先ホストをセッションに紐付ける（額縁・安全機能が参照、07 #02/#03/#04）
@@ -1586,7 +1613,7 @@ extension SpaceController {
       params.initialCommand = _mtAugmentWithUniqueTmux(command: command, alias: alias)
     }
     let payload = MCPSessionPayload(params: params)
-    _createTerminal(userActivity: nil, animated: animated, sessionPayload: payload)
+    _createTerminal(userActivity: nil, animated: animated, sessionPayload: payload, display: display)
   }
 
   /// bare な `mosh <alias>` を、ユニークな tmux セッション名つきコマンドに変換する。
