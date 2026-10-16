@@ -106,11 +106,25 @@ struct MTTheme: Identifiable, Equatable {
   let diffAddBg: MTColor
   let toggleOff: MTColor
 
+  // 端末専用の上書き（nil のときは下の既定にフォールバック）。
+  // 「アプリの枠はそのまま・ターミナル画面だけ別配色」を、chrome 用の bg/term を
+  // 変えずに実現するために使う。
+  var termBg: MTColor? = nil     // 端末の背景（既定: bg）
+  var termFg: MTColor? = nil     // 端末の文字（既定: term）
+  var termCursor: MTColor? = nil // 端末のカーソル・選択（既定: accent）
+
+  /// 端末背景（上書きが無ければ chrome の bg）
+  var terminalBg: MTColor { termBg ?? bg }
+  /// 端末文字（上書きが無ければ term）
+  var terminalFg: MTColor { termFg ?? term }
+  /// 端末カーソル・選択の基色（上書きが無ければ accent）
+  var terminalCursor: MTColor { termCursor ?? accent }
+
   /// 復元済み状態は accent と同値（06 §3.1）
   var restore: MTColor { accent }
 
   /// 改名したテーマの旧名 → id（保存済みの themeName を解決するため）
-  private static let legacyNames: [String: String] = ["駒鳥": "robin"]
+  private static let legacyNames: [String: String] = ["駒鳥": "robin", "緋": "rosso"]
 
   static func named(_ name: String?) -> MTTheme? {
     guard let name else { return nil }
@@ -205,8 +219,11 @@ struct MTTheme: Identifiable, Equatable {
       toggleOff: MTColor(0x2C5A49)
     ),
     MTTheme(
-      id: "rosso", name: "緋", subtitle: "Rosso", isLight: false,
-      summary: "深いボルドーの地に金の差し色。切断の赤とは明るさで区別。",
+      // 旧「緋」。id は選択状態の互換のため rosso のまま。
+      // ユーザー要望でターミナル画面をピンク地×青文字に（termBg/termFg/termCursor で
+      // 端末だけ上書き。アプリ枠の配色は従来のボルドーのまま）。
+      id: "rosso", name: "桃", subtitle: "Rosa", isLight: false,
+      summary: "ボルドーの枠に、ピンク地×青文字のターミナル。",
       bg: MTColor(0x2A0E12), surface: MTColor(0x37151A), raised: MTColor(0x431B21),
       line: MTColor(0x58262D), text: MTColor(0xF7EBDD), sub: MTColor(0xE3D2C2),
       muted: MTColor(0xB89A92), term: MTColor(0xEFE1D3), ghost: MTColor(0x7A5A55),
@@ -214,7 +231,9 @@ struct MTTheme: Identifiable, Equatable {
       warn: MTColor(0xF5B651), bad: MTColor(0xFF8A7A),
       diffDelText: MTColor(0xF3A36E), diffDelBg: MTColor(r: 240, g: 150, b: 90, a: 0.16),
       diffAddText: MTColor(0xA6CAEE), diffAddBg: MTColor(r: 120, g: 170, b: 230, a: 0.18),
-      toggleOff: MTColor(0x5E2F35)
+      toggleOff: MTColor(0x5E2F35),
+      // 端末だけ：ピンク地・青文字・青カーソル
+      termBg: MTColor(0xF7C9DC), termFg: MTColor(0x1B3FA0), termCursor: MTColor(0x1B3FA0)
     ),
   ]
 }
@@ -226,12 +245,12 @@ extension MTTheme {
   /// ANSI 16 色は 06 に未定義のため上書きしない（hterm 既定のまま）。
   var htermJS: String {
     [
-      "term_set('background-color', '\(bg.css)');",
-      "term_set('foreground-color', '\(term.css)');",
-      // カーソルは hterm の慣習に合わせて半透明の accent
-      "term_set('cursor-color', '\(accent.withAlpha(0.5).css)');",
-      // 選択範囲の地色を accent 系に（06 §5.4）
-      "term_setSelectionColor('\(accent.withAlpha(0.3).css)');",
+      "term_set('background-color', '\(terminalBg.css)');",
+      "term_set('foreground-color', '\(terminalFg.css)');",
+      // カーソルは hterm の慣習に合わせて半透明
+      "term_set('cursor-color', '\(terminalCursor.withAlpha(0.5).css)');",
+      // 選択範囲の地色（06 §5.4）
+      "term_setSelectionColor('\(terminalCursor.withAlpha(0.3).css)');",
     ].joined(separator: "\n")
   }
 }
