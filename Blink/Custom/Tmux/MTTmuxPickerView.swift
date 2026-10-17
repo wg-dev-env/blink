@@ -37,6 +37,12 @@ struct MTTmuxPickerView: View {
   @State private var loading = true
   @State private var selecting = false
   @State private var selected: Set<String> = []
+  /// 削除確認の対象セッション名（nil のときは非表示）。単体スワイプは1件、一括は複数。
+  @State private var pendingKill: [String]? = nil
+  /// 削除中のセッション名（二重実行・連打防止）
+  @State private var killing: Set<String> = []
+  /// 削除失敗の通知文（nil のときは非表示）
+  @State private var killError: String? = nil
 
   private var theme: MTTheme { themeStore.currentTheme }
 
@@ -70,6 +76,15 @@ struct MTTmuxPickerView: View {
           Section("既存のセッション") {
             ForEach(Array(sessions.enumerated()), id: \.element.id) { index, s in
               row(index: index, session: s)
+                // フルスワイプで誤って kill しないよう無効化（必ずボタン＋確認を踏ませる）
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                  Button(role: .destructive) {
+                    pendingKill = [s.name]
+                  } label: {
+                    Label("削除", systemImage: "trash")
+                  }
+                  .disabled(killing.contains(s.name))
+                }
             }
           }
         }
@@ -84,12 +99,22 @@ struct MTTmuxPickerView: View {
         ToolbarItem(placement: .primaryAction) {
           if !sessions.isEmpty {
             if selecting {
-              Button("開く（\(selected.count)）") {
-                let names = sessions.map(\.name).filter { selected.contains($0) }
-                guard !names.isEmpty else { selecting = false; return }
-                dismiss(); onAttach(names)
+              // 選択モードでは、選んだセッションを「削除（サーバーごと終了）」か「開く（アタッチ）」。
+              // 溜まった tmux セッションの掃除は、ここか各行の左スワイプ削除で行う。
+              HStack(spacing: 16) {
+                Button(role: .destructive) {
+                  pendingKill = sessions.map(\.name).filter { selected.contains($0) }
+                } label: {
+                  Label("削除（\(selected.count)）", systemImage: "trash")
+                }
+                .disabled(selected.isEmpty)
+                Button("開く（\(selected.count)）") {
+                  let names = sessions.map(\.name).filter { selected.contains($0) }
+                  guard !names.isEmpty else { selecting = false; return }
+                  dismiss(); onAttach(names)
+                }
+                .disabled(selected.isEmpty)
               }
-              .disabled(selected.isEmpty)
             } else {
               Button("選択") { selecting = true }
             }
@@ -101,6 +126,55 @@ struct MTTmuxPickerView: View {
     // 右半分が空白になるのを防ぐ。他の MT シート（MTSessionsView 等）と揃える。
     .navigationViewStyle(.stack)
     .task { await load() }
+    .alert("tmux セッションを削除", isPresented: Binding(
+      get: { pendingKill != nil },
+      set: { if !$0 { pendingKill = nil } }
+    ), presenting: pendingKill) { names in
+      Button("削除", role: .destructive) {
+        pendingKill = nil
+        Task { await killSessions(names) }
+      }
+      Button("キャンセル", role: .cancel) { pendingKill = nil }
+    } message: { names in
+      if names.count == 1 {
+        Text("「\(names[0])」をサーバーの tmux セッションごと終了します。元に戻せません。")
+      } else {
+        Text("選択した \(names.count) 件をサーバーの tmux セッションごと終了します。元に戻せません。")
+      }
+    }
+    .alert("削除に失敗", isPresented: Binding(
+      get: { killError != nil },
+      set: { if !$0 { killError = nil } }
+    )) {
+      Button("OK", role: .cancel) { killError = nil }
+    } message: {
+      Text(killError ?? "")
+    }
+  }
+
+  /// 指定したセッションをサーバーの tmux ごと終了する（破壊的）。
+  /// 既存のタブ削除と同じ `MTTmuxKiller.kill` を使う。成功したものは一覧から外す。
+  private func killSessions(_ names: [String]) async {
+    var failed: [String] = []
+    for name in names {
+      killing.insert(name)
+      defer { killing.remove(name) }
+      do {
+        let gone = try await MTTmuxKiller.kill(alias: alias, sessionName: name)
+        if gone {
+          sessions.removeAll { $0.name == name }
+          selected.remove(name)
+        } else {
+          failed.append(name)
+        }
+      } catch {
+        failed.append(name)
+      }
+    }
+    if !failed.isEmpty {
+      killError = "終了できませんでした（サーバーに残っています）：\(failed.joined(separator: ", "))"
+    }
+    if sessions.isEmpty { selecting = false }
   }
 
   @ViewBuilder
