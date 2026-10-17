@@ -686,6 +686,8 @@ Please go to your subscriptions and cancel one of them!
       onSettings: { [weak self] in self?._mtShowSettings() },
       onCommandBlocks: { [weak self] in self?._mtShowCommandBlocks() },
       onShieldNow: { [weak self] in self?._mtShieldNow() },
+      onSFTP: { [weak self] in self?._mtShowSFTPForCurrent() },
+      onDisconnect: { [weak self] in self?._mtDisconnectCurrentWithConfirm() },
       // サイドバーがある iPad / Mac では歯車をサイドバー側に出すので、タブバーには出さない
       showSettings: !_mtSupportsSidebar,
       // サイドバーがある機種だけ、タブバー左端に開閉ボタンを出す（指だけで左メニューを隠せる）
@@ -1066,7 +1068,9 @@ Please go to your subscriptions and cancel one of them!
       onClose: { [weak self] key in self?._mtCloseSession(key) },
       onSettings: { [weak self] in self?._mtShowSettings() },
       onCommandBlocks: { [weak self] in self?._mtShowCommandBlocks() },
-      onShieldNow: { [weak self] in self?._mtShieldNow() }
+      onShieldNow: { [weak self] in self?._mtShieldNow() },
+      onSFTP: { [weak self] in self?._mtShowSFTPForCurrent() },
+      onDisconnect: { [weak self] in self?._mtDisconnectCurrentWithConfirm() }
     )
     let host = UIHostingController(rootView: view)
     host.view.backgroundColor = .clear
@@ -1308,6 +1312,29 @@ Please go to your subscriptions and cancel one of them!
     if let lastKey = _viewportsKeys.last {
       _moveToShell(key: lastKey, animated: true)
     }
+  }
+
+  /// 現在タブのホストで SFTP を開く（S18: …メニュー／⌘⇧F から）。
+  /// alias が無い（ローカルシェル・tmux 無し等）ときは何もしない。
+  private func _mtShowSFTPForCurrent() {
+    guard let key = _currentKey, let alias = MTHostContext.shared.alias(for: key) else { return }
+    _mtShowSFTP(alias: alias)
+  }
+
+  /// 現在タブのセッションを、確認ダイアログを出してから切断（＝閉じる）。S18。
+  /// タブの「×」やコンテキストメニューの「閉じる」は即閉じのまま（ここだけ確認を付ける）。
+  private func _mtDisconnectCurrentWithConfirm() {
+    guard let key = _currentKey else { return }
+    let name = MTSessionsStore.shared.title(for: key)
+      ?? MTHostContext.shared.alias(for: key)
+      ?? "この接続"
+    let alert = UIAlertController(
+      title: "「\(name)」を切断しますか？", message: nil, preferredStyle: .alert)
+    alert.addAction(UIAlertAction(title: "キャンセル", style: .cancel))
+    alert.addAction(UIAlertAction(title: "切断", style: .destructive) { [weak self] _ in
+      self?._mtCloseSession(key)
+    })
+    present(alert, animated: true)
   }
 
   /// SFTP ファイルブラウザ（S16）を presented sheet で開く
@@ -1667,8 +1694,7 @@ extension SpaceController {
         _mtShowSFTP(alias: alias)
       }
     case .commandBlocksShow: _mtShowCommandBlocks()
-    case .disconnectCurrent:
-      if let key = _currentKey { _mtCloseSession(key) }
+    case .disconnectCurrent: _mtDisconnectCurrentWithConfirm()
     case .shieldNow: _mtShieldNow()
     case .paletteCycle: MTThemeStore.shared.cycleTerminalPalette()
     }
