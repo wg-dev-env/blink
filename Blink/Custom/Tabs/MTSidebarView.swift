@@ -30,6 +30,8 @@ struct MTSidebarView: View {
   let onNewConnection: () -> Void
   let onRename: (UUID) -> Void
   let onClose: (UUID) -> Void
+  /// サーバーの tmux ごと終了して削除する（破壊的）。未指定なら項目を出さない
+  var onDelete: ((UUID) -> Void)? = nil
   let onSettings: () -> Void
   let onCommandBlocks: () -> Void
   let onShieldNow: () -> Void
@@ -142,7 +144,11 @@ struct MTSidebarView: View {
     .contextMenu {
       Button("名前を変更") { onRename(item.key) }
       Button("隠す") { sessionsStore.hide(item.key) }
-      Button("閉じる", role: .destructive) { onClose(item.key) }
+      // 「閉じる」は tmux を残す軽い操作。本当に消すのは「削除」（タブ・一覧と統一）。
+      Button("閉じる") { onClose(item.key) }
+      if let onDelete {
+        Button("削除", role: .destructive) { onDelete(item.key) }
+      }
     }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(Text("\(item.title)。\(state.label)"))

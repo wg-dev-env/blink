@@ -683,6 +683,7 @@ Please go to your subscriptions and cancel one of them!
       onList: { [weak self] in self?._mtShowSessionsList() },
       onRename: { [weak self] key in self?._mtRenameSession(key) },
       onClose: { [weak self] key in self?._mtCloseSession(key) },
+      onDelete: { [weak self] key in self?._mtDeleteSessionWithConfirm(key) },
       onSettings: { [weak self] in self?._mtShowSettings() },
       onCommandBlocks: { [weak self] in self?._mtShowCommandBlocks() },
       onShieldNow: { [weak self] in self?._mtShieldNow() },
@@ -1078,6 +1079,7 @@ Please go to your subscriptions and cancel one of them!
       onNewConnection: { [weak self] in self?._mtShowConnectSheet() },
       onRename: { [weak self] key in self?._mtRenameSession(key) },
       onClose: { [weak self] key in self?._mtCloseSession(key) },
+      onDelete: { [weak self] key in self?._mtDeleteSessionWithConfirm(key) },
       onSettings: { [weak self] in self?._mtShowSettings() },
       onCommandBlocks: { [weak self] in self?._mtShowCommandBlocks() },
       onShieldNow: { [weak self] in self?._mtShieldNow() },
@@ -1218,6 +1220,24 @@ Please go to your subscriptions and cancel one of them!
         }
       }
     }
+  }
+
+  /// タブ長押しの「削除」用。破壊的なので確認してから `_mtDeleteSession` を呼ぶ。
+  /// セッション一覧シートの削除アラートと同じ文言・同じ結末に揃える。
+  private func _mtDeleteSessionWithConfirm(_ key: UUID) {
+    let name = MTSessionsStore.shared.title(for: key)
+      ?? MTHostContext.shared.alias(for: key)
+      ?? (SessionRegistry.shared[key] as TermController).title
+      ?? "このセッション"
+    let alert = UIAlertController(
+      title: "セッションを削除",
+      message: "「\(name)」をサーバーの tmux セッションごと終了します。元に戻せません。",
+      preferredStyle: .alert)
+    alert.addAction(UIAlertAction(title: "キャンセル", style: .cancel))
+    alert.addAction(UIAlertAction(title: "削除", style: .destructive) { [weak self] _ in
+      self?._mtDeleteSession(key)
+    })
+    present(alert, animated: true)
   }
 
   /// 現在のセッションを非表示にして、見えている別のセッションへ移る（⌘⇧H）
