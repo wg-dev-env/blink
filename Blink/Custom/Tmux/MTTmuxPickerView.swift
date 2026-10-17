@@ -29,6 +29,10 @@ struct MTTmuxPickerView: View {
   let onAttach: ([String]) -> Void
   /// 新規セッションを作成
   let onNew: () -> Void
+  /// サーバーの tmux セッションを削除（kill）できたときに、その名前を通知する。
+  /// 呼び出し側は、同名を焼き込んだ開きっぱなしのタブを閉じて、`tmux new -A -s` に
+  /// よるゾンビ復活の起点を断つ（SpaceController 側で処理）。
+  var onKilled: (String) -> Void = { _ in }
 
   @Environment(\.dismiss) private var dismiss
   @ObservedObject private var themeStore = MTThemeStore.shared
@@ -164,6 +168,8 @@ struct MTTmuxPickerView: View {
         if gone {
           sessions.removeAll { $0.name == name }
           selected.remove(name)
+          // 同名を焼き込んだ開きっぱなしのタブを閉じて、再接続・復元での再生成を防ぐ
+          onKilled(name)
         } else {
           failed.append(name)
         }

@@ -1330,12 +1330,39 @@ Please go to your subscriptions and cancel one of them!
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
           self?._newShellAction(command: "\(kind.command) \(alias)", animated: true)
         }
+      },
+      onKilled: { [weak self] name in
+        // ピッカーでサーバーの tmux を削除したら、同名を開いているタブも閉じる。
+        // シートは出したままで、背後のタブを片付けるだけ（接続前の掃除なので安全）。
+        self?._mtForgetKilledTmux(alias: alias, name: name)
       })
     let content = UIHostingController(rootView: view)
     content.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
     content.modalPresentationStyle = .pageSheet
     _mtDismissKeyboardForSheet()
     present(content, animated: true)
+  }
+
+  /// ピッカーでサーバーの tmux セッションを削除（kill）したとき、その名前に紐づく
+  /// 開いているタブも閉じる。
+  ///
+  /// ゾンビ復活の原因対策：`tmux new -A -s <name>` を焼き込んだタブが生き残っていると、
+  /// 回線切り替え・Mosh 復帰・アプリ再起動によるシーン復元で `-A`（無ければ作成）が
+  /// 削除したばかりの同名セッションを再生成してしまう。削除と同時に復活元のタブを
+  /// 片付けることで、再生成の起点そのものを断つ。
+  ///
+  /// `_viewportsKeys` を先にコピー（filter）してからループするため、`_mtCloseSession`
+  /// が `_viewportsKeys` を縮めても安全。該当タブが無ければ何もしない（サーバー側の
+  /// 掃除だけで、ローカルに復活元が無いケース）。
+  private func _mtForgetKilledTmux(alias: String, name: String) {
+    let sanitized = TmuxAutoAttach.sanitizedSessionName(name)
+    let targets = _viewportsKeys.filter { key in
+      MTHostContext.shared.alias(for: key) == alias
+        && MTTmuxSession.shared.name(for: key) == sanitized
+    }
+    for key in targets {
+      _mtCloseSession(key)
+    }
   }
 
   /// 選択した tmux セッション名ぶんタブを開く。
