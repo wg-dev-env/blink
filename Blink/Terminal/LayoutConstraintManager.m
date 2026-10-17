@@ -136,6 +136,12 @@
     }
 }
 
+- (void)recalculateInsets {
+    // レイアウトモード・ロック状態は変えず、現在の状態のまま定数だけ入れ直す。
+    // ロック中は updateConstraintsForCurrentState がロック用の計算に分岐するため安全。
+    [self updateConstraintsForCurrentState];
+}
+
 - (void)updateConstraintsForCurrentState {
     if (self.isLayoutLocked) {
         [self updateConstraintsForLockedFrame];

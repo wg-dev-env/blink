@@ -60,6 +60,11 @@ NS_ASSUME_NONNULL_BEGIN
 // Get current constraint constants for debugging
 - (UIEdgeInsets)currentInsets;
 
+// MoshTerm: safe area（ノッチ／ホームインジケータ）が初回表示後に確定したときなど、
+// レイアウトモードを変えずに現在の状態でインセット制約だけ計算し直す。
+// 初回ログイン時に表示が見切れる回帰（固定定数が safe area 未確定のまま凍結される）対策。
+- (void)recalculateInsets;
+
 @end
 
 NS_ASSUME_NONNULL_END
