@@ -688,6 +688,7 @@ Please go to your subscriptions and cancel one of them!
       onShieldNow: { [weak self] in self?._mtShieldNow() },
       onSFTP: { [weak self] in self?._mtShowSFTPForCurrent() },
       onDisconnect: { [weak self] in self?._mtDisconnectCurrentWithConfirm() },
+      onCommandLibrary: { [weak self] in self?._mtShowCommandLibrary() },
       // サイドバーがある iPad / Mac では歯車をサイドバー側に出すので、タブバーには出さない
       showSettings: !_mtSupportsSidebar,
       // サイドバーがある機種だけ、タブバー左端に開閉ボタンを出す（指だけで左メニューを隠せる）
@@ -979,6 +980,17 @@ Please go to your subscriptions and cancel one of them!
     present(vc, animated: true)
   }
 
+  /// コマンドライブラリ（S19）をシートで開く。選択で現在セッションへ改行なし挿入。
+  private func _mtShowCommandLibrary() {
+    let vc = UIHostingController(rootView: MTCommandLibraryView(onInsert: { [weak self] command in
+      self?.currentDevice?.receive(command)
+    }))
+    vc.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
+    vc.modalPresentationStyle = .pageSheet
+    _mtDismissKeyboardForSheet()
+    present(vc, animated: true)
+  }
+
   /// ドラフトの行をまとめて送る（復帰後）
   private func _mtSendDraftLines(_ lines: [String]) {
     guard let device = currentDevice else { return }
@@ -1070,7 +1082,8 @@ Please go to your subscriptions and cancel one of them!
       onCommandBlocks: { [weak self] in self?._mtShowCommandBlocks() },
       onShieldNow: { [weak self] in self?._mtShieldNow() },
       onSFTP: { [weak self] in self?._mtShowSFTPForCurrent() },
-      onDisconnect: { [weak self] in self?._mtDisconnectCurrentWithConfirm() }
+      onDisconnect: { [weak self] in self?._mtDisconnectCurrentWithConfirm() },
+      onCommandLibrary: { [weak self] in self?._mtShowCommandLibrary() }
     )
     let host = UIHostingController(rootView: view)
     host.view.backgroundColor = .clear
@@ -1697,6 +1710,7 @@ extension SpaceController {
     case .disconnectCurrent: _mtDisconnectCurrentWithConfirm()
     case .shieldNow: _mtShieldNow()
     case .paletteCycle: MTThemeStore.shared.cycleTerminalPalette()
+    case .commandLibraryShow: _mtShowCommandLibrary()
     }
   }
   

@@ -240,6 +240,7 @@ class KeyShortcut: ObservableObject, Codable, Identifiable {
       KeyShortcut(.disconnectCurrent, [.command, .shift], "d"),
       KeyShortcut(.shieldNow, [.command, .shift], "k"),
       KeyShortcut(.paletteCycle, [.command, .shift], "p"),
+      KeyShortcut(.commandLibraryShow, [.command, .shift], "l"),
       KeyShortcut(.zoomReset, .command, "0"),
     ]
   }

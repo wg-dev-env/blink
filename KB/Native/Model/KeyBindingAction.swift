@@ -80,6 +80,7 @@ enum Command: String, Codable, CaseIterable {
   case disconnectCurrent
   case shieldNow
   case paletteCycle
+  case commandLibraryShow
 
   var title: String {
     switch self {
@@ -131,6 +132,7 @@ enum Command: String, Codable, CaseIterable {
     case .disconnectCurrent:      return "Disconnect Current Session"
     case .shieldNow:              return "Shield Now"
     case .paletteCycle:           return "Cycle Terminal Palette"
+    case .commandLibraryShow:     return "Open Command Library"
     }
   }
 }

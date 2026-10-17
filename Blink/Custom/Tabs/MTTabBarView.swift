@@ -46,10 +46,15 @@ struct MTSettingsMenu: View {
   var onSFTP: (() -> Void)? = nil
   /// この接続を切断（S18。確認は呼び出し側で出す）。未指定なら項目を出さない
   var onDisconnect: (() -> Void)? = nil
+  /// コマンドライブラリ（S19）。未指定なら項目を出さない
+  var onCommandLibrary: (() -> Void)? = nil
 
   var body: some View {
     Button { onSettings() } label: { Label("設定", systemImage: "gearshape") }
     Button { onCommandBlocks() } label: { Label("コマンド履歴", systemImage: "list.bullet.rectangle") }
+    if let onCommandLibrary {
+      Button { onCommandLibrary() } label: { Label("コマンドライブラリ", systemImage: "text.badge.plus") }
+    }
     if let onSFTP {
       Button { onSFTP() } label: { Label("ファイル（SFTP）", systemImage: "folder") }
     }
@@ -81,6 +86,7 @@ struct MTTabBarView: View {
   let onShieldNow: () -> Void
   var onSFTP: (() -> Void)? = nil
   var onDisconnect: (() -> Void)? = nil
+  var onCommandLibrary: (() -> Void)? = nil
   /// タブバーに歯車を出すか（サイドバーがある iPad / Mac では false）
   var showSettings: Bool = true
   /// サイドバーの表示切り替え（iPad / Mac のみ。nil のときは開閉ボタンを出さない）
@@ -149,7 +155,8 @@ struct MTTabBarView: View {
       if showSettings {
         Menu {
           MTSettingsMenu(onSettings: onSettings, onCommandBlocks: onCommandBlocks,
-                         onShieldNow: onShieldNow, onSFTP: onSFTP, onDisconnect: onDisconnect)
+                         onShieldNow: onShieldNow, onSFTP: onSFTP, onDisconnect: onDisconnect,
+                         onCommandLibrary: onCommandLibrary)
         } label: {
           Image(systemName: "ellipsis.circle")
             .font(.system(size: 15, weight: .medium))
@@ -282,6 +289,7 @@ final class MTTabBarHost: UIViewController {
     let onShieldNow: () -> Void
     let onSFTP: (() -> Void)?
     let onDisconnect: (() -> Void)?
+    let onCommandLibrary: (() -> Void)?
     let showSettings: Bool
     let onToggleSidebar: (() -> Void)?
 
@@ -290,7 +298,7 @@ final class MTTabBarHost: UIViewController {
         MTTabBarView(model: model, onSelect: onSelect, onNew: onNew, onList: onList,
                      onRename: onRename, onClose: onClose, onSettings: onSettings,
                      onCommandBlocks: onCommandBlocks, onShieldNow: onShieldNow,
-                     onSFTP: onSFTP, onDisconnect: onDisconnect,
+                     onSFTP: onSFTP, onDisconnect: onDisconnect, onCommandLibrary: onCommandLibrary,
                      showSettings: showSettings, onToggleSidebar: onToggleSidebar)
         MTLifelineView()
           .frame(height: 20)
@@ -308,6 +316,7 @@ final class MTTabBarHost: UIViewController {
        onShieldNow: @escaping () -> Void,
        onSFTP: (() -> Void)? = nil,
        onDisconnect: (() -> Void)? = nil,
+       onCommandLibrary: (() -> Void)? = nil,
        showSettings: Bool = true,
        onToggleSidebar: (() -> Void)? = nil) {
     super.init(nibName: nil, bundle: nil)
@@ -315,7 +324,7 @@ final class MTTabBarHost: UIViewController {
       rootView: ChromeView(model: model, onSelect: onSelect, onNew: onNew, onList: onList,
                            onRename: onRename, onClose: onClose, onSettings: onSettings,
                      onCommandBlocks: onCommandBlocks, onShieldNow: onShieldNow,
-                     onSFTP: onSFTP, onDisconnect: onDisconnect,
+                     onSFTP: onSFTP, onDisconnect: onDisconnect, onCommandLibrary: onCommandLibrary,
                      showSettings: showSettings, onToggleSidebar: onToggleSidebar))
     addChild(hosting)
     hosting.view.backgroundColor = .clear
