@@ -35,6 +35,7 @@ struct MTSidebarView: View {
   let onShieldNow: () -> Void
   var onSFTP: (() -> Void)? = nil
   var onDisconnect: (() -> Void)? = nil
+  var onCommandLibrary: (() -> Void)? = nil
 
   @ObservedObject private var stateCenter = MTSessionStateCenter.shared
   @ObservedObject private var sessionsStore = MTSessionsStore.shared
@@ -55,7 +56,8 @@ struct MTSidebarView: View {
         Spacer()
         Menu {
           MTSettingsMenu(onSettings: onSettings, onCommandBlocks: onCommandBlocks,
-                         onShieldNow: onShieldNow, onSFTP: onSFTP, onDisconnect: onDisconnect)
+                         onShieldNow: onShieldNow, onSFTP: onSFTP, onDisconnect: onDisconnect,
+                         onCommandLibrary: onCommandLibrary)
         } label: {
           Image(systemName: "ellipsis.circle")
             .font(.system(size: 15, weight: .medium))
