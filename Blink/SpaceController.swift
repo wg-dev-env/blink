@@ -690,6 +690,7 @@ Please go to your subscriptions and cancel one of them!
       onSFTP: { [weak self] in self?._mtShowSFTPForCurrent() },
       onDisconnect: { [weak self] in self?._mtDisconnectCurrentWithConfirm() },
       onCommandLibrary: { [weak self] in self?._mtShowCommandLibrary() },
+      onShortcuts: { [weak self] in self?._mtShowShortcutsHelp() },
       // サイドバーがある iPad / Mac では歯車をサイドバー側に出すので、タブバーには出さない
       showSettings: !_mtSupportsSidebar,
       // サイドバーがある機種だけ、タブバー左端に開閉ボタンを出す（指だけで左メニューを隠せる）
@@ -992,6 +993,17 @@ Please go to your subscriptions and cancel one of them!
     present(vc, animated: true)
   }
 
+  /// キーボードショートカット一覧（チートシート）をシートで開く（⌘/ または「…」メニュー）
+  private func _mtShowShortcutsHelp() {
+    // 二重提示を避ける（連打・メニューと⌘/の競合対策）
+    if presentedViewController is UIHostingController<MTShortcutsView> { return }
+    let vc = UIHostingController(rootView: MTShortcutsView())
+    vc.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
+    vc.modalPresentationStyle = .pageSheet
+    _mtDismissKeyboardForSheet()
+    present(vc, animated: true)
+  }
+
   /// ドラフトの行をまとめて送る（復帰後）
   private func _mtSendDraftLines(_ lines: [String]) {
     guard let device = currentDevice else { return }
@@ -1085,7 +1097,8 @@ Please go to your subscriptions and cancel one of them!
       onShieldNow: { [weak self] in self?._mtShieldNow() },
       onSFTP: { [weak self] in self?._mtShowSFTPForCurrent() },
       onDisconnect: { [weak self] in self?._mtDisconnectCurrentWithConfirm() },
-      onCommandLibrary: { [weak self] in self?._mtShowCommandLibrary() }
+      onCommandLibrary: { [weak self] in self?._mtShowCommandLibrary() },
+      onShortcuts: { [weak self] in self?._mtShowShortcutsHelp() }
     )
     let host = UIHostingController(rootView: view)
     host.view.backgroundColor = .clear
@@ -1731,9 +1744,10 @@ extension SpaceController {
     case .shieldNow: _mtShieldNow()
     case .paletteCycle: MTThemeStore.shared.cycleTerminalPalette()
     case .commandLibraryShow: _mtShowCommandLibrary()
+    case .shortcutsHelpShow: _mtShowShortcutsHelp()
     }
   }
-  
+
   @objc func focusOnShellAction() {
     KBTracker.shared.input?.reset()
     _focusOnShell()
