@@ -231,6 +231,16 @@ class KeyShortcut: ObservableObject, Codable, Identifiable {
       KeyShortcut(.tab7, .command, "7"),
       KeyShortcut(.tab8, .command, "8"),
       KeyShortcut(.tab9, .command, "9"),
+
+      // MoshTerm（MT 移植）: 接続・tmux・SFTP・履歴・切断・シールド・配色切替・フォント0
+      KeyShortcut(.connectSheetShow, .command, "n"),
+      KeyShortcut(.tmuxPickerShow, [.command, .shift], "n"),
+      KeyShortcut(.sftpShow, [.command, .shift], "f"),
+      KeyShortcut(.commandBlocksShow, [.command, .shift], "b"),
+      KeyShortcut(.disconnectCurrent, [.command, .shift], "d"),
+      KeyShortcut(.shieldNow, [.command, .shift], "k"),
+      KeyShortcut(.paletteCycle, [.command, .shift], "p"),
+      KeyShortcut(.zoomReset, .command, "0"),
     ]
   }
 }

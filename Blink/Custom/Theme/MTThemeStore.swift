@@ -89,6 +89,17 @@ final class MTThemeStore: ObservableObject {
     applyToLiveSessions(currentTheme)
   }
 
+  /// 端末の配色プリセットを循環切替（「テーマに従う」→ 各プリセット → …）。ショートカット用。
+  func cycleTerminalPalette() {
+    let all = MTTerminalPalette.all
+    // 現在位置: テーマに従う=0、プリセット i=i+1
+    let current = selectedPaletteID.flatMap { id in
+      all.firstIndex { $0.id == id }.map { $0 + 1 }
+    } ?? 0
+    let next = (current + 1) % (all.count + 1)
+    selectPalette(next == 0 ? nil : all[next - 1])
+  }
+
   /// 現在の設定での diff 配色（文字色・地色）。赤 / 緑選択時はテーマによらず共通値。
   var diffColors: (delText: MTColor, delBg: MTColor, addText: MTColor, addBg: MTColor) {
     let theme = currentTheme
