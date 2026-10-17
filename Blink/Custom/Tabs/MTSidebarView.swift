@@ -38,6 +38,8 @@ struct MTSidebarView: View {
   var onSFTP: (() -> Void)? = nil
   var onDisconnect: (() -> Void)? = nil
   var onCommandLibrary: (() -> Void)? = nil
+  /// キーボードショートカット一覧（チートシート）。未指定なら項目を出さない
+  var onShortcuts: (() -> Void)? = nil
 
   @ObservedObject private var stateCenter = MTSessionStateCenter.shared
   @ObservedObject private var sessionsStore = MTSessionsStore.shared
@@ -59,7 +61,7 @@ struct MTSidebarView: View {
         Menu {
           MTSettingsMenu(onSettings: onSettings, onCommandBlocks: onCommandBlocks,
                          onShieldNow: onShieldNow, onSFTP: onSFTP, onDisconnect: onDisconnect,
-                         onCommandLibrary: onCommandLibrary)
+                         onCommandLibrary: onCommandLibrary, onShortcuts: onShortcuts)
         } label: {
           Image(systemName: "ellipsis.circle")
             .font(.system(size: 15, weight: .medium))

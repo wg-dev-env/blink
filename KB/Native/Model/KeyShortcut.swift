@@ -242,6 +242,8 @@ class KeyShortcut: ObservableObject, Codable, Identifiable {
       KeyShortcut(.paletteCycle, [.command, .shift], "p"),
       KeyShortcut(.commandLibraryShow, [.command, .shift], "l"),
       KeyShortcut(.zoomReset, .command, "0"),
+      // ショートカット一覧（チートシート）を開く。⌘/ は多くのアプリでヘルプ表示の定番
+      KeyShortcut(.shortcutsHelpShow, .command, "/"),
     ]
   }
 }

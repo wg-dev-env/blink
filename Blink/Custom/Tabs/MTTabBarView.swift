@@ -48,12 +48,17 @@ struct MTSettingsMenu: View {
   var onDisconnect: (() -> Void)? = nil
   /// コマンドライブラリ（S19）。未指定なら項目を出さない
   var onCommandLibrary: (() -> Void)? = nil
+  /// キーボードショートカット一覧（チートシート）。未指定なら項目を出さない
+  var onShortcuts: (() -> Void)? = nil
 
   var body: some View {
     Button { onSettings() } label: { Label("設定", systemImage: "gearshape") }
     Button { onCommandBlocks() } label: { Label("コマンド履歴", systemImage: "list.bullet.rectangle") }
     if let onCommandLibrary {
       Button { onCommandLibrary() } label: { Label("コマンドライブラリ", systemImage: "text.badge.plus") }
+    }
+    if let onShortcuts {
+      Button { onShortcuts() } label: { Label("キーボードショートカット", systemImage: "keyboard") }
     }
     if let onSFTP {
       Button { onSFTP() } label: { Label("ファイル（SFTP）", systemImage: "folder") }
@@ -90,6 +95,8 @@ struct MTTabBarView: View {
   var onSFTP: (() -> Void)? = nil
   var onDisconnect: (() -> Void)? = nil
   var onCommandLibrary: (() -> Void)? = nil
+  /// キーボードショートカット一覧。未指定なら「…」メニューに項目を出さない
+  var onShortcuts: (() -> Void)? = nil
   /// タブバーに歯車を出すか（サイドバーがある iPad / Mac では false）
   var showSettings: Bool = true
   /// サイドバーの表示切り替え（iPad / Mac のみ。nil のときは開閉ボタンを出さない）
@@ -164,7 +171,7 @@ struct MTTabBarView: View {
         Menu {
           MTSettingsMenu(onSettings: onSettings, onCommandBlocks: onCommandBlocks,
                          onShieldNow: onShieldNow, onSFTP: onSFTP, onDisconnect: onDisconnect,
-                         onCommandLibrary: onCommandLibrary)
+                         onCommandLibrary: onCommandLibrary, onShortcuts: onShortcuts)
         } label: {
           Image(systemName: "ellipsis.circle")
             .font(.system(size: 15, weight: .medium))
@@ -299,6 +306,7 @@ final class MTTabBarHost: UIViewController {
     let onSFTP: (() -> Void)?
     let onDisconnect: (() -> Void)?
     let onCommandLibrary: (() -> Void)?
+    let onShortcuts: (() -> Void)?
     let showSettings: Bool
     let onToggleSidebar: (() -> Void)?
 
@@ -308,6 +316,7 @@ final class MTTabBarHost: UIViewController {
                      onRename: onRename, onClose: onClose, onDelete: onDelete, onSettings: onSettings,
                      onCommandBlocks: onCommandBlocks, onShieldNow: onShieldNow,
                      onSFTP: onSFTP, onDisconnect: onDisconnect, onCommandLibrary: onCommandLibrary,
+                     onShortcuts: onShortcuts,
                      showSettings: showSettings, onToggleSidebar: onToggleSidebar)
         MTLifelineView()
           .frame(height: 20)
@@ -327,6 +336,7 @@ final class MTTabBarHost: UIViewController {
        onSFTP: (() -> Void)? = nil,
        onDisconnect: (() -> Void)? = nil,
        onCommandLibrary: (() -> Void)? = nil,
+       onShortcuts: (() -> Void)? = nil,
        showSettings: Bool = true,
        onToggleSidebar: (() -> Void)? = nil) {
     super.init(nibName: nil, bundle: nil)
@@ -335,6 +345,7 @@ final class MTTabBarHost: UIViewController {
                            onRename: onRename, onClose: onClose, onDelete: onDelete, onSettings: onSettings,
                      onCommandBlocks: onCommandBlocks, onShieldNow: onShieldNow,
                      onSFTP: onSFTP, onDisconnect: onDisconnect, onCommandLibrary: onCommandLibrary,
+                     onShortcuts: onShortcuts,
                      showSettings: showSettings, onToggleSidebar: onToggleSidebar))
     addChild(hosting)
     hosting.view.backgroundColor = .clear

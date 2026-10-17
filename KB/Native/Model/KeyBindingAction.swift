@@ -81,6 +81,7 @@ enum Command: String, Codable, CaseIterable {
   case shieldNow
   case paletteCycle
   case commandLibraryShow
+  case shortcutsHelpShow
 
   var title: String {
     switch self {
@@ -133,6 +134,7 @@ enum Command: String, Codable, CaseIterable {
     case .shieldNow:              return "Shield Now"
     case .paletteCycle:           return "Cycle Terminal Palette"
     case .commandLibraryShow:     return "Open Command Library"
+    case .shortcutsHelpShow:      return "Show Keyboard Shortcuts"
     }
   }
 }
