@@ -97,6 +97,9 @@ struct MTTmuxPickerView: View {
         }
       }
     }
+    // iPad（regular 幅）で NavigationView が split 表示になり、一覧が左カラムに寄って
+    // 右半分が空白になるのを防ぐ。他の MT シート（MTSessionsView 等）と揃える。
+    .navigationViewStyle(.stack)
     .task { await load() }
   }
 
