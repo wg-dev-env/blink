@@ -33,6 +33,8 @@ struct MTSidebarView: View {
   let onSettings: () -> Void
   let onCommandBlocks: () -> Void
   let onShieldNow: () -> Void
+  var onSFTP: (() -> Void)? = nil
+  var onDisconnect: (() -> Void)? = nil
 
   @ObservedObject private var stateCenter = MTSessionStateCenter.shared
   @ObservedObject private var sessionsStore = MTSessionsStore.shared
@@ -52,15 +54,16 @@ struct MTSidebarView: View {
           .foregroundColor(theme.text.color)
         Spacer()
         Menu {
-          MTSettingsMenu(onSettings: onSettings, onCommandBlocks: onCommandBlocks, onShieldNow: onShieldNow)
+          MTSettingsMenu(onSettings: onSettings, onCommandBlocks: onCommandBlocks,
+                         onShieldNow: onShieldNow, onSFTP: onSFTP, onDisconnect: onDisconnect)
         } label: {
-          Image(systemName: "gearshape")
+          Image(systemName: "ellipsis.circle")
             .font(.system(size: 15, weight: .medium))
             .foregroundColor(theme.sub.color)
             .frame(width: 44, height: 44)
             .contentShape(Rectangle())
         }
-        .accessibilityLabel(Text("設定とコマンド履歴"))
+        .accessibilityLabel(Text("メニュー（設定・ファイル・切断など）"))
       }
       .padding(.horizontal, 12)
       .padding(.top, 6)
