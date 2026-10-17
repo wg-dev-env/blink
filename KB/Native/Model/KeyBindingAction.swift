@@ -72,6 +72,14 @@ enum Command: String, Codable, CaseIterable {
   // MoshTerm（06 §7）
   case sidebarToggle
   case sessionHide
+  // MoshTerm（MT 移植のショートカット）
+  case connectSheetShow
+  case tmuxPickerShow
+  case sftpShow
+  case commandBlocksShow
+  case disconnectCurrent
+  case shieldNow
+  case paletteCycle
 
   var title: String {
     switch self {
@@ -116,6 +124,13 @@ enum Command: String, Codable, CaseIterable {
     case .hideKeyboard:           return "Hide Keyboard"
     case .sidebarToggle:          return "Toggle Sidebar"
     case .sessionHide:            return "Hide Session"
+    case .connectSheetShow:       return "Open Connect Sheet"
+    case .tmuxPickerShow:         return "Open tmux Session Picker"
+    case .sftpShow:               return "Open SFTP"
+    case .commandBlocksShow:      return "Open Command History"
+    case .disconnectCurrent:      return "Disconnect Current Session"
+    case .shieldNow:              return "Shield Now"
+    case .paletteCycle:           return "Cycle Terminal Palette"
     }
   }
 }

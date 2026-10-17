@@ -1653,6 +1653,24 @@ extension SpaceController {
     case .hideKeyboard: KBTracker.shared.input?.resignFirstResponder()
     case .sidebarToggle: _mtToggleSidebar()
     case .sessionHide: _mtHideCurrentSession()
+    // MoshTerm（MT 移植のショートカット）
+    case .connectSheetShow: _mtShowConnectSheet()
+    case .tmuxPickerShow:
+      // 現タブのホストへ tmux ピッカーを開く。alias 不明なら接続シートにフォールバック
+      if let key = _currentKey, let alias = MTHostContext.shared.alias(for: key) {
+        _mtShowTmuxPicker(alias: alias, kind: .mosh)
+      } else {
+        _mtShowConnectSheet()
+      }
+    case .sftpShow:
+      if let key = _currentKey, let alias = MTHostContext.shared.alias(for: key) {
+        _mtShowSFTP(alias: alias)
+      }
+    case .commandBlocksShow: _mtShowCommandBlocks()
+    case .disconnectCurrent:
+      if let key = _currentKey { _mtCloseSession(key) }
+    case .shieldNow: _mtShieldNow()
+    case .paletteCycle: MTThemeStore.shared.cycleTerminalPalette()
     }
   }
   
