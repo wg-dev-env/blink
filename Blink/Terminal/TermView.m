@@ -315,8 +315,22 @@ struct winsize __winSizeFromJSON(NSDictionary *json) {
 
 - (void)didMoveToWindow {
   [super didMoveToWindow];
-  
+
   [self setupWebViewConstraints];
+}
+
+- (void)safeAreaInsetsDidChange {
+  [super safeAreaInsetsDidChange];
+
+  // MoshTerm: 初回ログイン時の表示見切れ対策。
+  // WebView のインセット制約（ノッチ／ホームインジケータの safe area + タブバー高さ）は
+  // LayoutConstraintManager 生成時に一度だけ定数化される。初回表示では window の
+  // safeAreaInsets がまだ 0 のことがあり、その未確定値のまま凍結されると、WebView が
+  // 可視領域より大きく扱われ、hterm がそのサイズで cols/rows を決めて接続するため右端・
+  // 下端が見切れる（Layout refactor 7a20ecbf 以降の回帰）。safe area が確定したこの
+  // タイミングでインセットを計算し直すと、WebView のフレームが正しくなり、hterm の自前
+  // リサイズ検知が sigwinch を発火して cols/rows を正しく再送する。
+  [self.constraintManager recalculateInsets];
 }
 
 - (void)setupWebViewConstraints {
