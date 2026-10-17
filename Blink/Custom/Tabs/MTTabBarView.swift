@@ -81,6 +81,9 @@ struct MTTabBarView: View {
   let onList: () -> Void
   let onRename: (UUID) -> Void
   let onClose: (UUID) -> Void
+  /// このセッションをサーバーの tmux ごと終了して削除する（破壊的）。
+  /// セッション一覧と操作を揃えるためタブ長押しにも出す。未指定なら項目を出さない
+  var onDelete: ((UUID) -> Void)? = nil
   let onSettings: () -> Void
   let onCommandBlocks: () -> Void
   let onShieldNow: () -> Void
@@ -138,7 +141,12 @@ struct MTTabBarView: View {
               .contextMenu {
                 Button("名前を変更") { onRename(item.key) }
                 Button("隠す") { sessionsStore.hide(item.key) }
-                Button("閉じる", role: .destructive) { onClose(item.key) }
+                // 「閉じる」は iOS 側の接続を切るだけ（サーバーの tmux は残す）。
+                // 本当に消したいとき用に「削除」を別に出す（セッション一覧と同じ破壊的削除）。
+                Button("閉じる") { onClose(item.key) }
+                if let onDelete {
+                  Button("削除", role: .destructive) { onDelete(item.key) }
+                }
               }
               .id(item.key)
             }
@@ -284,6 +292,7 @@ final class MTTabBarHost: UIViewController {
     let onList: () -> Void
     let onRename: (UUID) -> Void
     let onClose: (UUID) -> Void
+    let onDelete: ((UUID) -> Void)?
     let onSettings: () -> Void
     let onCommandBlocks: () -> Void
     let onShieldNow: () -> Void
@@ -296,7 +305,7 @@ final class MTTabBarHost: UIViewController {
     var body: some View {
       VStack(spacing: 0) {
         MTTabBarView(model: model, onSelect: onSelect, onNew: onNew, onList: onList,
-                     onRename: onRename, onClose: onClose, onSettings: onSettings,
+                     onRename: onRename, onClose: onClose, onDelete: onDelete, onSettings: onSettings,
                      onCommandBlocks: onCommandBlocks, onShieldNow: onShieldNow,
                      onSFTP: onSFTP, onDisconnect: onDisconnect, onCommandLibrary: onCommandLibrary,
                      showSettings: showSettings, onToggleSidebar: onToggleSidebar)
@@ -311,6 +320,7 @@ final class MTTabBarHost: UIViewController {
        onList: @escaping () -> Void,
        onRename: @escaping (UUID) -> Void,
        onClose: @escaping (UUID) -> Void,
+       onDelete: ((UUID) -> Void)? = nil,
        onSettings: @escaping () -> Void,
        onCommandBlocks: @escaping () -> Void,
        onShieldNow: @escaping () -> Void,
@@ -322,7 +332,7 @@ final class MTTabBarHost: UIViewController {
     super.init(nibName: nil, bundle: nil)
     let hosting = UIHostingController(
       rootView: ChromeView(model: model, onSelect: onSelect, onNew: onNew, onList: onList,
-                           onRename: onRename, onClose: onClose, onSettings: onSettings,
+                           onRename: onRename, onClose: onClose, onDelete: onDelete, onSettings: onSettings,
                      onCommandBlocks: onCommandBlocks, onShieldNow: onShieldNow,
                      onSFTP: onSFTP, onDisconnect: onDisconnect, onCommandLibrary: onCommandLibrary,
                      showSettings: showSettings, onToggleSidebar: onToggleSidebar))
