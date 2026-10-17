@@ -143,6 +143,16 @@ struct MTSessionsView: View {
                 }
                 .tint(theme.muted.color)
               }
+              // スワイプに気付きにくい端末向けに、長押しからも削除・隠すに入れる
+              // （ホスト一覧・サイドバーと操作を揃える）
+              .contextMenu {
+                Button("隠す") {
+                  sessionsStore.hide(item.key)
+                }
+                Button("削除", role: .destructive) {
+                  pendingDelete = item
+                }
+              }
           }
         }
 
