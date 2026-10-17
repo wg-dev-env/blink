@@ -110,6 +110,19 @@ final class MTHostsModel: ObservableObject {
       $0.alias.localizedCaseInsensitiveContains(q) || $0.display.localizedCaseInsensitiveContains(q)
     }
   }
+
+  /// 登録ホストを削除する（破壊的・元に戻せない）。
+  /// 本家 HostListView.deleteHosts と同じく `BKHosts.all()` から取り除いて永続化し、
+  /// 生成済み SSH config からも落とすため再生成する。
+  /// MoshTerm は iCloud を無効化しているため iCloud レコード削除は行わない。
+  func delete(alias: String) {
+    guard let host = BKHosts.withHost(alias) else { return }
+    BKHosts.all()?.remove(host)
+    BKHosts.forceSave()
+    BKHosts.saveAllToSSHConfig()
+    reload()
+    Self.notifyChanged()
+  }
 }
 
 // MARK: - 接続先シート（06 §6.3 を踏襲）
@@ -125,6 +138,8 @@ struct MTHostsView: View {
   @ObservedObject private var themeStore = MTThemeStore.shared
   @StateObject private var model = MTHostsModel()
   @State private var query = ""
+  /// 削除確認アラートの対象（nil のときは非表示）
+  @State private var pendingDelete: MTHostItem?
 
   private var theme: MTTheme { themeStore.currentTheme }
 
@@ -155,11 +170,23 @@ struct MTHostsView: View {
 
           ForEach(model.filtered(by: query)) { item in
             hostRow(item)
+              // フルスワイプで誤削除しないよう無効化（必ずボタン＋確認を踏ませる）
+              .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                Button(role: .destructive) {
+                  pendingDelete = item
+                } label: {
+                  Label("削除", systemImage: "trash")
+                }
+                Button("編集") {
+                  editHost(BKHosts.withHost(item.alias))
+                }
+                .tint(theme.sub.color)
+              }
           }
         } header: {
           Text("ホスト")
         } footer: {
-          Text("タップで Mosh 接続。長押しで SSH 接続・編集。")
+          Text("タップで Mosh 接続。長押しで SSH 接続・編集。左スワイプで削除。")
         }
 
         Section {
@@ -190,6 +217,19 @@ struct MTHostsView: View {
       }
     }
     .onAppear { model.reload() }
+    .alert("ホストを削除", isPresented: Binding(
+      get: { pendingDelete != nil },
+      set: { if !$0 { pendingDelete = nil } }
+    ), presenting: pendingDelete) { item in
+      Button("削除", role: .destructive) {
+        let alias = item.alias
+        pendingDelete = nil
+        model.delete(alias: alias)
+      }
+      Button("キャンセル", role: .cancel) { pendingDelete = nil }
+    } message: { item in
+      Text("「\(item.alias)」の登録を削除します。元に戻せません。接続中のセッションには影響しません。")
+    }
   }
 
   // MARK: 行
