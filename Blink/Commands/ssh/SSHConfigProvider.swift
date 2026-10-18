@@ -100,11 +100,15 @@ extension SSHClientConfigProvider {
     var authMethods: [AuthMethod] = []
 
     // Host password
-    if let password = host.password, !password.isEmpty {
+    let storedPassword = (host.password?.isEmpty == false) ? host.password : nil
+    if let password = storedPassword {
       authMethods.append(AuthPassword(with: password))
     }
 
-    authMethods.append(AuthKeyboardInteractive(requestAnswers: self.authPrompt, wrongRetriesAllowed: 2))
+    // MoshTerm: サーバーが password 認証を提供せず keyboard-interactive のみの場合でも
+    // 保存パスワードを使えるよう、kbdint へ保存パスワードを渡して自動回答させる。
+    authMethods.append(AuthKeyboardInteractive(requestAnswers: self.authPrompt, wrongRetriesAllowed: 2,
+                                               storedPassword: storedPassword))
     // Password-Interactive
     authMethods.append(AuthPasswordInteractive(requestAnswers: self.authPrompt,
                                                wrongRetriesAllowed: 2))
