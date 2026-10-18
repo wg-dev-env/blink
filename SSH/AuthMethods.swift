@@ -180,15 +180,22 @@ public class AuthKeyboardInteractive: AuthMethod, Authenticator {
   public typealias RequestAnswersCb = (Prompt) -> AnyPublisher<[String], Error>
   
   let requestAnswers: RequestAnswersCb
-  
+
   /// Authentication will be tried this number of times prior to failing.
   /// If there are retries left it returns a `SSH_AUTH_AGAIN`
   var wrongRetriesLeft: Int = 2
-  
-  public init(requestAnswers f: @escaping RequestAnswersCb, wrongRetriesAllowed: Int = 3) {
+
+  // MoshTerm: ホストに保存されたパスワード。サーバーが password 認証を提供せず
+  // keyboard-interactive のみを提供する場合でも、保存パスワードを使えるようにする。
+  let storedPassword: String?
+  // 保存パスワードでの自動回答は一度だけ試す。失敗したら以降は対話入力に委ねる。
+  var storedPasswordTried = false
+
+  public init(requestAnswers f: @escaping RequestAnswersCb, wrongRetriesAllowed: Int = 3, storedPassword: String? = nil) {
     self.requestAnswers = f
-    
+
     self.wrongRetriesLeft = wrongRetriesAllowed
+    self.storedPassword = storedPassword
   }
   
   func auth(user: String, host: String, on conn: SSHConnection) -> AnyPublisher<AuthState, Error> {
@@ -211,9 +218,21 @@ public class AuthKeyboardInteractive: AuthMethod, Authenticator {
       case SSH_AUTH_INFO:
         // Get prompt info
         let p = self.prompts(user: user, host: host, session: session)
-        
+
+        // MoshTerm: 保存パスワードがあり、かつ単一のパスワード入力プロンプト
+        // （echo=false）なら、一度だけ保存パスワードで自動回答する。複数プロンプトや
+        // 2 回目以降・保存なしの場合は従来どおり対話入力にフォールバックする。
+        let answers: AnyPublisher<[String], Error>
+        if let pwd = self.storedPassword, !self.storedPasswordTried,
+           p.userPrompts.count == 1, p.userPrompts[0].echo == false {
+          self.storedPasswordTried = true
+          answers = Just([pwd]).setFailureType(to: Error.self).eraseToAnyPublisher()
+        } else {
+          answers = self.requestAnswers(p)
+        }
+
         return AuthState.continue(
-          auth: self.requestAnswers(p)
+          auth: answers
             .tryMap { answers in
               _ = try answers.enumerated().map { (idx, answer) in
                 
