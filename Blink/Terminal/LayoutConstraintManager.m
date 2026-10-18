@@ -142,6 +142,27 @@
     [self updateConstraintsForCurrentState];
 }
 
+- (void)reapplyInsetsIfChanged {
+    // キーボード駆動の固定（ロック）中は尊重して触らない。
+    if (self.isLayoutLocked) return;
+
+    UIEdgeInsets insets = [self calculateInsetsForLayoutMode:self.currentLayoutMode];
+    const CGFloat eps = 0.5; // 端数のゆらぎで無限に入れ直さないための許容差
+
+    BOOL changed =
+        fabs(self.topConstraint.constant - insets.top) > eps ||
+        fabs(self.leadingConstraint.constant - insets.left) > eps ||
+        fabs(self.trailingConstraint.constant - (-insets.right)) > eps ||
+        fabs(self.bottomConstraint.constant - (-insets.bottom)) > eps;
+
+    if (!changed) return; // 収束済み。ここで止まるのでレイアウトループにならない。
+
+    self.topConstraint.constant = insets.top;
+    self.leadingConstraint.constant = insets.left;
+    self.trailingConstraint.constant = -insets.right;
+    self.bottomConstraint.constant = -insets.bottom;
+}
+
 - (void)updateConstraintsForCurrentState {
     if (self.isLayoutLocked) {
         [self updateConstraintsForLockedFrame];

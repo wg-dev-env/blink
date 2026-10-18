@@ -65,6 +65,12 @@ NS_ASSUME_NONNULL_BEGIN
 // 初回ログイン時に表示が見切れる回帰（固定定数が safe area 未確定のまま凍結される）対策。
 - (void)recalculateInsets;
 
+// MoshTerm: レイアウトパス（layoutSubviews）ごとに呼ぶ安全版。現在の状態で計算した
+// インセットが現在の制約定数と異なるときだけ入れ直す。safe area だけでなくタブバー高さ・
+// 画面の向きが遅れて確定するケースも拾い、正しい上／左右／下インセットへ収束させる。
+// 差分があるときのみ更新するためレイアウトループにならない（ロック中は何もしない）。
+- (void)reapplyInsetsIfChanged;
+
 @end
 
 NS_ASSUME_NONNULL_END
