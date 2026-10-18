@@ -29,9 +29,17 @@ struct MTTmuxPickerView: View {
   let onAttach: ([String]) -> Void
   /// 新規セッションを作成
   let onNew: () -> Void
-  /// サーバーの tmux セッションを削除（kill）できたときに、その名前を通知する。
-  /// 呼び出し側は、同名を焼き込んだ開きっぱなしのタブを閉じて、`tmux new -A -s` に
-  /// よるゾンビ復活の起点を断つ（SpaceController 側で処理）。
+  /// サーバーの tmux セッションを kill する**直前**に、その名前を通知する。
+  /// 呼び出し側は、同名を焼き込んだ開きっぱなしのローカルタブ（Mosh/SSH）を先に
+  /// 終了させ、`tmux new -A -s` による再接続・作り直しの主体を消しておく。
+  ///
+  /// ゾンビ復活の本命対策：アタッチ中の Mosh タブが生きたままサーバー側のセッションを
+  /// kill すると、セッション消滅を「回線断」と誤認した Mosh が自動再接続し、初期コマンド
+  /// `-- tmux new -A -s <name>` を再実行して削除直後の同名を作り直してしまう。kill の
+  /// 前にローカルを畳んでおけば、作り直す主体がいなくなる（SpaceController 側で処理）。
+  var onWillKill: (String) -> Void = { _ in }
+  /// サーバーの tmux セッションを削除（kill）できたあとにも、その名前を通知する。
+  /// onWillKill の取りこぼし（名前不一致で畳めなかったタブ等）への二重の掃除。
   var onKilled: (String) -> Void = { _ in }
 
   @Environment(\.dismiss) private var dismiss
@@ -163,6 +171,12 @@ struct MTTmuxPickerView: View {
     for name in names {
       killing.insert(name)
       defer { killing.remove(name) }
+      // kill の前に、この名前を焼き込んだローカルタブ（アタッチ中の Mosh/SSH）を先に畳む。
+      // 畳まずにサーバーを kill すると、Mosh が消滅を回線断と誤認して自動再接続し、
+      // 初期コマンドの `tmux new -A -s <name>` を再実行して削除直後の同名を作り直す
+      // （＝ゾンビ復活）。先にローカルを落とし、再接続の猶予（0.4 秒）を置いてから kill する。
+      onWillKill(name)
+      try? await Task.sleep(nanoseconds: 400_000_000)
       do {
         let gone = try await MTTmuxKiller.kill(alias: alias, sessionName: name)
         if gone {

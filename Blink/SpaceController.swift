@@ -1331,9 +1331,15 @@ Please go to your subscriptions and cancel one of them!
           self?._newShellAction(command: "\(kind.command) \(alias)", animated: true)
         }
       },
+      onWillKill: { [weak self] name in
+        // kill の【前】に、同名を焼き込んだアタッチ中タブ（Mosh/SSH）を先に畳む。
+        // これをしないと、サーバー側 kill を回線断と誤認した Mosh が自動再接続し、
+        // 初期コマンド `tmux new -A -s <name>` を再実行して削除直後の同名を作り直す
+        // （ゾンビ復活）。再生成の主体をあらかじめ消しておくのがこの修正の核心。
+        self?._mtForgetKilledTmux(alias: alias, name: name)
+      },
       onKilled: { [weak self] name in
-        // ピッカーでサーバーの tmux を削除したら、同名を開いているタブも閉じる。
-        // シートは出したままで、背後のタブを片付けるだけ（接続前の掃除なので安全）。
+        // 取りこぼし掃除：onWillKill で畳めなかったタブ（名前不一致等）があれば閉じる。
         self?._mtForgetKilledTmux(alias: alias, name: name)
       })
     let content = UIHostingController(rootView: view)
