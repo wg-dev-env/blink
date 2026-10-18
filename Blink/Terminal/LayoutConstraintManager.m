@@ -170,7 +170,7 @@
     }
     
     UIEdgeInsets insets = [self calculateInsetsForLayoutMode:self.currentLayoutMode];
-    
+
     self.topConstraint.constant = insets.top;
     self.leadingConstraint.constant = insets.left;
     self.trailingConstraint.constant = -insets.right;
@@ -288,8 +288,16 @@
     }
 
     // MoshTerm: タブバー分の上インセットとサイドバー分の左インセット
-    // （SpaceController が設置・開閉時に設定し、updateLayoutMode: で再計算させる）
-    result.top += MTChrome.tabBarTopInset;
+    // （SpaceController が設置・開閉時に設定し、updateLayoutMode: で再計算させる）。
+    //
+    // タブバーは SpaceController の view.safeAreaLayoutGuide.top（= deviceMargins.top）に
+    // 設置され、そこから高さ分だけ下へ伸びる。Cover のように safe area を無視するモードでは
+    // result.top が 0 のままなので、単純に += すると端末ビューの先頭行がタブバーの裏に隠れる
+    // （未知の新機種が hasNotch/hasCorners 判定から漏れて Cover にフォールバックするケースを
+    // 含む）。モードに関わらず「safe area を越えてから」バー高さを足し、バー裏への潜り込みを防ぐ。
+    if (MTChrome.tabBarTopInset > 0) {
+        result.top = MAX(result.top, deviceMargins.top) + MTChrome.tabBarTopInset;
+    }
     result.left += MTChrome.sidebarLeftInset;
 
     return result;
