@@ -121,6 +121,13 @@ struct winsize __winSizeFromJSON(NSDictionary *json) {
 - (void)layoutSubviews {
   [super layoutSubviews];
 
+  // MoshTerm: 初回ログイン時の表示見切れ（特に上端）対策。
+  // WebView のインセット（safe area + タブバー高さ）は、safe area・タブバー高さ・画面の
+  // 向きが別々のタイミングで確定するため、生成時の一度きりの計算では取りこぼす。
+  // safeAreaInsetsDidChange だけでは safe area 変化しか拾えないので、レイアウトが確定する
+  // たびに走るここで、現在値と制約がズレていれば入れ直す（差分があるときだけ＝ループしない）。
+  [self.constraintManager reapplyInsetsIfChanged];
+
   _coverView.frame = self.bounds;
   [self bringSubviewToFront:_coverView];
 
