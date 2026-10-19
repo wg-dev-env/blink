@@ -537,9 +537,9 @@ struct HostView: View {
       }
       Section(
         header: Text(_conflictedICloudHost == nil ? "" : "Local Verion"),
-        footer: Text(verbatim: _usageHint())
+        footer: Text(verbatim: _usageHint() + "\n接続名（mosh/ssh の引数）として使うため、スペースは使えません。英数字と _ - . のみ（例: macmini）。")
       ) {
-        Field("Alias（呼び名）", $_alias, next: "HostName", placeholder: "必須。英数字で（例: macmini）")
+        Field("Alias（呼び名）", $_alias, next: "HostName", placeholder: "必須。スペース不可・英数字で（例: macmini）")
       }.disabled(!_enabled)
 
       Section(header: Text("SSH")) {
