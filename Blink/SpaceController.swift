@@ -709,8 +709,9 @@ Please go to your subscriptions and cancel one of them!
     host.didMove(toParent: self)
     _mtTabBar = host
     _mtTabBarLeading = tabLeading
-    // 端末ビューの上インセットに加算される（LayoutConstraintManager）
-    MTChrome.tabBarTopInset = MTTabBarHost.height
+    // 端末ビューの上インセットに加算される（LayoutConstraintManager）。
+    // ライフライン直下に数 pt の余白を足し、先頭行が帯の真下にきっちり収まるようにする。
+    MTChrome.tabBarTopInset = MTTabBarHost.height + MTTabBarHost.contentTopGap
 
     if _mtSupportsSidebar {
       _setupMTSidebar(sharing: host.model)

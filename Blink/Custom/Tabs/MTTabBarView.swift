@@ -288,6 +288,13 @@ struct MTStateBadge: View {
 final class MTTabBarHost: UIViewController {
   static let height: CGFloat = 64  // タブ 44（36pt + 上下 4pt）+ ライフライン 20
 
+  /// 端末ビュー上端とライフライン帯の間に確保する余白（pt）。
+  /// Fix B で機種に依らず safe area + バー高さを確保済みだが、実機ではライフライン
+  /// 直下に余白ゼロだと先頭行の上端が帯にわずかに重なって見えることがあるため、
+  /// 数 pt の息継ぎを入れて先頭行を帯の真下にきっちり収める（端末ビューのみに効き、
+  /// タブバー自体の配置は変えない）。実機の見え方に応じて調整する。
+  static let contentTopGap: CGFloat = 6
+
   /// サイドバー（MTSidebarView）と共有する（SpaceController の update で両方へ反映される）
   let model = MTTabBarModel()
 
