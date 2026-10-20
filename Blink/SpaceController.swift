@@ -832,6 +832,16 @@ Please go to your subscriptions and cancel one of them!
       // このウィンドウが持っているセッションのときだけ記録する（複数ウィンドウ対応）
       guard self._viewportsKeys.contains(key) else { return }
       MTSessionEndCenter.shared.note(command: command, for: key)
+
+      // 64_MoshTerm: ローカルシェルに戻ったので、タブ名を接続先 alias から端末名
+      // （iPhone 等）へ戻す。再接続コマンドは MTSessionEndCenter が別に保持するため
+      // 「もう一度つなぐ」は壊れない。安全機能（額縁等）もローカルでは外れるのが正しい。
+      // この通知は本当の exit 時のみ飛ぶ（Mosh detach/resume では飛ばない）ので誤消去しない。
+      MTHostContext.shared.clear(for: key)
+      // 残っているリモートのタイトルを消し、フォールバックで端末名を表示させる。
+      let term: TermController = SessionRegistry.shared[key]
+      term.title = nil
+      self._mtTabBarUpdate()
     }
   }
 
