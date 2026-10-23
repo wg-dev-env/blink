@@ -32,10 +32,26 @@ import NIOCore
 /// BKHosts 解決は SFTP（MTSFTPClient）と同じ経路。
 
 /// tmux セッション 1 件
-struct MTTmuxSessionInfo: Identifiable, Hashable {
+struct MTTmuxSessionInfo: Identifiable, Hashable, Sendable {
   var id: String { name }
   let name: String
   let windows: Int
+}
+
+/// 一覧取得の結果。
+///
+/// 以前は失敗も `[]` で返していたため、遅い回線や到達しないホストで
+/// 「既存の tmux セッションはありません」と表示され、**サーバーに既存セッションが
+/// あるのに新規作成へ誘導**してしまっていた（元の画面に戻れない）。
+/// 「本当に無い」と「取れなかった」を型で区別する。
+enum MTTmuxListResult: Sendable {
+  case sessions([MTTmuxSessionInfo])
+  case failed(reason: String)
+}
+
+/// 一覧取得が時間内に終わらなかった
+struct MTTmuxListTimeout: LocalizedError {
+  var errorDescription: String? { "時間内に応答がありませんでした。" }
 }
 
 /// 接続の共有エラー（鍵未対応・認証なし・ホスト不明）
@@ -59,14 +75,33 @@ actor MTTmuxLister {
 
   init(alias: String) { self.alias = alias }
 
-  /// `tmux ls` を実行してセッション一覧を返す。tmux 未起動／セッション無しなどで
-  /// 失敗した場合は空配列（＝新規作成のみ提示へフォールバック）。
-  func list() async -> [MTTmuxSessionInfo] {
-    guard let client = try? await Self.connectClient(alias: alias) else { return [] }
+  /// 一覧取得の既定のタイムアウト（秒）。遅い回線でシートが固まらないための上限。
+  static let defaultTimeout: Double = 8
+
+  /// `tmux ls` を実行してセッション一覧を返す。
+  ///
+  /// 接続・実行に失敗した場合や、`timeout` 秒以内に終わらなかった場合は
+  /// `.failed(reason:)` を返す。セッションが 1 つも無い（tmux 未起動など）ときだけ
+  /// `.sessions([])` になる。呼び出し側はこの 2 つを区別して表示すること。
+  func list(timeout: Double = MTTmuxLister.defaultTimeout) async -> MTTmuxListResult {
+    let alias = self.alias
+    do {
+      let sessions = try await Self.withTimeout(timeout) {
+        try await Self.fetch(alias: alias)
+      }
+      return .sessions(sessions)
+    } catch {
+      return .failed(reason: error.localizedDescription)
+    }
+  }
+
+  /// 実際の取得処理（接続 → `tmux ls` → パース）
+  private static func fetch(alias: String) async throws -> [MTTmuxSessionInfo] {
+    let client = try await connectClient(alias: alias)
     defer { Task { try? await client.close() } }
     // `#{...}` は tmux のフォーマット。名前にタブ・改行は入らない前提で name<TAB>windows
     let cmd = "tmux ls -F '#{session_name}\t#{session_windows}' 2>/dev/null"
-    guard let buffer = try? await client.executeCommand(cmd) else { return [] }
+    let buffer = try await client.executeCommand(cmd)
     let text = buffer.getString(at: buffer.readerIndex, length: buffer.readableBytes) ?? ""
     var result: [MTTmuxSessionInfo] = []
     for line in text.split(whereSeparator: \.isNewline) {
@@ -76,6 +111,27 @@ actor MTTmuxLister {
       result.append(MTTmuxSessionInfo(name: name, windows: windows))
     }
     return result
+  }
+
+  /// 処理とタイマーを競走させ、先に終わった方を採る。
+  /// Citadel の接続自体はキャンセルに応じないことがあるが、待っている側は必ず
+  /// `timeout` 秒で解放される（取り残したタスクはバックグラウンドで畳まれる）。
+  private static func withTimeout<T: Sendable>(
+    _ seconds: Double,
+    operation: @escaping @Sendable () async throws -> T
+  ) async throws -> T {
+    try await withThrowingTaskGroup(of: T.self) { group in
+      group.addTask { try await operation() }
+      group.addTask {
+        try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+        throw MTTmuxListTimeout()
+      }
+      guard let first = try await group.next() else {
+        throw MTTmuxListTimeout()
+      }
+      group.cancelAll()
+      return first
+    }
   }
 
   /// BKHosts の設定で Citadel の SSHClient を確立する（SFTP と同じ鍵/ホスト鍵解決）。
