@@ -364,7 +364,6 @@
 		D23D258823438B15002850CA /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D23D258723438B15002850CA /* UIColor.swift */; };
 		D23EA945260379EB00BCF1FF /* KeyListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D23EA944260379EB00BCF1FF /* KeyListView.swift */; };
 		D23EA9592604CB4C00BCF1FF /* FixedTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = D23EA9582604CB4B00BCF1FF /* FixedTextField.swift */; };
-		D23FFC6A261C2D46003E9227 /* template_setup.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D23FFC69261C2D46003E9227 /* template_setup.xcconfig */; };
 		D241CBD023040734003D64A5 /* KBKeyViewFlexible.swift in Sources */ = {isa = PBXBuildFile; fileRef = D241CBBE23040732003D64A5 /* KBKeyViewFlexible.swift */; };
 		D241CBD123040734003D64A5 /* KBKeyViewArrows.swift in Sources */ = {isa = PBXBuildFile; fileRef = D241CBBF23040732003D64A5 /* KBKeyViewArrows.swift */; };
 		D241CBD223040734003D64A5 /* KBDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = D241CBC023040733003D64A5 /* KBDevice.swift */; };
@@ -413,7 +412,6 @@
 		D27BBA1C20529FFF00AEA303 /* TermStream.m in Sources */ = {isa = PBXBuildFile; fileRef = D27BBA1B20529FFF00AEA303 /* TermStream.m */; };
 		D27C4DA42987F124008427F2 /* BuildHelp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D27C4DA32987F124008427F2 /* BuildHelp.swift */; };
 		D27D0118261202A400128C23 /* KeyUIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = D27D0117261202A400128C23 /* KeyUIError.swift */; };
-		D27D01272615F1BD00128C23 /* developer_setup.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = D27D01232615F1BD00128C23 /* developer_setup.xcconfig */; };
 		D27DD70A2A3B203F009E97BC /* NewSnippetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D27DD7092A3B203F009E97BC /* NewSnippetViewController.swift */; };
 		D2887A5622DC676F00701BD5 /* SpaceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2887A5522DC676F00701BD5 /* SpaceController.swift */; };
 		D2887A5E22DCA6D500701BD5 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2887A5D22DCA6D500701BD5 /* SceneDelegate.swift */; };
@@ -3359,7 +3357,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D21A3FE321943BE200269705 /* dark-notification-ipad-20pt@2x.png in Resources */,
-				D27D01272615F1BD00128C23 /* developer_setup.xcconfig in Resources */,
 				07E3AED31D919272007BC086 /* css in Resources */,
 				D21A3FDD21943BE200269705 /* dark-settings-iphone-29pt@2x.png in Resources */,
 				D21A3FDF21943BE200269705 /* dark-app-ipad-pro-83.5pt@2x.png in Resources */,
@@ -3402,7 +3399,6 @@
 				D29392B72004D785001FB2AA /* hterm_all.patches.js in Resources */,
 				D2094662204D3FC5003C4F72 /* cacert.pem in Resources */,
 				85A34309200A8FAF009324F1 /* term.css in Resources */,
-				D23FFC6A261C2D46003E9227 /* template_setup.xcconfig in Resources */,
 				0732F04E1D062B9A00AB5438 /* term.html in Resources */,
 				07E3AED11D9191B4007BC086 /* blink.png in Resources */,
 				D21A3FE721943BE200269705 /* dark-app-ipad-76pt@2x.png in Resources */,
