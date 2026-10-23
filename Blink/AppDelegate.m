@@ -86,7 +86,12 @@ void __setupProcessEnv(void) {
 
   [AppDelegate reloadDefaults];
   [[UIView appearance] setTintColor:[UIColor blinkTint]];
-  
+
+  // MoshTerm: 端末名（UIDevice.current.name＝メインスレッド専用）をここで一度だけ読んで
+  // キャッシュする。ローカルシェルのプロンプトは MCP のコマンドキューから引かれるため、
+  // 温めておかないとバックグラウンドから UIKit を叩くことになる。
+  [MTDeviceInfo primeOnMainThread];
+
   signal(SIGPIPE, __on_pipebroken_signal);
  
   dispatch_queue_t bgQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0);
