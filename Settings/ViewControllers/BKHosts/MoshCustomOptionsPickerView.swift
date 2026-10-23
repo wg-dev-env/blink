@@ -35,20 +35,35 @@ import SwiftUI
 extension BKMoshPrediction: Hashable {
   var label: String {
     switch self {
-    case BKMoshPredictionAdaptive: return "Adaptive"
-    case BKMoshPredictionAlways: return "Always"
-    case BKMoshPredictionNever: return "Never"
-    case BKMoshPredictionExperimental: return "Experimental"
+    case BKMoshPredictionAdaptive: return "自動（Adaptive）"
+    case BKMoshPredictionAlways: return "常に（Always）"
+    case BKMoshPredictionNever: return "しない（Never）"
+    case BKMoshPredictionExperimental: return "積極的（Experimental）"
     case _: return ""
     }
   }
-  
+
+  /// 一覧の右側に出す短い名前（ホスト編集の行など）
+  var shortLabel: String {
+    switch self {
+    case BKMoshPredictionAdaptive: return "自動"
+    case BKMoshPredictionAlways: return "常に"
+    case BKMoshPredictionNever: return "しない"
+    case BKMoshPredictionExperimental: return "積極的"
+    case _: return ""
+    }
+  }
+
   var hint: String {
     switch self {
-    case BKMoshPredictionAdaptive: return "Local echo for slower links [default]"
-    case BKMoshPredictionAlways: return "Use local echo even on fast links"
-    case BKMoshPredictionNever: return "Never use local echo"
-    case BKMoshPredictionExperimental: return "Aggressively echo even when incorrect"
+    case BKMoshPredictionAdaptive:
+      return "遅い回線のときだけ、打った文字を先に手元へ表示します（既定）。確定するまで下線が付きます。"
+    case BKMoshPredictionAlways:
+      return "回線の速さに関わらず、常に打った文字を先に手元へ表示します。遅い回線で一番軽く感じますが、速い回線では下線付きの予測文字が気になることがあります。"
+    case BKMoshPredictionNever:
+      return "先行表示をしません。サーバーから返ってきた文字だけを表示します。"
+    case BKMoshPredictionExperimental:
+      return "外れる可能性があっても積極的に先行表示します。"
     case _: return ""
     }
   }
@@ -66,18 +81,18 @@ extension BKMoshPrediction: Hashable {
 extension BKMoshExperimentalIP: Hashable {
   var label: String {
     switch self {
-    case BKMoshExperimentalIPNone: return "None"
-    case BKMoshExperimentalIPLocal: return "Local"
-    case BKMoshExperimentalIPRemote: return "Remote"
+    case BKMoshExperimentalIPNone: return "なし（None）"
+    case BKMoshExperimentalIPLocal: return "手元（Local）"
+    case BKMoshExperimentalIPRemote: return "リモート（Remote）"
     case _: return ""
     }
   }
   
   var hint: String {
     switch self {
-    case BKMoshExperimentalIPNone: return "No experimental IP resolution"
-    case BKMoshExperimentalIPLocal: return "Resolve the IP locally"
-    case BKMoshExperimentalIPRemote: return "Resolve the IP in the remote"
+    case BKMoshExperimentalIPNone: return "IP の解決は SSH 接続から取得します（既定）。"
+    case BKMoshExperimentalIPLocal: return "IP を手元で解決します。"
+    case BKMoshExperimentalIPRemote: return "IP をリモート側で解決します。"
     case _: return ""
     }
   }
@@ -98,7 +113,7 @@ struct MoshCustomOptionsPickerView: View {
   
   var body: some View {
     List {
-      Section(footer: Text(predictionValue.hint)) {
+      Section(header: Text("予測表示（Prediction）"), footer: Text(predictionValue.hint)) {
         ForEach(BKMoshPrediction.all, id: \.self) { value in
           HStack {
             Text(value.label).tag(value)
@@ -109,12 +124,12 @@ struct MoshCustomOptionsPickerView: View {
           .onTapGesture { predictionValue = value }
         }
       }
-      Section(footer: Text("Prediction overwrites instead of inserting")) {
+      Section(footer: Text("先行表示を挿入ではなく上書きで行います（Prediction overwrites instead of inserting）。")) {
         HStack {
-          Toggle("Overwrite", isOn: $overwriteValue)
+          Toggle("上書き（Overwrite）", isOn: $overwriteValue)
         }
       }
-      Section(footer: Text(experimentalIPValue.hint)) {
+      Section(header: Text("実験的な IP 解決（Experimental IP）"), footer: Text(experimentalIPValue.hint)) {
         ForEach(BKMoshExperimentalIP.all, id: \.self) { value in
           HStack {
             Text(value.label).tag(value)
