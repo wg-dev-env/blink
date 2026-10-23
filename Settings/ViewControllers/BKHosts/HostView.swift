@@ -343,9 +343,11 @@ fileprivate struct FieldMoshCustomOptions: View {
     Row(
       content: {
         HStack {
-          FormLabel(text: "Advanced")
+          // MoshTerm: 遅い回線での体感を決める設定なので、行の名前を「予測表示」にして
+          // 現在値を右に出す（以前は "Advanced" とだけ出ていて見つけられなかった）。
+          FormLabel(text: "予測表示ほか（Advanced）")
           Spacer()
-          //Text(prediction.label + "...").font(.system(.subheadline)).foregroundColor(.secondary)
+          Text(prediction.shortLabel).font(.system(.subheadline)).foregroundColor(.secondary)
         }
       },
       details: {
@@ -559,7 +561,8 @@ struct HostView: View {
       }
 
       Section(
-        header: Text("MOSH")
+        header: Text("MOSH"),
+        footer: Text("「予測表示」は、打った文字をサーバーの応答を待たずに手元へ先に出す mosh の機能です。既定の「自動」は遅い回線のときだけ働きます。電波の悪い場所で入力が重いと感じるときは「常に」にしてください。")
       ) {
         Field("Server",  $_moshServer,  next: "moshPort",    placeholder: "通常は空欄（例: /opt/homebrew/bin/mosh-server）")
         Field("Port",    $_moshPort,    next: "moshCommand", placeholder: "UDP PORT[:PORT2]", id: "moshPort", kbType: .numbersAndPunctuation)
