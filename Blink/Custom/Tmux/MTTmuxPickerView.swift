@@ -23,6 +23,15 @@ import SwiftUI
 
 /// 接続時の tmux セッションピッカー（S17）。お手本 MT に準拠。
 /// 既存セッションを選んでアタッチ／新規作成／すべて開く／複数選択。Esc（閉じる）で接続中止。
+///
+/// `@MainActor` は必須。`killSessions` / `load` は `await` を含む async で、isolation が
+/// 無いと最初の `await` でメインスレッドを離れる（SE-0338）。離れたまま `@State` を書き、
+/// さらに `onWillKill` / `onKilled` 経由で SpaceController の `_mtCloseSession` →
+/// `UIPageViewController.setViewControllers` までバックグラウンドで呼んでしまうため、
+/// SwiftUI の AttributeGraph と UIKit の両方が壊れる。同じ並行処理を持つ
+/// `MTSFTPModel`（MTSFTPBrowserView.swift）や `SpaceController._mtDeleteSession` は
+/// 既にメイン固定になっているので、それに揃える。
+@MainActor
 struct MTTmuxPickerView: View {
   let alias: String
   /// 既存セッションへアタッチ（複数可）
