@@ -107,11 +107,114 @@ function term_displayInput(str, display) {
 }
 
 
+// MoshTerm: IME（かな漢字変換）の未確定文字の位置決めを修正する。
+//
+// 未確定文字は hterm_all.min.js に同梱された Blink 製キーボード層が持つ caret（div）に
+// WebKit が直接描画し、位置は同層の _moveCaret が端末のカーソル位置から計算している。
+// その実装に 2 つの欠陥がある。
+//
+//  (1) 最後の分岐（未確定文字が折り返す かつ カーソル行が 0 行目でない）で
+//        o.style.top = `calc(var(--hterm-charsize-height) * ${a-1}`
+//      と calc( の閉じ括弧が欠落している。不正な CSS 値は無視されるため直前に入れた
+//      top:"auto" が残り、未確定文字の箱が意図しない位置（画面上端寄り）へ飛ぶ。
+//      ＝「行の右端近くで長めの日本語を打つと変換中の表示が飛ぶ」の原因。
+//
+//  (2) 確定時（compositionend）は _moveCaret(確定文字列) の直後に _output が呼ばれるが、
+//      _output は caret の中身（innerHTML）だけを消し、_moveCaret が入れた
+//      top/left/right/background-color を戻さない。未確定文字が画面幅以上だった場合は
+//      left:0/right:0 のままなので、カーソル色の帯が残る。
+//
+// hterm_all.min.js は minified のため編集しない（CLAUDE.md）。幸い installKB は
+// インスタンスを window._kb として公開しているので、ここでインスタンス側に上書きする。
+// 元の 4 分岐のロジックはそのまま踏襲し、閉じ括弧と行番号の下限クランプだけを直す。
+// hterm を更新したときは、この上書きが不要になっていないか見直すこと。
+function term_mtPatchIME() {
+  var kb = window._kb;
+  if (!kb || kb.__mtIMEPatched) {
+    return;
+  }
+  kb.__mtIMEPatched = true;
+
+  var OFFSCREEN = '-9999px';
+
+  // (1) 閉じ括弧の欠落を直した _moveCaret。
+  kb._moveCaret = function(str) {
+    var term = this._t;
+    var scrollPort = term.scrollPort_;
+    var caret = this.caret;
+
+    caret.style.backgroundColor = lib.colors.setAlpha(term.getCursorColor(), 1);
+    caret.style.color = scrollPort.getBackgroundColor();
+
+    var cols = term.screenSize.width;
+    var rows = term.screenSize.height;
+    var col = term.screen_.cursorPosition.column;
+    var row = term.screen_.cursorPosition.row;
+    var width = lib.wc.strWidth(str);
+
+    caret.style.bottom = 'auto';
+    caret.style.top = 'auto';
+    caret.style.left = 'auto';
+    caret.style.right = 'auto';
+
+    // 未確定文字が無いときは画面外へ退避する（通常の英数入力中はこの状態）
+    if (width === 0) {
+      caret.style.top = OFFSCREEN;
+      caret.style.left = OFFSCREEN;
+      return;
+    }
+
+    var rowTop = function(r) {
+      // 行番号が負になると画面外上方へ飛ぶので下限でクランプする
+      return 'calc(var(--hterm-charsize-height) * ' + Math.max(0, r) + ')';
+    };
+
+    if (width >= cols) {
+      // 1 行に収まらない: 全幅を使い、カーソルの上下どちらかへ寄せる
+      caret.style.left = '0px';
+      caret.style.right = '0px';
+      caret.style.top = row < 0.8 * rows
+        ? rowTop(row + 1)
+        : rowTop(row - Math.floor(width / (cols + 1)) - 1);
+    } else if (col + width <= cols) {
+      // カーソル位置からそのまま収まる: カーソルに重ねる
+      caret.style.left = 'calc(var(--hterm-charsize-width) * ' + col + ')';
+      caret.style.top = rowTop(row);
+      caret.style.right = 'auto';
+    } else if (row === 0) {
+      // 折り返すが 0 行目なので下の行へ、右寄せ
+      caret.style.top = rowTop(row + 1);
+      caret.style.left = 'auto';
+      caret.style.right = '0px';
+    } else {
+      // 折り返すので上の行へ、右寄せ（元実装はここで calc( が閉じていなかった）
+      caret.style.top = rowTop(row - 1);
+      caret.style.left = 'auto';
+      caret.style.right = '0px';
+    }
+  };
+
+  // (2) 確定（および通常の出力）のあと、画面に出たままの caret を退避状態へ戻す。
+  //     毎打鍵で呼ばれる経路なので、実際に画面に出ているときだけ戻す。
+  var originalOutput = kb._output;
+  if (typeof originalOutput === 'function') {
+    // 元の _output はインスタンスに束縛されたアロー関数なので receiver は無関係だが、
+    // 将来 prototype メソッドに変わっても壊れないよう call で明示する。
+    kb._output = function(data) {
+      originalOutput.call(kb, data);
+      if (kb.caret && kb.caret.style.top !== OFFSCREEN) {
+        kb._moveCaret('');
+      }
+    };
+  }
+}
 function term_setup(accessibilityEnabled) {
   t = new hterm.Terminal('blink');
 
   t.onTerminalReady = function() {
     window.installKB(t, t.scrollPort_.screen_);
+    // 上書きに失敗しても端末の初期化（この下の設定）は必ず続ける
+    try { term_mtPatchIME(); } catch (e) { console.error('term_mtPatchIME failed', e); }
     term_setAutoCarriageReturn(true);
     term_setClipboardWrite(false);
 
