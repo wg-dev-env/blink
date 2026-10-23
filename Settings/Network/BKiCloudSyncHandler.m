@@ -57,6 +57,16 @@ static BKiCloudSyncHandler *sharedHandler = nil;
 
 + (instancetype)sharedHandler
 {
+  // MoshTerm: 本フォークはエンタイトルメントから iCloud を外しているため、Info.plist に
+  // BLINK_CLOUD_ID が無く、infoPlistFullCloudID は "iCloud.(null)" を返す。その状態で
+  // CKContainer を作るとコンテナを決められず NSException を投げ、Swift 側からは捕捉
+  // できない（Migrator で NSFileProviderManager を外したのと同じ型の罠）。
+  // ユーザー設定が何かの拍子に ON になっていても、ここで必ず nil を返して止める。
+  // 呼び出し元はすべて nil 許容（Obj-C は nil へのメッセージが no-op、Swift 側は `?.`）。
+  if ([XCConfig infoPlistCloudID].length == 0) {
+    return nil;
+  }
+
   if ([BKUserConfigurationManager userSettingsValueForKey:BKUserConfigiCloud]) {
     if (sharedHandler == nil) {
       sharedHandler = [[self alloc] init];

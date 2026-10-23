@@ -169,13 +169,10 @@ struct SettingsView: View {
           SnippetsConfigView()
         }
 
-        RowWithStoryBoardId(content: {
-          HStack {
-            Label("iCloud 同期（iCloud Sync）", systemImage: "icloud")
-            Spacer()
-            Text(_iCloudSyncOn ? "オン" : "オフ").foregroundColor(.secondary)
-          }
-        }, storyBoardId: "BKiCloudConfigurationViewController")
+        // MoshTerm: iCloud 同期の行は外してある。本フォークはエンタイトルメントから
+        // iCloud を外しており、BKiCloudConfigurationViewController は
+        // CKContainer.defaultContainer を直接触るため、開いた時点で NSException に
+        // なる（コンテナ ID が "iCloud.(null)" のため）。エンタイトルメント復活まで封じる。
 
         RowWithStoryBoardId(content: {
           HStack {
