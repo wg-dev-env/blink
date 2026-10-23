@@ -64,6 +64,9 @@ struct MTTmuxPickerView: View {
   @State private var killing: Set<String> = []
   /// 削除失敗の通知文（nil のときは非表示）
   @State private var killError: String? = nil
+  /// 一覧が取得できなかった理由（nil のときは取得成功）。
+  /// 「本当にセッションが無い」と「取れなかった」を取り違えないために持つ。
+  @State private var loadError: String? = nil
 
   private var theme: MTTheme { themeStore.currentTheme }
 
@@ -86,10 +89,24 @@ struct MTTmuxPickerView: View {
         } footer: {
           if loading {
             Text("サーバーの tmux セッションを取得中…")
+          } else if let loadError {
+            // 取得できなかったときに「ありません」と出すと、サーバーに既存セッションが
+            // あるのに新規作成へ誘導してしまう。必ず区別して伝える。
+            Text("一覧を取得できませんでした（\(loadError)）。既存のセッションがあっても表示されていません。")
           } else if sessions.isEmpty {
             Text("既存の tmux セッションはありません。新規作成で接続します。")
           } else {
             Text("セッションを選んでアタッチします。「選択」で複数まとめて開けます。")
+          }
+        }
+
+        if !loading, loadError != nil {
+          Section {
+            Button {
+              Task { await load() }
+            } label: {
+              Label("もう一度取得する", systemImage: "arrow.clockwise")
+            }
           }
         }
 
@@ -239,8 +256,15 @@ struct MTTmuxPickerView: View {
   }
 
   private func load() async {
-    let list = await MTTmuxLister(alias: alias).list()
-    sessions = list
+    loading = true
+    loadError = nil
+    switch await MTTmuxLister(alias: alias).list() {
+    case .sessions(let list):
+      sessions = list
+    case .failed(let reason):
+      sessions = []
+      loadError = reason
+    }
     loading = false
   }
 }
