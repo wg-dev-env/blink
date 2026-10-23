@@ -66,6 +66,9 @@ static int __sizeOfIncompleteSequenceAtTheEnd(const char *buffer, size_t len) {
 
 @interface ViewStream: NSObject
   @property TermView *view;
+  /// MoshTerm: リモートからの出力が届くたびに呼ばれる（実疎通の合図）。
+  /// ストリームのキュー上で高頻度に呼ばれるので、受け手が間引くこと。
+  @property (nonatomic, copy) void (^onOutput)(void);
 @end
 
 @implementation ViewStream {
@@ -92,6 +95,13 @@ static int __sizeOfIncompleteSequenceAtTheEnd(const char *buffer, size_t len) {
   return ^(bool done, dispatch_data_t data, int error) {
     if (!data) {
       return;
+    }
+
+    // MoshTerm: リモートから出力が届いた＝疎通している、の合図。
+    // ライフラインの「再接続中 → 接続中」を、経路変化からの固定待ちではなく
+    // 実際の疎通で戻すために使う（間引きは受け手の TermController 側で行う）。
+    if (_onOutput) {
+      _onOutput();
     }
 
     if (_splitChar) {
@@ -196,6 +206,19 @@ static int __sizeOfIncompleteSequenceAtTheEnd(const char *buffer, size_t len) {
     
     _outStream = [[ViewStream alloc] initWithQueue:_queue fd:_poutput[0]];
     _errStream = [[ViewStream alloc] initWithQueue:_queue fd:_perror[0]];
+    // MoshTerm: 出力の到達をデリゲート（TermController）へ伝える
+    __weak typeof(self) weakSelf = self;
+    void (^notifyOutput)(void) = ^{
+      __strong typeof(weakSelf) strongSelf = weakSelf;
+      // TermDeviceDelegate は NSObject プロトコルを継承していないため、
+      // respondsToSelector: を使うにはいったん id で受ける
+      id delegate = strongSelf.delegate;
+      if ([delegate respondsToSelector:@selector(deviceDidReceiveOutput)]) {
+        [delegate deviceDidReceiveOutput];
+      }
+    };
+    _outStream.onOutput = notifyOutput;
+    _errStream.onOutput = notifyOutput;
   }
   
   return self;

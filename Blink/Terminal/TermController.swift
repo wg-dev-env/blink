@@ -155,6 +155,9 @@ class TermController: UIViewController {
 
   private var _termDevice = TermDevice()
   private var _bag = Array<AnyCancellable>()
+  /// deviceDidReceiveOutput の間引き用（最後に通知した時刻）
+  private var _lastOutputNoticeAt: CFAbsoluteTime = 0
+
   private var _termView = TermView(frame: .zero, termUIState: TermUIState.withDefaults())
   private var _proxyView = ProxyView(frame: .zero)
   private var _sceneRole: UISceneSession.Role? = nil
@@ -340,6 +343,24 @@ extension TermController: TermDeviceDelegate {
 
    Enable/Disable standard OSC sequences & iTerm2 notifications
    */
+  /// MoshTerm: リモートから出力が届いた（TermDevice のストリームハンドラから）。
+  ///
+  /// 出力の 1 チャンクごとに呼ばれる・呼び出しはバックグラウンドキュー、という
+  /// 前提なので、ここで 2 段に間引く。
+  ///  ① 直近 0.5 秒以内に通知済みなら何もしない（主要な間引き）
+  ///  ② 必要なときだけメインへ渡す（@Published の更新はメイン固定）
+  /// 用途はライフラインの「再接続中 / 保持中 → 接続中」を実疎通で戻すことだけで、
+  /// 接続中のときは状態が変わらないので実質ノーコストになる。
+  public func deviceDidReceiveOutput() {
+    let now = CFAbsoluteTimeGetCurrent()
+    guard now - _lastOutputNoticeAt > 0.5 else { return }
+    _lastOutputNoticeAt = now
+    let key = meta.key
+    DispatchQueue.main.async {
+      MTSessionStateCenter.shared.noteTraffic(for: key)
+    }
+  }
+
   func viewDidReceiveBellRing() {
 
     if BLKDefaults.isPlaySoundOnBellOn() && _termView.isFocused() {

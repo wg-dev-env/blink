@@ -158,7 +158,10 @@ struct MTLifelineView: View {
       let duration = timeline.map { now.timeIntervalSince($0.start) } ?? 0
       let switches = timeline?.switchCount ?? 0
       let head = state == .restored ? "復元済み · " : ""
-      return "\(head)連続 \(Self.duration(duration)) · 回線切替 \(switches) · 欠落 0"
+      // 「欠落 0」は計測せずに固定で出していた。実際には NWPathMonitor で経路の
+      // 変化を見ているだけで、パケットの取りこぼしは一切数えていないため、
+      // 嘘になる（パケットロスや高 RTT でも 0 のまま）。計測できていない値は出さない。
+      return "\(head)連続 \(Self.duration(duration)) · 回線切替 \(switches)"
     case .reconnecting:
       return "再接続中 · \(center.networkChange ?? "回線を切り替えています")"
     case .held:
@@ -254,7 +257,8 @@ struct MTStatusOverlayView: View {
       let gap = disconnectedSince.map { Date().timeIntervalSince($0) }
       disconnectedSince = nil
       let detail = gap.map { "\(Int($0.rounded())) 秒の断を吸収しました。" } ?? ""
-      showToast(title: "復帰しました · 欠落 0", detail: detail)
+      // 同上。復帰は分かるが、欠落が無かったことは確かめていない。
+      showToast(title: "復帰しました", detail: detail)
     default:
       break
     }

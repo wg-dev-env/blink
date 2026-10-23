@@ -87,10 +87,19 @@ final class MTConnectivityMonitor {
     }
   }
 
+  /// 復帰表示の保険。
+  ///
+  /// 本来の合図はサーバーからの出力（`MTSessionStateCenter.noteTraffic`。
+  /// TermDevice → TermController 経由）で、届けばこれより先に「接続中」へ戻る。
+  /// ここは出力が来ないまま待たされ続けないための保険なので、固定時間で
+  /// 「復帰した」ことにしてしまわないよう、実疎通より十分あとに置く。
   private func scheduleRecovery() {
     recoveryWork?.cancel()
     let work = DispatchWorkItem { MTSessionStateCenter.shared.recoverAll() }
     recoveryWork = work
-    DispatchQueue.main.asyncAfter(deadline: .now() + 2.5, execute: work)
+    DispatchQueue.main.asyncAfter(deadline: .now() + Self.recoveryFallbackDelay, execute: work)
   }
+
+  /// 出力が来ないときに表示を戻すまでの猶予（秒）
+  static let recoveryFallbackDelay: TimeInterval = 6
 }

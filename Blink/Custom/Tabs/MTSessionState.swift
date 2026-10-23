@@ -124,6 +124,20 @@ final class MTSessionStateCenter: ObservableObject {
     }
   }
 
+  /// サーバーからの出力が届いたことを知らせる（実疎通の合図）。
+  ///
+  /// 回線の復帰判定はこれまで NWPathMonitor の経路変化から 2.5 秒後に無条件で
+  /// 「接続中」へ戻していたため、遅い回線では実際の再同期より早く表示だけが
+  /// 戻っていた。サーバーの出力が 1 バイトでも届けば疎通は確かなので、
+  /// そのときは待たずに戻す（2.5 秒の既定は、出力が来ない場合の保険として残す）。
+  ///
+  /// 端末の出力経路から高頻度で呼ばれるため、状態が変わるときだけ仕事をする。
+  func noteTraffic(for key: UUID) {
+    guard let state = states[key], state == .reconnecting || state == .held else { return }
+    timeline(for: key).append(.connected)
+    states[key] = .connected
+  }
+
   /// 再接続中のセッションをまとめて接続中へ戻す（復帰）
   func recoverAll() {
     for (key, state) in states where state == .reconnecting || state == .held {
