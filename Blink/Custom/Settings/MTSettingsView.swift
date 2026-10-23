@@ -145,6 +145,17 @@ struct MTSettingsView: View {
         Text("ホスト・鍵・Default User など、Blink 由来の全設定に入れます。")
       }
 
+      // 診断（クラッシュ・ハングの記録）
+      Section {
+        Row {
+          Label("診断（クラッシュ記録）", systemImage: "stethoscope")
+        } details: {
+          MTDiagnosticsView()
+        }
+      } footer: {
+        Text("アプリが落ちた・固まったときの記録です。端末の中にだけ保存し、どこへも送信しません。落ちた心当たりがあるときは、ここから記録を書き出して共有してください。")
+      }
+
       // 7. 情報
       Section("情報") {
         Row {

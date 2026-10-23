@@ -82,6 +82,10 @@ void __setupProcessEnv(void) {
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 
+  // MoshTerm: 最初にクラッシュ・ハングの記録係を立ち上げる（起動直後の落ち方も拾うため）。
+  // MetricKit の診断購読と未捕捉例外ハンドラの登録だけで、外部へは何も送信しない。
+  [MTCrashReporter.shared start];
+
   [Migrator perform];
 
   [AppDelegate reloadDefaults];

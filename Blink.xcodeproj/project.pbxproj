@@ -81,6 +81,8 @@
 		4D540001000000000000B040 /* MTTmuxKiller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A040 /* MTTmuxKiller.swift */; };
 		4D540001000000000000B041 /* MTCommandLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A041 /* MTCommandLibrary.swift */; };
 		4D540001000000000000B042 /* MTShortcutsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A042 /* MTShortcutsView.swift */; };
+		4D540001000000000000B043 /* MTCrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A043 /* MTCrashReporter.swift */; };
+		4D540001000000000000B044 /* MTDiagnosticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A044 /* MTDiagnosticsView.swift */; };
 		4D540001000000000000B039 /* MTTmuxPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A039 /* MTTmuxPickerView.swift */; };
 		4D540001000000000000B004 /* MTFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A004 /* MTFont.swift */; };
 		4D540001000000000000B005 /* MTSessionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D540001000000000000A005 /* MTSessionState.swift */; };
@@ -869,6 +871,8 @@
 		4D540001000000000000A040 /* MTTmuxKiller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MTTmuxKiller.swift; path = Blink/Custom/Tmux/MTTmuxKiller.swift; sourceTree = SOURCE_ROOT; };
 		4D540001000000000000A041 /* MTCommandLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MTCommandLibrary.swift; path = Blink/Custom/Commands/MTCommandLibrary.swift; sourceTree = SOURCE_ROOT; };
 		4D540001000000000000A042 /* MTShortcutsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MTShortcutsView.swift; path = Blink/Custom/Shortcuts/MTShortcutsView.swift; sourceTree = SOURCE_ROOT; };
+		4D540001000000000000A043 /* MTCrashReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MTCrashReporter.swift; path = Blink/Custom/Diagnostics/MTCrashReporter.swift; sourceTree = SOURCE_ROOT; };
+		4D540001000000000000A044 /* MTDiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MTDiagnosticsView.swift; path = Blink/Custom/Diagnostics/MTDiagnosticsView.swift; sourceTree = SOURCE_ROOT; };
 		4D540001000000000000A039 /* MTTmuxPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MTTmuxPickerView.swift; path = Blink/Custom/Tmux/MTTmuxPickerView.swift; sourceTree = SOURCE_ROOT; };
 		4D540001000000000000A004 /* MTFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTFont.swift; sourceTree = "<group>"; };
 		4D540001000000000000A005 /* MTSessionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTSessionState.swift; sourceTree = "<group>"; };
@@ -1793,6 +1797,7 @@
 				4D540001000000000000C005 /* Settings */,
 				4D540001000000000000C006 /* Hosts */,
 				4D540001000000000000C007 /* Safety */,
+				4D540001000000000000C008 /* Diagnostics */,
 				4D540001000000000000A017 /* COPYING */,
 			);
 			path = Custom;
@@ -1830,6 +1835,15 @@
 				4D540001000000000000A016 /* OFL-JetBrainsMono.txt */,
 			);
 			path = Fonts;
+			sourceTree = "<group>";
+		};
+		4D540001000000000000C008 /* Diagnostics */ = {
+			isa = PBXGroup;
+			children = (
+				4D540001000000000000A043 /* MTCrashReporter.swift */,
+				4D540001000000000000A044 /* MTDiagnosticsView.swift */,
+			);
+			path = Diagnostics;
 			sourceTree = "<group>";
 		};
 		4D540001000000000000C007 /* Safety */ = {
@@ -3802,6 +3816,8 @@
 				4D540001000000000000B040 /* MTTmuxKiller.swift in Sources */,
 				4D540001000000000000B041 /* MTCommandLibrary.swift in Sources */,
 				4D540001000000000000B042 /* MTShortcutsView.swift in Sources */,
+				4D540001000000000000B043 /* MTCrashReporter.swift in Sources */,
+				4D540001000000000000B044 /* MTDiagnosticsView.swift in Sources */,
 				4D540001000000000000B039 /* MTTmuxPickerView.swift in Sources */,
 				4D540001000000000000B002 /* MTThemeStore.swift in Sources */,
 				4D540001000000000000B003 /* MTAppearanceView.swift in Sources */,
