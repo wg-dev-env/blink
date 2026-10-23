@@ -67,6 +67,17 @@ class SpaceController: UIViewController {
   private var _spaceControllerAnimating: Bool = false
   /// アニメーション中に要求された切替先（last-wins で完了後に 1 件だけ適用する）
   private var _pendingMoveKey: UUID? = nil
+
+  /// アニメーション中に飛んできた「次に表示するビューポート」。最後の 1 件だけ保持する。
+  /// 表示対象は常に `_currentKey`（モデル側は呼び出し時に更新済み）なので、途中の要求を
+  /// 捨てても最終状態は正しい。捨てる要求の completion は必ず呼び、呼び出し元を止めない。
+  private struct _PendingViewport {
+    let term: TermController
+    let direction: UIPageViewController.NavigationDirection
+    let animated: Bool
+    let completion: ((Bool) -> Void)?
+  }
+  private var _pendingViewport: _PendingViewport? = nil
   var stuckKeyCode: KeyCode? = nil
   
   private var _snippetsVC: SnippetsViewController? = nil
@@ -462,9 +473,9 @@ Please go to your subscriptions and cancel one of them!
 
     _currentKey = term.meta.key
 
-    _viewportsController.setViewControllers([term], direction: .forward, animated: animated) { (didComplete) in
-      self._displayHUD()
-      self._attachInputToCurrentTerm()
+    _presentViewport(term, direction: .forward, animated: animated) { [weak self] didComplete in
+      self?._displayHUD()
+      self?._attachInputToCurrentTerm()
       completion?(didComplete)
     }
   }
@@ -511,14 +522,11 @@ Please go to your subscriptions and cancel one of them!
     
     self._currentKey = term.meta.key
     
-    _spaceControllerAnimating = true
-    _viewportsController.setViewControllers([term], direction: direction, animated: true) { (didComplete) in
-      self._displayHUD()
+    _presentViewport(term, direction: direction, animated: true) { [weak self] _ in
+      self?._displayHUD()
       if attachInput {
-        self._attachInputToCurrentTerm()
+        self?._attachInputToCurrentTerm()
       }
-      self._spaceControllerAnimating = false
-      self._applyPendingMoveIfNeeded(animated: true)
     }
   }
   
@@ -1055,8 +1063,13 @@ Please go to your subscriptions and cancel one of them!
       if let alias = MTHostContext.shared.alias(for: key) {
         return MTTabItem(key: key, title: alias, index: number)
       }
-      let term: TermController = SessionRegistry.shared[key]
-      let title = term.title ?? ""
+      // SessionRegistry の subscript は「無ければ TermController を新規生成して登録する」。
+      // タブバー更新は HUD 表示のたびに全キーを回るため、subscript を使うと毎回すべての
+      // セッション（TermController + TermView + TermDevice）を実体化してしまい、
+      // 多タブではメモリ逼迫（jetsam）やゴーストセッションの原因になる。
+      // 名前を出すだけなので、生成しない取得を使う。
+      let term: TermController? = SessionRegistry.shared.sessionFromIndexWith(key: key)
+      let title = term?.title ?? ""
       return MTTabItem(key: key, title: title.isEmpty ? MTDeviceInfo.name : title, index: number)
     }
     let view = MTSessionsView(
@@ -1208,6 +1221,14 @@ Please go to your subscriptions and cancel one of them!
     MTSessionsStore.shared.setTitle(nil, for: key)
     if let idx = _viewportsKeys.firstIndex(of: key) {
       _viewportsKeys.remove(at: idx)
+    }
+    // UIPageViewController(.scroll) は dataSource から取った前後ページを内部にキャッシュし、
+    // ビュー階層にも持つ。隣のタブを閉じると終了済み・registry から外れた TermController が
+    // そこに残り、その後スワイプすると dataSource と食い違って内部不整合になる。
+    // 現在のタブを入れ直してキャッシュを作り直す（表示は変わらないのでアニメーションしない）。
+    if let currentKey = _currentKey,
+       let current: TermController = SessionRegistry.shared.sessionFromIndexWith(key: currentKey) {
+      _presentViewport(current, direction: .forward, animated: false)
     }
     _mtTabBarUpdate()
   }
@@ -1449,8 +1470,13 @@ Please go to your subscriptions and cancel one of them!
       if let alias = MTHostContext.shared.alias(for: key) {
         return MTTabItem(key: key, title: alias, index: number)
       }
-      let term: TermController = SessionRegistry.shared[key]
-      let title = term.title ?? ""
+      // SessionRegistry の subscript は「無ければ TermController を新規生成して登録する」。
+      // タブバー更新は HUD 表示のたびに全キーを回るため、subscript を使うと毎回すべての
+      // セッション（TermController + TermView + TermDevice）を実体化してしまい、
+      // 多タブではメモリ逼迫（jetsam）やゴーストセッションの原因になる。
+      // 名前を出すだけなので、生成しない取得を使う。
+      let term: TermController? = SessionRegistry.shared.sessionFromIndexWith(key: key)
+      let title = term?.title ?? ""
       return MTTabItem(key: key, title: title.isEmpty ? MTDeviceInfo.name : title, index: number)
     }
     MTSessionStateCenter.shared.currentKey = _currentKey
@@ -2209,11 +2235,58 @@ extension SpaceController {
     _moveToShell(key: uuidKey, animated: true)
   }
   
+  /// `_viewportsController.setViewControllers` の唯一の入口。
+  ///
+  /// UIPageViewController(.scroll) は、アニメーション完了前にもう一度
+  /// `setViewControllers` を呼ぶと内部（`_UIQueuingScrollView`）が不整合を起こして
+  /// クラッシュする。以前はタブ切替（`_moveToShell`）にだけ再入ガードがあり、
+  /// 新規タブ（`_createTerminal`）・タブを閉じる（`_removeCurrentSpace`）は素通しだった。
+  /// そのため「切替アニメ中に ×／⌘W／切断／＋／Handoff」が重なると落ちうる。
+  /// ここを通して必ず直列化する。
+  private func _presentViewport(_ term: TermController,
+                                direction: UIPageViewController.NavigationDirection,
+                                animated: Bool,
+                                completion: ((Bool) -> Void)? = nil) {
+    guard !_spaceControllerAnimating else {
+      // 先に保留していた要求は捨てるが、待っている呼び出し元が止まらないよう完了は返す
+      _pendingViewport?.completion?(false)
+      _pendingViewport = _PendingViewport(term: term,
+                                          direction: direction,
+                                          animated: animated,
+                                          completion: completion)
+      return
+    }
+
+    _spaceControllerAnimating = true
+    _viewportsController.setViewControllers([term], direction: direction, animated: animated) { [weak self] didComplete in
+      guard let self = self else {
+        completion?(didComplete)
+        return
+      }
+      completion?(didComplete)
+      self._spaceControllerAnimating = false
+      self._applyPendingViewportIfNeeded(animated: animated)
+    }
+  }
+
+  /// アニメーション完了後、保留分を 1 件だけ消化する。
+  /// 具体的な表示要求（`_pendingViewport`）を優先し、無ければタブ切替の保留を見る。
+  private func _applyPendingViewportIfNeeded(animated: Bool) {
+    if let pending = _pendingViewport {
+      _pendingViewport = nil
+      _presentViewport(pending.term,
+                       direction: pending.direction,
+                       animated: pending.animated,
+                       completion: pending.completion)
+      return
+    }
+    _applyPendingMoveIfNeeded(animated: animated)
+  }
+
   private func _moveToShell(key: UUID, animated: Bool = true) {
-    // アニメーション中の再入を抑止する。UIPageViewController(.scroll) は
-    // setViewControllers(animated:) の完了前に再度呼ぶと内部（_UIQueuingScrollView）が
-    // 不整合を起こしてクラッシュする。連打・スワイプ中のタップは「最後の指定」だけを
-    // 完了後に 1 件適用する（last-wins）。
+    // アニメーション中の再入を抑止する。連打・スワイプ中のタップは「最後の指定」だけを
+    // 完了後に 1 件適用する（last-wins）。切替先の向きは適用時に計算し直したいので、
+    // ここは _pendingViewport ではなくキーだけを保留する。
     if _spaceControllerAnimating {
       _pendingMoveKey = key
       return
@@ -2230,14 +2303,11 @@ extension SpaceController {
     let term: TermController = SessionRegistry.shared[key]
     let direction: UIPageViewController.NavigationDirection = currentIdx < idx ? .forward : .reverse
 
-    _spaceControllerAnimating = true
-    _viewportsController.setViewControllers([term], direction: direction, animated: animated) { (didComplete) in
+    _presentViewport(term, direction: direction, animated: animated) { [weak self] _ in
       term.resumeIfNeeded()
-      self._currentKey = term.meta.key
-      self._displayHUD()
-      self._refocusCurrentTermSoon()
-      self._spaceControllerAnimating = false
-      self._applyPendingMoveIfNeeded(animated: animated)
+      self?._currentKey = term.meta.key
+      self?._displayHUD()
+      self?._refocusCurrentTermSoon()
     }
   }
 
