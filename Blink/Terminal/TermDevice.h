@@ -62,6 +62,11 @@
 - (void)viewDidReceiveBellRing;
 - (UIViewController *)viewController;
 
+@optional
+/// MoshTerm: リモートからの出力が届いた（実疎通の合図）。
+/// 出力経路から高頻度で呼ばれるので、実装側で間引くこと。
+- (void)deviceDidReceiveOutput;
+
 @end
 
 @interface TermDevice : NSObject {
