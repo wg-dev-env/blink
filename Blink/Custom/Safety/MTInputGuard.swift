@@ -172,19 +172,38 @@ final class MTDangerGuard: ObservableObject {
 
   @Published var pending: Pending? = nil
 
+  /// 確定待ちを自動で取り下げるまでの猶予（秒）。
+  /// リングは全画面でタッチを受けるため、何かの理由で表示が出ないまま
+  /// `pending` が残ると打鍵もタブ切り替えも効かなくなる。送らない側に倒して
+  /// 必ず自力で解ける状態に戻す（安全側＝送信しない）。
+  private static let timeout: TimeInterval = 20
+
+  private var timeoutWork: DispatchWorkItem? = nil
+
   private init() {}
 
   func request(_ pending: Pending) {
     self.pending = pending
+    timeoutWork?.cancel()
+    let work = DispatchWorkItem { [weak self] in
+      guard let self, self.pending != nil else { return }
+      self.cancel()
+    }
+    timeoutWork = work
+    DispatchQueue.main.asyncAfter(deadline: .now() + Self.timeout, execute: work)
   }
 
   func confirm() {
+    timeoutWork?.cancel()
+    timeoutWork = nil
     let p = pending
     pending = nil
     p?.send()
   }
 
   func cancel() {
+    timeoutWork?.cancel()
+    timeoutWork = nil
     pending = nil
   }
 }
