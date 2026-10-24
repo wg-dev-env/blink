@@ -737,20 +737,31 @@ Please go to your subscriptions and cancel one of them!
 
     // 圏外ドラフトのカード（表示専用。カードが出ている時だけタッチを受ける）。
     // 第3段：生成はドラフトが初めて貯まったときに _mtActivateDraftOverlay が行う。
+    // `$drafts` は willSet で流れる＝この時点の `MTDraftStore` はまだ更新前。
+    // そのまま読むと「1 件目が溜まってもカードが出ない」「最後の 1 件を送った
+    // 後もタッチを食い続ける」という 1 つずれが起きるので、確定後に読む。
     _mtDraftCancellable = MTDraftStore.shared.$drafts.sink { [weak self] _ in
-      self?._mtApplyDraftInteractivity()
+      DispatchQueue.main.async { self?._mtApplyDraftInteractivity() }
     }
 
     // 危険コマンドの長押しリング。確定中だけ全画面でタッチを受けるモーダル。
     // 第3段：生成は長押し判定が初めて走ったときに _mtActivateRingOverlay が行う。
-    _mtRingCancellable = MTDangerGuard.shared.$pending.sink { [weak self] pending in
-      self?._mtActivateRingOverlay(pending != nil)
+    // こちらも willSet 中に呼ばれる。リングは全画面でタッチを受ける唯一の
+    // オーバーレイで、初回生成時に SwiftUI が `pending == nil`（更新前）を
+    // 読むと「中身が無いのにタッチだけ奪う透明な全画面」になり、打鍵もタブ
+    // 切り替えも効かなくなる。確定後に生成・表示を切り替える。
+    _mtRingCancellable = MTDangerGuard.shared.$pending.sink { [weak self] _ in
+      DispatchQueue.main.async {
+        self?._mtActivateRingOverlay(MTDangerGuard.shared.pending != nil)
+      }
     }
 
     // スクラブ中の読み取り専用オーバーレイ（07 #01）。スクラブ中だけタッチを受ける。
     // 第3段：生成はスクラブが初めて始まったときに _mtActivateScrubOverlay が行う。
-    _mtScrubCancellable = MTScreenHistory.shared.$scrubbing.sink { [weak self] snapshot in
-      self?._mtActivateScrubOverlay(snapshot != nil)
+    _mtScrubCancellable = MTScreenHistory.shared.$scrubbing.sink { [weak self] _ in
+      DispatchQueue.main.async {
+        self?._mtActivateScrubOverlay(MTScreenHistory.shared.scrubbing != nil)
+      }
     }
 
     // 画面スナップショットを定期的に撮る（07 #01）
@@ -2417,9 +2428,21 @@ extension SpaceController: SnippetContext {
 
 // MARK: SceneIntent handlers
 extension SpaceController {
+  /// Intent / URL スキーム、およびメニューの「タブを作成」から呼ばれる。
+  ///
+  /// 以前は無条件に `DispatchQueue.main.sync` を通していたが、メニュー
+  /// （`BlinkMenu.m` の `BlinkActionTabCreate`）の handler はメインスレッドで
+  /// 走るため、そこから main キューへ `sync` すると libdispatch の再入検知で
+  /// 「BUG IN CLIENT OF LIBDISPATCH」の SIGTRAP になり即クラッシュしていた
+  /// （記録 20261024-160216-632: exceptionType 6 / signal 5）。
+  /// 戻り値を使う呼び出し元は無いので、メインなら直に呼び、それ以外は async で渡す。
   @objc func runShellSessionIntent(command: String = "") {
-    DispatchQueue.main.sync {
-      self._newShellAction(command: command)
+    if Thread.isMainThread {
+      _newShellAction(command: command)
+    } else {
+      DispatchQueue.main.async { [weak self] in
+        self?._newShellAction(command: command)
+      }
     }
   }
 
