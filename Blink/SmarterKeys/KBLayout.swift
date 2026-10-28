@@ -54,9 +54,10 @@ extension KBLayout {
       .wideKey(.esc,  traits: .default - .portrait),
       .key(.ctrl, traits: .default),
       .key(.alt,  traits: .default),
+      // MoshTerm: Tab をスクロールしない左固定セクションに常設（補完入力を素早く）
+      .key(.tab,  traits: .default - .cmdOn),
       .arrows(traits: .default - .cmdOff),
     ], [
-      .key(.tab,  traits: .default - .cmdOn),
       .vertical2("`", "~",  traits: .default - .cmdOn),
       .vertical2("@", "#",  traits: .default - .cmdOn),
       .vertical2("$", "^",  traits: .default - .cmdOn),
