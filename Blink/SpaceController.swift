@@ -540,6 +540,15 @@ Please go to your subscriptions and cancel one of them!
     guard canTerminalBecomeFirstResponder else {
       return
     }
+    // シーンが前面アクティブでない間は becomeFirstResponder を見送る（MoshTerm）。
+    // _refocusCurrentTermSoon などの遅延ブロックがバックグラウンド化後に発火すると、
+    // 非アクティブ状態のまま iPad のキーボード遷移（keyplane）が走り、UIKit 内部の
+    // Auto Layout が NSException で落ちる（build 11 のクラッシュ記録で確認）。
+    // ここで見送っても、アクティブ復帰時に SceneDelegate.sceneDidBecomeActive の
+    // Focus Check が focusOnShellAction で拾い直すため、フォーカスは失われない。
+    guard foregroundActive else {
+      return
+    }
     currentTerm()?.activateInput()
   }
 
