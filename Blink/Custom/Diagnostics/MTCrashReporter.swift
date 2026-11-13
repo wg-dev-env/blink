@@ -241,6 +241,37 @@ private var _mtPreviousExceptionHandler: (@convention(c) (NSException) -> Void)?
     save(record)
   }
 
+  // MARK: - 捕捉して続行した例外
+
+  /// UIKit 内部の例外を自前の @catch で捕捉し、落とさず続行したときの記録。
+  /// （iPadOS 27 のキーボード keyplane 構築が Auto Layout 例外を投げる既知の不具合への防壁。
+  ///   KBWebViewBase.m から呼ばれる。プロセスは生きているので通常の save で書く）
+  @objc public static func noteCaughtException(_ exception: NSException, context: String) {
+    let date = Date()
+    let name = exception.name.rawValue
+    let reason = exception.reason ?? "(reason なし)"
+    var detail = """
+    捕捉地点: \(context)
+    name: \(name)
+    reason: \(reason)
+
+    callStackSymbols:
+    """
+    for line in exception.callStackSymbols {
+      detail += "\n\(line)"
+    }
+    let record = MTDiagnosticRecord(
+      id: makeID(date, .exception),
+      date: date,
+      kind: .exception,
+      summary: "[捕捉・続行] \(context): \(name)",
+      appVersion: appVersionString,
+      osVersion: ProcessInfo.processInfo.operatingSystemVersionString,
+      detail: detail
+    )
+    save(record)
+  }
+
   // MARK: - デバッグ用
 
   #if BLINK_PUBLISHING_OPTION_DEVELOPER

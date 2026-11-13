@@ -32,6 +32,7 @@
 
 #import "KBWebViewBase.h"
 #import <objc/runtime.h>
+#import "Blink-Swift.h"
 
 
 
@@ -115,7 +116,15 @@ NSString *_encodeString(NSString *str);
       KBWebViewBase * base = (KBWebViewBase *)mayBeUs;
       arg1 = [base canBeFocused];
       if (arg1) {
-        ((void (*)(id, SEL, void*, BOOL, BOOL, BOOL, id))original)(me, selector, arg0, arg1, arg2, arg3, arg4);
+        // MoshTerm: iPadOS 27 では、この先の UIKit キーボード構築（分割 keyplane 遷移）が
+        // Auto Layout の内部例外を投げて SIGABRT になることがある（build 12 クラッシュ、FB 済みの UIKit 不具合系）。
+        // アプリ側から直せないため、ここで捕捉して墜落だけ防ぐ。捕捉時はキーボードが
+        // 出ないことがあるが、次のフォーカスで再構築される。記録は 設定 › 診断 に残る。
+        @try {
+          ((void (*)(id, SEL, void*, BOOL, BOOL, BOOL, id))original)(me, selector, arg0, arg1, arg2, arg3, arg4);
+        } @catch (NSException *exception) {
+          [MTCrashReporter noteCaughtException:exception context:@"_elementDidFocus（キーボード構築）"];
+        }
       }
     } else {
       ((void (*)(id, SEL, void*, BOOL, BOOL, BOOL, id))original)(me, selector, arg0, arg1, arg2, arg3, arg4);
@@ -306,8 +315,15 @@ NSString *_encodeString(NSString *str);
 //}
 
 - (BOOL)becomeFirstResponder {
-  BOOL res = [super becomeFirstResponder];
-  
+  BOOL res;
+  // MoshTerm: build 11 クラッシュと同経路（キーボード keyplane 構築中の Auto Layout 例外）への防壁
+  @try {
+    res = [super becomeFirstResponder];
+  } @catch (NSException *exception) {
+    [MTCrashReporter noteCaughtException:exception context:@"becomeFirstResponder（キーボード構築）"];
+    res = NO;
+  }
+
   if (res) {
     [self reportFocus:YES];
   }
