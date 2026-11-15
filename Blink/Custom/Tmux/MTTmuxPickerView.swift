@@ -67,6 +67,8 @@ struct MTTmuxPickerView: View {
   /// 一覧が取得できなかった理由（nil のときは取得成功）。
   /// 「本当にセッションが無い」と「取れなかった」を取り違えないために持つ。
   @State private var loadError: String? = nil
+  /// 取得失敗がホスト鍵の不一致によるものだったか（「鍵を忘れて再試行」導線の表示判定）
+  @State private var hostKeyMismatch = false
 
   private var theme: MTTheme { themeStore.currentTheme }
 
@@ -106,6 +108,17 @@ struct MTTmuxPickerView: View {
               Task { await load() }
             } label: {
               Label("もう一度取得する", systemImage: "arrow.clockwise")
+            }
+            if hostKeyMismatch {
+              // 正当な鍵変更（サーバー再構築など）からの復旧導線。
+              // 心当たりがない場合に押してはいけないことを文言で伝える
+              Button(role: .destructive) {
+                MTTofuHostKeyValidator.reset(hostID: alias)
+                Task { await load() }
+              } label: {
+                Label("サーバーを作り直した場合：以前の鍵を忘れて再試行",
+                      systemImage: "key.slash")
+              }
             }
           }
         }
@@ -258,12 +271,14 @@ struct MTTmuxPickerView: View {
   private func load() async {
     loading = true
     loadError = nil
+    hostKeyMismatch = false
     switch await MTTmuxLister(alias: alias).list() {
     case .sessions(let list):
       sessions = list
-    case .failed(let reason):
+    case .failed(let reason, let mismatch):
       sessions = []
       loadError = reason
+      hostKeyMismatch = mismatch
     }
     loading = false
   }

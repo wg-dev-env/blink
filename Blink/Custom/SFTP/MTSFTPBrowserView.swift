@@ -30,6 +30,8 @@ final class MTSFTPModel: ObservableObject {
   @Published var path: String = "."
   @Published var loading = false
   @Published var errorText: String?
+  /// 接続失敗がホスト鍵の不一致によるものだったか（「鍵を忘れて再接続」導線の表示判定）
+  @Published var hostKeyMismatch = false
 
   let alias: String
   private let session: MTSFTPSession
@@ -42,15 +44,24 @@ final class MTSFTPModel: ObservableObject {
 
   func start() async {
     guard !connected else { return }
-    loading = true; errorText = nil
+    loading = true; errorText = nil; hostKeyMismatch = false
     do {
       try await session.connect()
       connected = true
       await reload()
     } catch {
       errorText = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+      hostKeyMismatch = MTTofuHostKeyValidator.isHostKeyChanged(error)
     }
     loading = false
+  }
+
+  /// 記録済みのホスト鍵指紋を破棄して接続し直す。
+  /// サーバー再構築などで鍵が正当に変わったときの復旧手段（次の接続で新しい鍵を再記録する）
+  func forgetHostKeyAndRetry() async {
+    MTTofuHostKeyValidator.reset(hostID: alias)
+    hostKeyMismatch = false
+    await start()
   }
 
   func reload() async {
@@ -175,12 +186,23 @@ struct MTSFTPBrowserView: View {
       }
       .safeAreaInset(edge: .bottom) {
         if let err = model.errorText {
-          Text(err)
-            .font(.footnote)
-            .foregroundColor(.white)
-            .padding(10)
-            .frame(maxWidth: .infinity)
-            .background(Color.red.opacity(0.9))
+          VStack(spacing: 8) {
+            Text(err)
+              .font(.footnote)
+              .foregroundColor(.white)
+            if model.hostKeyMismatch {
+              // 正当な鍵変更（サーバー再構築など）からの復旧導線。
+              // 心当たりがない場合に押してはいけないことを文言で伝える
+              Button("サーバーを作り直した場合：以前の鍵を忘れて再接続") {
+                Task { await model.forgetHostKeyAndRetry() }
+              }
+              .font(.footnote.bold())
+              .foregroundColor(.white)
+            }
+          }
+          .padding(10)
+          .frame(maxWidth: .infinity)
+          .background(Color.red.opacity(0.9))
         }
       }
     }

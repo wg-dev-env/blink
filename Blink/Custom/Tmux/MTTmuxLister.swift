@@ -46,7 +46,8 @@ struct MTTmuxSessionInfo: Identifiable, Hashable, Sendable {
 /// 「本当に無い」と「取れなかった」を型で区別する。
 enum MTTmuxListResult: Sendable {
   case sessions([MTTmuxSessionInfo])
-  case failed(reason: String)
+  /// hostKeyMismatch: ホスト鍵の不一致で拒否した（UI は「鍵を忘れて再試行」導線を出す）
+  case failed(reason: String, hostKeyMismatch: Bool)
 }
 
 /// 一覧取得が時間内に終わらなかった
@@ -91,7 +92,8 @@ actor MTTmuxLister {
       }
       return .sessions(sessions)
     } catch {
-      return .failed(reason: error.localizedDescription)
+      return .failed(reason: error.localizedDescription,
+                     hostKeyMismatch: MTTofuHostKeyValidator.isHostKeyChanged(error))
     }
   }
 
@@ -141,8 +143,9 @@ actor MTTmuxLister {
     let port = host.port?.intValue ?? 22
     let user = (host.user?.isEmpty == false ? host.user : nil) ?? NSUserName()
     let auth = try authMethod(for: host, user: user)
-    // ホスト鍵は SFTP と同じ TOFU 検証（MTTofuHostKeyValidator は MTSFTPClient.swift で定義）
-    let validator = SSHHostKeyValidator.custom(MTTofuHostKeyValidator(hostID: alias))
+    // ホスト鍵は SFTP と同じ検証（known_hosts 照合つき TOFU。MTSFTPClient.swift で定義）
+    let validator = SSHHostKeyValidator.custom(
+      MTTofuHostKeyValidator(hostID: alias, hostName: hostName, port: port))
     return try await SSHClient.connect(
       host: hostName, port: port,
       authenticationMethod: auth, hostKeyValidator: validator, reconnect: .never)
