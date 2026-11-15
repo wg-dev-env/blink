@@ -47,7 +47,9 @@ enum MTTmuxKiller {
     defer { Task { try? await client.close() } }
     // 名前は採番カウンタ由来（main-1 等）で記号を含まない前提だが、念のため
     // シングルクォートで囲み、含まれ得る ' を '\'' でエスケープする。
-    let quoted = "'" + sessionName.replacingOccurrences(of: "'", with: "'\\''") + "'"
+    // 先頭の = は tmux の「完全一致」指定。素の -t は前方一致にフォールバックするため、
+    // main-1 を消すつもりが main-10 に当たる、という取り違えを防ぐ。
+    let quoted = "'=" + sessionName.replacingOccurrences(of: "'", with: "'\\''") + "'"
     // kill → has-session を 1 本のスクリプトで実行する。終了コードは必ず 0 に正規化
     // して（Citadel の非ゼロ終了による throw を避ける）、最後に GONE / ALIVE を echo する。
     let script = "tmux kill-session -t \(quoted) >/dev/null 2>&1; "

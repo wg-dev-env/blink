@@ -101,6 +101,9 @@ actor MTTmuxLister {
   private static func fetch(alias: String) async throws -> [MTTmuxSessionInfo] {
     let client = try await connectClient(alias: alias)
     defer { Task { try? await client.close() } }
+    // タイムアウト（withTimeout の cancelAll）が接続中に発生していたら、
+    // 張れてしまった接続をすぐ畳んで終わる（コマンドを実行しない）
+    try Task.checkCancellation()
     // `#{...}` は tmux のフォーマット。名前にタブ・改行は入らない前提で name<TAB>windows
     let cmd = "tmux ls -F '#{session_name}\t#{session_windows}' 2>/dev/null"
     let buffer = try await client.executeCommand(cmd)
