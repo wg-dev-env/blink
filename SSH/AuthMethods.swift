@@ -197,6 +197,13 @@ public class AuthKeyboardInteractive: AuthMethod, Authenticator {
     self.wrongRetriesLeft = wrongRetriesAllowed
     self.storedPassword = storedPassword
   }
+
+  // MoshTerm: プロンプト文言がパスワードを求めているか（保存パスワードの自動回答の条件）。
+  // 判定できない文言（OTP・verification code 等）には自動回答せず対話入力に委ねる。
+  static func looksLikePasswordPrompt(_ prompt: String) -> Bool {
+    let p = prompt.lowercased()
+    return p.contains("password") || p.contains("passphrase") || p.contains("パスワード")
+  }
   
   func auth(user: String, host: String, on conn: SSHConnection) -> AnyPublisher<AuthState, Error> {
     return conn.tryAuth { session in
@@ -220,11 +227,14 @@ public class AuthKeyboardInteractive: AuthMethod, Authenticator {
         let p = self.prompts(user: user, host: host, session: session)
 
         // MoshTerm: 保存パスワードがあり、かつ単一のパスワード入力プロンプト
-        // （echo=false）なら、一度だけ保存パスワードで自動回答する。複数プロンプトや
-        // 2 回目以降・保存なしの場合は従来どおり対話入力にフォールバックする。
+        // （echo=false で、文言もパスワードを求めている）なら、一度だけ保存パスワードで
+        // 自動回答する。echo=false だけを条件にすると、ワンタイムコード等の非パスワード
+        // プロンプトにまでパスワードを送ってしまうため、文言も確認する。
+        // 複数プロンプトや 2 回目以降・保存なしの場合は従来どおり対話入力にフォールバックする。
         let answers: AnyPublisher<[String], Error>
         if let pwd = self.storedPassword, !self.storedPasswordTried,
-           p.userPrompts.count == 1, p.userPrompts[0].echo == false {
+           p.userPrompts.count == 1, p.userPrompts[0].echo == false,
+           Self.looksLikePasswordPrompt(p.userPrompts[0].prompt) {
           self.storedPasswordTried = true
           answers = Just([pwd]).setFailureType(to: Error.self).eraseToAnyPublisher()
         } else {
