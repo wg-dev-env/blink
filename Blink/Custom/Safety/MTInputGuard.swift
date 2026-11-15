@@ -168,6 +168,8 @@ final class MTDangerGuard: ObservableObject {
     let isOpaque: Bool  // 内容不明（履歴・補完）
     let alias: String?
     let send: () -> Void
+    /// 端末への生書き込み（取り下げ時の ^C 送出に使う）
+    let write: (String) -> Void
   }
 
   @Published var pending: Pending? = nil
@@ -204,7 +206,12 @@ final class MTDangerGuard: ObservableObject {
   func cancel() {
     timeoutWork?.cancel()
     timeoutWork = nil
+    let p = pending
     pending = nil
+    // 危険コマンドの打鍵自体は 1 文字ずつリモートへ送られていて、取り下げても
+    // リモートの行には入力されたまま残る。そのまま放置すると次の素の Return で
+    // 実行されてしまうため、^C を送って行ごと破棄する（プロンプト上の ^C は無害）。
+    p?.write("\u{3}")
   }
 }
 
@@ -235,18 +242,37 @@ enum MTInputGuard {
 
   /// - Parameters:
   ///   - data: キー入力（1 打鍵ぶん）
+  ///   - forKey: 打鍵を受けたビューのセッションキー。グローバルな「表示中セッション」は
+  ///     マルチウィンドウで別ウィンドウを指しうるため、呼び出し側が自分のキーを渡す
   ///   - send: 端末へ書き込むクロージャ（長押し確定後に使う）
-  static func handle(_ data: String, send: @escaping (String) -> Void) -> Decision {
-    guard let key = MTSessionStateCenter.shared.currentKey else { return .send }
+  static func handle(_ data: String, forKey explicitKey: UUID?,
+                     send: @escaping (String) -> Void) -> Decision {
+    guard let key = explicitKey ?? MTSessionStateCenter.shared.currentKey else { return .send }
 
     let env = MTHostContext.shared.environment(for: key)
     let state = MTSessionStateCenter.shared.state(for: key)
     let isRemote = MTHostContext.shared.alias(for: key) != nil
 
-    // 1. 圏外（保持中）はドラフトへ。リモート接続しているセッションだけが対象
+    // 1. 圏外（保持中）はドラフトへ。リモート接続しているセッションだけが対象。
+    //    ただし飲み込むのは「行として溜められる」打鍵だけにする。^C などの制御キーまで
+    //    飲み込むと、保持判定が誤検知（Wi-Fi ローミング等）だったときに実行中コマンドへ
+    //    割り込む手段が無くなるため、制御キーは端末へ通す（本当に圏外なら mosh が吸収する）
     if isRemote, state == .held {
-      MTDraftStore.shared.feed(data, for: key)
-      return .swallow
+      switch data {
+      case "\r", "\n", "\u{7f}", "\u{8}":
+        MTDraftStore.shared.feed(data, for: key)
+        return .swallow
+      case "\u{3}", "\u{15}":
+        // 入力途中のドラフトは破棄しつつ、割り込みとしてリモートへも届ける
+        MTDraftStore.shared.feed(data, for: key)
+        return .send
+      default:
+        if data.unicodeScalars.allSatisfy({ $0.value >= 32 }) {
+          MTDraftStore.shared.feed(data, for: key)
+          return .swallow
+        }
+        return .send  // Esc・矢印などの制御シーケンスは飲み込まない
+      }
     }
 
     // 2. 通常は打鍵を蓄積し、Return の直前に危険判定
@@ -261,8 +287,11 @@ enum MTInputGuard {
     }
 
     let dangerous = MTDangerPatterns.isDangerous(buffer.line)
-    // 本番では「内容不明」の行も確認を求める（07 #04 の決定）
-    let opaqueNeedsGuard = buffer.isOpaque && env == .production
+    // 本番では「内容不明」の行も確認を求める（07 #04 の決定）。
+    // 「全ホストでガード」が有効なら、履歴・補完で入った内容不明の行も全ホストで対象にする
+    // （本番だけに限ると、検証・開発ホストで履歴から呼び出した危険コマンドが素通りする）
+    let opaqueNeedsGuard = buffer.isOpaque
+      && (env == .production || MTSafetySettings.shared.guardAllHosts)
     guard dangerous || opaqueNeedsGuard else {
       buffer.reset()
       return .send
@@ -277,7 +306,8 @@ enum MTInputGuard {
       line: line,
       isOpaque: isOpaque,
       alias: alias,
-      send: { send(data) }
+      send: { send(data) },
+      write: send
     ))
     return .swallow
   }

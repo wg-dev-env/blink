@@ -330,8 +330,11 @@ extension SmarterTermInput {
     MTShieldCenter.shared.noteInteraction()
 
     // MoshTerm: 圏外ドラフト（07 #02）と危険コマンドの長押し確定（07 #04）。
-    // 飲み込む場合は端末へ書かない（ドラフトへ回す / 長押し待ち）
-    let decision = MTInputGuard.handle(data) { [weak device] pending in
+    // 飲み込む場合は端末へ書かない（ドラフトへ回す / 長押し待ち）。
+    // 判定キーはこの入力ビューが繋がっているセッション自身のもの（delegate = TermController）。
+    // グローバルな「表示中セッション」はマルチウィンドウで別ウィンドウを指すことがある
+    let sessionKey = (device.delegate as? TermController)?.meta.key
+    let decision = MTInputGuard.handle(data, forKey: sessionKey) { [weak device] pending in
       device?.write(pending)
     }
     guard decision == .send else { return }
