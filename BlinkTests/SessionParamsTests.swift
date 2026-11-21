@@ -42,28 +42,21 @@ class SessionParamsTests: XCTestCase {
     // Put teardown code here. This method is called after the invocation of each test method in the class.
   }
   
+  // 64_MoshTerm: MCPParams はフォークでスリム化済み（rows/cols/viewSize 等は削除）。
+  // 現仕様（childSessionType / reconnectionCommand / childSessionParams）の往復を検証する。
   func testSerialization() {
     let mcpParams = MCPParams()
-    mcpParams.rows = 10
-    mcpParams.cols = 20
-    mcpParams.boldAsBright = true
     mcpParams.childSessionType = "test"
-    mcpParams.viewSize = CGSize(width: 10, height: 10)
-    mcpParams.layoutLockedFrame = CGRect(x: 10, y: 10, width: 10, height: 10)
-    
-    
+    mcpParams.reconnectionCommand = "ssh host"
+
     let moshParams = MoshParams()
     moshParams.ip = "192.168.1.1"
-    
+
     mcpParams.childSessionParams = moshParams
-    
+
     let copy = _dumpAndRestore(params: mcpParams)
-    XCTAssertEqual(mcpParams.cols, copy?.cols)
-    XCTAssertEqual(mcpParams.rows, copy?.rows)
-    XCTAssertEqual(mcpParams.boldAsBright, copy?.boldAsBright)
     XCTAssertEqual(mcpParams.childSessionType, copy?.childSessionType)
-    XCTAssertEqual(mcpParams.viewSize, copy?.viewSize)
-    XCTAssertEqual(mcpParams.layoutLockedFrame, copy?.layoutLockedFrame)
+    XCTAssertEqual(mcpParams.reconnectionCommand, copy?.reconnectionCommand)
     XCTAssertEqual(moshParams.ip, (copy?.childSessionParams as? MoshParams)?.ip)
   }
   
