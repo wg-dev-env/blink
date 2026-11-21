@@ -161,6 +161,9 @@
 		BD792A452A3B6A78009EE35F /* GitHubSnippets.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD792A442A3B6A78009EE35F /* GitHubSnippets.swift */; };
 		BD792A4F2A3BDAAA009EE35F /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = BD792A4E2A3BDAAA009EE35F /* ZIPFoundation */; };
 		CADE100000000000000000A3 /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = CADE100000000000000000A2 /* Citadel */; };
+		A2DDC00000000000000000A3 /* KanaKanjiConverterModuleWithDefaultDictionary in Frameworks */ = {isa = PBXBuildFile; productRef = A2DDC00000000000000000A2 /* KanaKanjiConverterModuleWithDefaultDictionary */; };
+		A2DDC00000000000000000B2 /* MTKanaConverterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2DDC00000000000000000B1 /* MTKanaConverterTests.swift */; };
+		A2DDC00000000000000000A5 /* KanaKanjiConverterModuleWithDefaultDictionary in Frameworks */ = {isa = PBXBuildFile; productRef = A2DDC00000000000000000A4 /* KanaKanjiConverterModuleWithDefaultDictionary */; };
 		BD792A512A3BDAC4009EE35F /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = BD792A502A3BDAC4009EE35F /* ZIPFoundation */; };
 		BD7AFC4128E8E98C004BCDA4 /* Base32Kit in Frameworks */ = {isa = PBXBuildFile; productRef = BD7AFC4028E8E98C004BCDA4 /* Base32Kit */; };
 		BD7AFC4328E8E9A9004BCDA4 /* Base32Kit in Frameworks */ = {isa = PBXBuildFile; productRef = BD7AFC4228E8E9A9004BCDA4 /* Base32Kit */; };
@@ -1183,6 +1186,7 @@
 		D264D2B128F84592002B1B14 /* Models.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		D264D2B528F84724002B1B14 /* whatsnew.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = whatsnew.m; sourceTree = "<group>"; };
 		D265FBBA2317DD3C0017EAC4 /* BlinkTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BlinkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A2DDC00000000000000000B1 /* MTKanaConverterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTKanaConverterTests.swift; sourceTree = "<group>"; };
 		D265FBBE2317DD3C0017EAC4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D265FBC42317E5090017EAC4 /* SessionParamsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionParamsTests.swift; sourceTree = "<group>"; };
 		D265FBC8231905AC0017EAC4 /* NSCoder+CodingKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSCoder+CodingKey.swift"; sourceTree = "<group>"; };
@@ -1483,6 +1487,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A2DDC00000000000000000A5 /* KanaKanjiConverterModuleWithDefaultDictionary in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1529,6 +1534,7 @@
 				D2334EF225C1C28F00385378 /* files.xcframework in Frameworks */,
 				BD792A4F2A3BDAAA009EE35F /* ZIPFoundation in Frameworks */,
 				CADE100000000000000000A3 /* Citadel in Frameworks */,
+				A2DDC00000000000000000A3 /* KanaKanjiConverterModuleWithDefaultDictionary in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2406,6 +2412,7 @@
 		D265FBBB2317DD3C0017EAC4 /* BlinkTests */ = {
 			isa = PBXGroup;
 			children = (
+				A2DDC00000000000000000B1 /* MTKanaConverterTests.swift */,
 				BD9EA215271F83B400874007 /* BlinkLoggingTests.swift */,
 				D20CBA56236031D700D93301 /* CompleteUtilsTests.swift */,
 				BDE7C45B29DCAEFA005E033E /* FileLocationPathTests.swift */,
@@ -3021,6 +3028,9 @@
 				D265FBC02317DD3C0017EAC4 /* PBXTargetDependency */,
 			);
 			name = BlinkTests;
+			packageProductDependencies = (
+				A2DDC00000000000000000A4 /* KanaKanjiConverterModuleWithDefaultDictionary */,
+			);
 			productName = BlinkTests;
 			productReference = D265FBBA2317DD3C0017EAC4 /* BlinkTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -3061,6 +3071,7 @@
 				BD792A4E2A3BDAAA009EE35F /* ZIPFoundation */,
 				BDFA97312D7F49EF0020BBF2 /* ConfettiSwiftUI */,
 				CADE100000000000000000A2 /* Citadel */,
+				A2DDC00000000000000000A2 /* KanaKanjiConverterModuleWithDefaultDictionary */,
 			);
 			productName = Blink;
 			productReference = EA0BA18B1C0CC57B00719C1A /* Blink.app */;
@@ -3187,6 +3198,7 @@
 				D222780D2A26217A00D4C708 /* XCRemoteSwiftPackageReference "Runestone" */,
 				BD792A4D2A3BDAAA009EE35F /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
 				CADE100000000000000000A1 /* XCRemoteSwiftPackageReference "Citadel" */,
+				A2DDC00000000000000000A1 /* XCRemoteSwiftPackageReference "AzooKeyKanaKanjiConverter" */,
 				BD4DBAF82CADA82700538194 /* XCRemoteSwiftPackageReference "SQLite" */,
 				BDA35C972D7F4955004CD75C /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */,
 			);
@@ -3621,6 +3633,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A2DDC00000000000000000B2 /* MTKanaConverterTests.swift in Sources */,
 				BD74A7C22905BD5800ED01CF /* WhatsNewModelTests.swift in Sources */,
 				BDE7C45C29DCAEFA005E033E /* FileLocationPathTests.swift in Sources */,
 				BD55D69C2F7D744B00EE80EA /* TerminalStyleTests.swift in Sources */,
@@ -5359,6 +5372,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_ID).BlinkTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "BlinkTests/BlinkTests-bridge.h";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -5393,6 +5407,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_ID).BlinkTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "BlinkTests/BlinkTests-bridge.h";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Blink.app/Blink";
 			};
@@ -5798,6 +5813,14 @@
 				minimumVersion = 0.12.0;
 			};
 		};
+		A2DDC00000000000000000A1 /* XCRemoteSwiftPackageReference "AzooKeyKanaKanjiConverter" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/azooKey/AzooKeyKanaKanjiConverter";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 0.11.2;
+			};
+		};
 		BD7AFC3F28E8E98C004BCDA4 /* XCRemoteSwiftPackageReference "Base32Kit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/jenslauterbach/Base32Kit.git";
@@ -5875,6 +5898,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CADE100000000000000000A1 /* XCRemoteSwiftPackageReference "Citadel" */;
 			productName = Citadel;
+		};
+		A2DDC00000000000000000A2 /* KanaKanjiConverterModuleWithDefaultDictionary */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A2DDC00000000000000000A1 /* XCRemoteSwiftPackageReference "AzooKeyKanaKanjiConverter" */;
+			productName = KanaKanjiConverterModuleWithDefaultDictionary;
+		};
+		A2DDC00000000000000000A4 /* KanaKanjiConverterModuleWithDefaultDictionary */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A2DDC00000000000000000A1 /* XCRemoteSwiftPackageReference "AzooKeyKanaKanjiConverter" */;
+			productName = KanaKanjiConverterModuleWithDefaultDictionary;
 		};
 		BD792A502A3BDAC4009EE35F /* ZIPFoundation */ = {
 			isa = XCSwiftPackageProductDependency;
