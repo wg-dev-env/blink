@@ -83,9 +83,11 @@ final class MTKanaIME: ObservableObject {
     #endif
   }
 
+  /// 既定は .off（オプトイン）。有効なまま気づかず ON になると打鍵が飲み込まれ、
+  /// ログインすらできなくなるため、設定で明示的に有効化した人だけに限定する
   var toggleKey: ToggleKey {
     ToggleKey(rawValue: UserDefaults.standard.string(forKey: Self.toggleKeyDefaultsKey) ?? "")
-      ?? .ctrlSpace
+      ?? .off
   }
 
   // MARK: - 変換エンジン

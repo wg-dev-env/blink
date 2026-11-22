@@ -38,8 +38,8 @@ struct MTSettingsView: View {
   @ObservedObject private var shield = MTShieldCenter.shared
   // S17: 接続時に tmux セッションピッカーを出すか（既定 ON。OFF＝即接続）
   @AppStorage("MTTmuxPickerEnabled") private var tmuxPickerEnabled = true
-  // S24: アプリ内かな漢字変換の切替キー（既定: Ctrl+Space）
-  @AppStorage(MTKanaIME.toggleKeyDefaultsKey) private var kanaToggleKey = MTKanaIME.ToggleKey.ctrlSpace.rawValue
+  // S24: アプリ内かな漢字変換の切替キー（既定: 使わない。オプトイン — 無自覚に ON になる事故を防ぐ）
+  @AppStorage(MTKanaIME.toggleKeyDefaultsKey) private var kanaToggleKey = MTKanaIME.ToggleKey.off.rawValue
 
   private var theme: MTTheme { themeStore.currentTheme }
 
@@ -107,7 +107,7 @@ struct MTSettingsView: View {
       } header: {
         Text("かな漢字変換（外付けキーボード）")
       } footer: {
-        Text("外付けキーボードで日本語を打つための、アプリ内蔵のかな漢字変換です（エンジン: azooKey）。Ctrl+Space または かな/英数キーで切り替え、Space で変換・Enter で確定します。利用時は iOS 側のハードウェアキーボードを「英語」にしてください（日本語のままだと二重変換になるため自動で OFF になります）。")
+        Text("外付けキーボードで日本語を打つための、アプリ内蔵のかな漢字変換です（エンジン: azooKey）。既定はオフです。Ctrl+Space または かな/英数キーで切り替え、Space で変換・Enter で確定します。利用時は iOS 側のハードウェアキーボードを「英語」にしてください（日本語のままだと二重変換になるため自動で OFF になります）。")
       }
 
       // 4.5 tmux（S17）
