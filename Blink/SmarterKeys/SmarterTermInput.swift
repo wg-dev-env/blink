@@ -106,7 +106,6 @@ import Combine
     let lang = self.textInputMode?.primaryLanguage ?? ""
     kbView.lang = lang
     MTInputModeCenter.shared.setLang(lang)  // MoshTerm: 入力モードピル（06 §5.2）
-    MTKanaIME.shared.systemLangChanged(lang)  // MoshTerm S24: 日本語（Apple IME）中は自動 OFF
     reportLang(lang, isHardwareKB: kbView.traits.isHKBAttached)
   }
   

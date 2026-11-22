@@ -38,20 +38,10 @@ struct MTSettingsView: View {
   @ObservedObject private var shield = MTShieldCenter.shared
   // S17: 接続時に tmux セッションピッカーを出すか（既定 ON。OFF＝即接続）
   @AppStorage("MTTmuxPickerEnabled") private var tmuxPickerEnabled = true
-  // S24: アプリ内かな漢字変換の切替キー（既定: 使わない。オプトイン — 無自覚に ON になる事故を防ぐ）
-  @AppStorage(MTKanaIME.toggleKeyDefaultsKey) private var kanaToggleKey = MTKanaIME.ToggleKey.off.rawValue
-  // 現在の利用状態を設定画面でも見せる（ピルを探さなくても分かるように）
-  @ObservedObject private var kanaIME = MTKanaIME.shared
+  // S24: かな漢字変換をどちらで行うか（既定: iOS。オプトイン — 無自覚に azooKey になる事故を防ぐ）
+  @AppStorage(MTKanaIME.engineDefaultsKey) private var kanaEngine = MTKanaIME.Engine.system.rawValue
 
   private var theme: MTTheme { themeStore.currentTheme }
-
-  /// かな漢字変換の現在の状態（オフのときは理由・オンにする方法まで見せる）
-  private var kanaStatusText: String {
-    if kanaIME.active { return "オン（かな）" }
-    if kanaToggleKey == MTKanaIME.ToggleKey.off.rawValue { return "オフ（未設定）" }
-    if kanaIME.systemIsJapanese { return "オフ（iOS の日本語キーボードを検出中）" }
-    return "オフ（Ctrl+Space でオン）"
-  }
 
   var body: some View {
     List {
@@ -95,35 +85,25 @@ struct MTSettingsView: View {
         }
       }
 
-      // S24: アプリ内かな漢字変換（外付けキーボード向け。エンジン: AzooKeyKanaKanjiConverter）
+      // S24: かな漢字変換のエンジン選択（iOS の IME か、アプリ内蔵の azooKey か）
       Section {
-        Picker(selection: $kanaToggleKey) {
-          ForEach(MTKanaIME.ToggleKey.allCases) { key in
-            Text(key.label).tag(key.rawValue)
+        Picker(selection: $kanaEngine) {
+          ForEach(MTKanaIME.Engine.allCases) { engine in
+            Text(engine.label).tag(engine.rawValue)
           }
         } label: {
-          Label("かな漢字変換（アプリ内）", systemImage: "character.textbox.ja")
+          Label("かな漢字変換", systemImage: "character.textbox.ja")
         }
-        .onChange(of: kanaToggleKey) { _, newValue in
-          if newValue == MTKanaIME.ToggleKey.off.rawValue {
+        .onChange(of: kanaEngine) { _, newValue in
+          // iOS に戻したら、アプリ内 IME は即座に降りる（打鍵を横取りしない）
+          if newValue != MTKanaIME.Engine.azooKey.rawValue {
             MTKanaIME.shared.deactivate()
           }
         }
-        HStack {
-          Label("現在の状態", systemImage: "power")
-          Spacer()
-          Text(kanaStatusText)
-            .foregroundColor(kanaIME.active ? theme.ok.color : .secondary)
-        }
-        Button {
-          MTKanaIME.shared.resetLearning()
-        } label: {
-          Label("変換の学習をリセット", systemImage: "arrow.counterclockwise")
-        }
       } header: {
-        Text("かな漢字変換（外付けキーボード）")
+        Text("かな漢字変換")
       } footer: {
-        Text("外付けキーボードで日本語を打つための、アプリ内蔵のかな漢字変換です（エンジン: azooKey）。既定はオフです。Ctrl+Space または かな/英数キーで切り替え、Space で変換・Enter で確定します。利用時は iOS 側のハードウェアキーボードを「英語」にしてください（日本語のままだと二重変換になるため自動で OFF になります）。")
+        Text("iOS … システムのキーボード（日本語 IME）に任せます。\nazooKey … アプリ内蔵の azooKey で変換します。外付けキーボードでは iOS 側のキーボードを「英語（ABC）」だけにしてください。Ctrl+Space または かな/英数キーで英数とかなを切り替え、Space で変換・Enter で確定します。")
       }
 
       // 4.5 tmux（S17）

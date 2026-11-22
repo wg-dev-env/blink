@@ -29,8 +29,8 @@ import KanaKanjiConverterModuleWithDefaultDictionary
 /// 横取りしてかな漢字変換する。未確定文字列は端末に書かず候補バーにだけ表示し、
 /// 確定文字列のみ端末へ書く（hterm の composition 経路のバグ群を踏まない。12 §I-1〜I-8）。
 ///
-/// 利用前提: iOS 側のハードウェアキーボード入力モードは ABC（英語）にする。
-/// 日本語（Apple IME）が生きている間は二重変換になるため自動で OFF にする。
+/// 利用前提: iOS 側のハードウェアキーボード入力モードは ABC（英語）だけにする。
+/// 日本語（Apple IME）を残したままだと、Apple IME が先に打鍵を取るため二重変換になる。
 final class MTKanaIME: ObservableObject {
   static let shared = MTKanaIME()
 
@@ -41,19 +41,19 @@ final class MTKanaIME: ObservableObject {
     case output(String)  // 確定文字列に差し替えて端末へ
   }
 
-  /// 切替キーの設定値（UserDefaults）
-  enum ToggleKey: String, CaseIterable, Identifiable {
-    case off        // アプリ内 IME を使わない
-    case ctrlSpace  // Ctrl+Space（NUL）で切替。かな/英数キーも有効
+  /// かな漢字変換をどちらで行うか（UserDefaults）
+  enum Engine: String, CaseIterable, Identifiable {
+    case system   // iOS のキーボード（Apple IME）に任せる。アプリ内 IME は完全に無効
+    case azooKey  // アプリ内蔵の azooKey で変換する
     var id: String { rawValue }
     var label: String {
       switch self {
-      case .off: return "使わない"
-      case .ctrlSpace: return "Ctrl+Space で切替"
+      case .system: return "iOS"
+      case .azooKey: return "azooKey"
       }
     }
   }
-  static let toggleKeyDefaultsKey = "MTKanaIMEToggleKey"
+  static let engineDefaultsKey = "MTKanaIMEEngine"
 
   // MARK: - UI へ公開する状態（候補バー・ピルが観測する）
 
@@ -65,14 +65,14 @@ final class MTKanaIME: ObservableObject {
   @Published private(set) var selectedIndex = 0
   /// 候補バーを出すべきか
   var barVisible: Bool { active && (!composing.isEmpty || !candidates.isEmpty) }
-  /// iOS 側が日本語（Apple IME）か。設定画面で自動 OFF の理由を見せるために公開する
-  @Published private(set) var systemIsJapanese = false
 
   // MARK: - 内部状態
 
   private var composingText = ComposingText()
   private var lastResults: [Candidate] = []
   private var converter: KanaKanjiConverter? = nil
+  /// 直近にハードウェアキー経路で切り替えた時刻（同じ打鍵が NUL でも届くため二重切替を防ぐ）
+  private var lastHardwareToggle: TimeInterval = 0
 
   private init() {
     #if BLINK_PUBLISHING_OPTION_DEVELOPER
@@ -84,11 +84,11 @@ final class MTKanaIME: ObservableObject {
     #endif
   }
 
-  /// 既定は .off（オプトイン）。有効なまま気づかず ON になると打鍵が飲み込まれ、
-  /// ログインすらできなくなるため、設定で明示的に有効化した人だけに限定する
-  var toggleKey: ToggleKey {
-    ToggleKey(rawValue: UserDefaults.standard.string(forKey: Self.toggleKeyDefaultsKey) ?? "")
-      ?? .off
+  /// 既定は .system（オプトイン）。azooKey のまま気づかず ON になると打鍵が飲み込まれ、
+  /// ログインすらできなくなるため、設定で明示的に選んだ人だけに限定する
+  var engine: Engine {
+    Engine(rawValue: UserDefaults.standard.string(forKey: Self.engineDefaultsKey) ?? "")
+      ?? .system
   }
 
   // MARK: - 変換エンジン
@@ -137,9 +137,7 @@ final class MTKanaIME: ObservableObject {
   func toggle() { active ? deactivate() : activate() }
 
   func activate() {
-    guard toggleKey != .off else { return }
-    // Apple IME（日本語）が生きている間は二重変換になるため有効化しない
-    guard !systemIsJapanese else { return }
+    guard engine == .azooKey else { return }
     guard !active else { return }
     active = true
     MTInputModeCenter.shared.setInAppKana(true)
@@ -152,26 +150,30 @@ final class MTKanaIME: ObservableObject {
     MTInputModeCenter.shared.setInAppKana(false)
   }
 
-  /// SmarterTermInput.reportLang から。iOS 側が日本語になったら自動 OFF（二重変換防止）
-  func systemLangChanged(_ lang: String) {
-    systemIsJapanese = lang.hasPrefix("ja")
-    if systemIsJapanese && active {
-      deactivate()
-    }
-  }
-
   /// JIS 外付けキーボードのかな（Lang1）/英数（Lang2）キー（KBWebView.pressesBegan から）
   func hardwareKanaKey(kana: Bool) {
-    guard toggleKey != .off else { return }
+    guard engine == .azooKey else { return }
+    lastHardwareToggle = ProcessInfo.processInfo.systemUptime
     kana ? activate() : deactivate()
+  }
+
+  /// Ctrl+Space（KBWebView.pressesBegan から）。
+  /// 端末向けの NUL（^@）に化けない構成でも切り替えられるよう、UIKit 側でも受ける
+  func hardwareToggleKey() {
+    guard engine == .azooKey else { return }
+    lastHardwareToggle = ProcessInfo.processInfo.systemUptime
+    toggle()
   }
 
   // MARK: - 打鍵の裁き（SmarterTermInput.onOut から。メインスレッド）
 
   func handle(_ data: String) -> Decision {
-    // 切替キー: Ctrl+Space は端末では NUL（^@）として届く
-    if toggleKey == .ctrlSpace && data == "\u{00}" {
-      toggle()
+    // 切替キー: Ctrl+Space は端末では NUL（^@）として届く。
+    // 同じ打鍵を pressesBegan でも受けているときは、そちらで切替済みなので飲み込むだけ
+    if engine == .azooKey && data == "\u{00}" {
+      if ProcessInfo.processInfo.systemUptime - lastHardwareToggle > 0.5 {
+        toggle()
+      }
       return .swallow
     }
     guard active else { return .passthrough }
