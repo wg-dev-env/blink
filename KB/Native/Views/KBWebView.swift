@@ -127,18 +127,23 @@ class KBWebView: KBWebViewBase {
   }
   
   override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
-    #if BLINK_PUBLISHING_OPTION_DEVELOPER
-    // S23 PoC: JIS 外付けキーボードのかな（Lang1）/英数（Lang2）キーがアプリへ届くかの検証ログ。
-    // 実機＋外付け JIS キーボードで押し、Console.app / Xcode コンソールで [S23-kana] を確認する。
-    // 判定後に除去する（13_アプリ内かな漢字変換（AzooKey）調査 §6.4）。
+    // S24: JIS 外付けキーボードのかな（Lang1）/英数（Lang2）キーでアプリ内 IME を切り替える。
+    // 変換（International2）もかな ON として扱う。
     for press in presses {
-      if let key = press.key,
-         key.keyCode == .keyboardLANG1 || key.keyCode == .keyboardLANG2 ||
+      guard let key = press.key else { continue }
+      #if BLINK_PUBLISHING_OPTION_DEVELOPER
+      // S23 PoC: キーが届くかの実機検証ログ（Xcode コンソールで [S23-kana] を確認）
+      if key.keyCode == .keyboardLANG1 || key.keyCode == .keyboardLANG2 ||
          key.keyCode == .keyboardInternational2 /* 変換 */ || key.keyCode == .keyboardInternational5 /* 無変換 */ {
         print("[S23-kana] pressesBegan keyCode=\(key.keyCode.rawValue) chars=\(key.characters.unicodeScalars.map { String(format: "U+%04X", $0.value) }.joined(separator: ","))")
       }
+      #endif
+      if key.keyCode == .keyboardLANG1 || key.keyCode == .keyboardInternational2 {
+        MTKanaIME.shared.hardwareKanaKey(kana: true)
+      } else if key.keyCode == .keyboardLANG2 || key.keyCode == .keyboardInternational5 {
+        MTKanaIME.shared.hardwareKanaKey(kana: false)
+      }
     }
-    #endif
     for press in presses {
       if let key = press.key, key.keyCode == .keyboardLeftGUI || key.keyCode == .keyboardRightGUI,
          let termView = superview as? TermView {
