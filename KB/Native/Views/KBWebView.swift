@@ -142,6 +142,10 @@ class KBWebView: KBWebViewBase {
         MTKanaIME.shared.hardwareKanaKey(kana: true)
       } else if key.keyCode == .keyboardLANG2 || key.keyCode == .keyboardInternational5 {
         MTKanaIME.shared.hardwareKanaKey(kana: false)
+      } else if key.keyCode == .keyboardSpacebar,
+                key.modifierFlags.contains(.control) {
+        // Ctrl+Space。端末向けの NUL に化けない構成でも切り替えられるよう UIKit 側でも受ける
+        MTKanaIME.shared.hardwareToggleKey()
       }
     }
     for press in presses {
