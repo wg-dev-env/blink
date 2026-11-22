@@ -40,8 +40,18 @@ struct MTSettingsView: View {
   @AppStorage("MTTmuxPickerEnabled") private var tmuxPickerEnabled = true
   // S24: アプリ内かな漢字変換の切替キー（既定: 使わない。オプトイン — 無自覚に ON になる事故を防ぐ）
   @AppStorage(MTKanaIME.toggleKeyDefaultsKey) private var kanaToggleKey = MTKanaIME.ToggleKey.off.rawValue
+  // 現在の利用状態を設定画面でも見せる（ピルを探さなくても分かるように）
+  @ObservedObject private var kanaIME = MTKanaIME.shared
 
   private var theme: MTTheme { themeStore.currentTheme }
+
+  /// かな漢字変換の現在の状態（オフのときは理由・オンにする方法まで見せる）
+  private var kanaStatusText: String {
+    if kanaIME.active { return "オン（かな）" }
+    if kanaToggleKey == MTKanaIME.ToggleKey.off.rawValue { return "オフ（未設定）" }
+    if kanaIME.systemIsJapanese { return "オフ（iOS の日本語キーボードを検出中）" }
+    return "オフ（Ctrl+Space でオン）"
+  }
 
   var body: some View {
     List {
@@ -98,6 +108,12 @@ struct MTSettingsView: View {
           if newValue == MTKanaIME.ToggleKey.off.rawValue {
             MTKanaIME.shared.deactivate()
           }
+        }
+        HStack {
+          Label("現在の状態", systemImage: "power")
+          Spacer()
+          Text(kanaStatusText)
+            .foregroundColor(kanaIME.active ? theme.ok.color : .secondary)
         }
         Button {
           MTKanaIME.shared.resetLearning()

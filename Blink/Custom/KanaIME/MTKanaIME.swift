@@ -65,13 +65,14 @@ final class MTKanaIME: ObservableObject {
   @Published private(set) var selectedIndex = 0
   /// 候補バーを出すべきか
   var barVisible: Bool { active && (!composing.isEmpty || !candidates.isEmpty) }
+  /// iOS 側が日本語（Apple IME）か。設定画面で自動 OFF の理由を見せるために公開する
+  @Published private(set) var systemIsJapanese = false
 
   // MARK: - 内部状態
 
   private var composingText = ComposingText()
   private var lastResults: [Candidate] = []
   private var converter: KanaKanjiConverter? = nil
-  private var systemIsJapanese = false
 
   private init() {
     #if BLINK_PUBLISHING_OPTION_DEVELOPER
