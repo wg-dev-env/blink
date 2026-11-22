@@ -643,6 +643,9 @@ Please go to your subscriptions and cancel one of them!
   // 圏外ドラフトのカード。表示専用（ドラフトがある時だけタッチを受ける）
   private var _mtDraftCancellable: AnyCancellable? = nil
   private var _mtDraftHost: UIViewController? = nil
+  // アプリ内かな漢字変換の候補バー（S24）。表示専用
+  private var _mtKanaCancellable: AnyCancellable? = nil
+  private var _mtKanaHost: UIViewController? = nil
   private var _mtSidebarHost: UIViewController? = nil
   private var _mtSidebarLeading: NSLayoutConstraint? = nil
   private var _mtSidebarVisible = false
@@ -751,6 +754,15 @@ Please go to your subscriptions and cancel one of them!
     // 後もタッチを食い続ける」という 1 つずれが起きるので、確定後に読む。
     _mtDraftCancellable = MTDraftStore.shared.$drafts.sink { [weak self] _ in
       DispatchQueue.main.async { self?._mtApplyDraftInteractivity() }
+    }
+
+    // アプリ内かな漢字変換の候補バー（S24）。未確定がある間だけ表示する。
+    // 第3段：生成は初めて未確定文字列が生まれたときに _mtActivateKanaOverlay が行う。
+    // objectWillChange は更新前に流れるため、確定後（次の runloop）に読む。
+    _mtKanaCancellable = MTKanaIME.shared.objectWillChange.sink { [weak self] _ in
+      DispatchQueue.main.async {
+        self?._mtActivateKanaOverlay(MTKanaIME.shared.barVisible)
+      }
     }
 
     // 危険コマンドの長押しリング。確定中だけ全画面でタッチを受けるモーダル。
@@ -897,6 +909,19 @@ Please go to your subscriptions and cancel one of them!
       _mtDraftHost = host
     }
     _mtSetOverlay(_mtDraftHost, active: active)
+  }
+
+  /// アプリ内かな漢字変換の候補バー（S24）を遅延生成する。表示専用。
+  /// キーボード上端にアンカーし、未確定文字列・候補がある間だけ出す。
+  private func _mtActivateKanaOverlay(_ active: Bool) {
+    if active && _mtKanaHost == nil {
+      let host = UIHostingController(rootView: MTKanaCandidateBar())
+      _mtAddOverlay(host, into: view, bottom: view.keyboardLayoutGuide.topAnchor)
+      _mtKanaHost = host
+    }
+    _mtSetOverlay(_mtKanaHost, active: active)
+    // 表示専用: 変換中も端末・タブバーへのタッチを常に通す（候補操作はキーボードで行う）
+    _mtKanaHost?.view.isUserInteractionEnabled = false
   }
 
   /// 危険コマンドの長押しリング（07 #04）を遅延生成する。

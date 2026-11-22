@@ -38,6 +38,8 @@ struct MTSettingsView: View {
   @ObservedObject private var shield = MTShieldCenter.shared
   // S17: 接続時に tmux セッションピッカーを出すか（既定 ON。OFF＝即接続）
   @AppStorage("MTTmuxPickerEnabled") private var tmuxPickerEnabled = true
+  // S24: アプリ内かな漢字変換の切替キー（既定: Ctrl+Space）
+  @AppStorage(MTKanaIME.toggleKeyDefaultsKey) private var kanaToggleKey = MTKanaIME.ToggleKey.ctrlSpace.rawValue
 
   private var theme: MTTheme { themeStore.currentTheme }
 
@@ -81,6 +83,31 @@ struct MTSettingsView: View {
           Text("システムのキーボードに従う")
             .foregroundColor(.secondary)
         }
+      }
+
+      // S24: アプリ内かな漢字変換（外付けキーボード向け。エンジン: AzooKeyKanaKanjiConverter）
+      Section {
+        Picker(selection: $kanaToggleKey) {
+          ForEach(MTKanaIME.ToggleKey.allCases) { key in
+            Text(key.label).tag(key.rawValue)
+          }
+        } label: {
+          Label("かな漢字変換（アプリ内）", systemImage: "character.textbox.ja")
+        }
+        .onChange(of: kanaToggleKey) { _, newValue in
+          if newValue == MTKanaIME.ToggleKey.off.rawValue {
+            MTKanaIME.shared.deactivate()
+          }
+        }
+        Button {
+          MTKanaIME.shared.resetLearning()
+        } label: {
+          Label("変換の学習をリセット", systemImage: "arrow.counterclockwise")
+        }
+      } header: {
+        Text("かな漢字変換（外付けキーボード）")
+      } footer: {
+        Text("外付けキーボードで日本語を打つための、アプリ内蔵のかな漢字変換です（エンジン: azooKey）。Ctrl+Space または かな/英数キーで切り替え、Space で変換・Enter で確定します。利用時は iOS 側のハードウェアキーボードを「英語」にしてください（日本語のままだと二重変換になるため自動で OFF になります）。")
       }
 
       // 4.5 tmux（S17）

@@ -106,6 +106,7 @@ import Combine
     let lang = self.textInputMode?.primaryLanguage ?? ""
     kbView.lang = lang
     MTInputModeCenter.shared.setLang(lang)  // MoshTerm: 入力モードピル（06 §5.2）
+    MTKanaIME.shared.systemLangChanged(lang)  // MoshTerm S24: 日本語（Apple IME）中は自動 OFF
     reportLang(lang, isHardwareKB: kbView.traits.isHKBAttached)
   }
   
@@ -328,6 +329,16 @@ extension SmarterTermInput {
     
     // MoshTerm: 打鍵があったので覗き見防止の無操作タイマーをリセットする（07 #08）
     MTShieldCenter.shared.noteInteraction()
+
+    // MoshTerm S24: アプリ内かな漢字変換（13 §6.3）。
+    // ON の間はローマ字等を飲み込んで候補バーで変換し、確定文字列だけを端末へ流す。
+    // OFF のときは .passthrough が即返り、従来経路と完全に同一。
+    var data = data
+    switch MTKanaIME.shared.handle(data) {
+    case .swallow: return
+    case .output(let committed): data = committed
+    case .passthrough: break
+    }
 
     // MoshTerm: 圏外ドラフト（07 #02）と危険コマンドの長押し確定（07 #04）。
     // 飲み込む場合は端末へ書かない（ドラフトへ回す / 長押し待ち）。

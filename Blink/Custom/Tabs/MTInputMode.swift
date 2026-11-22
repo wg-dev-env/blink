@@ -43,12 +43,17 @@ final class MTInputModeCenter: ObservableObject {
 
   @Published private(set) var lang: String = ""
   @Published private(set) var isComposing = false
+  /// アプリ内かな漢字変換（S24）が ON か。システム IME とは独立
+  @Published private(set) var inAppKana = false
 
   private init() {}
 
   var isJapanese: Bool { lang.hasPrefix("ja") }
 
   var mode: Mode {
+    if inAppKana {
+      return isComposing ? .composing : .kana
+    }
     if isJapanese {
       return isComposing ? .composing : .kana
     }
@@ -58,7 +63,14 @@ final class MTInputModeCenter: ObservableObject {
   func setLang(_ lang: String) {
     guard self.lang != lang else { return }
     self.lang = lang
-    if !isJapanese { isComposing = false }
+    if !isJapanese && !inAppKana { isComposing = false }
+  }
+
+  /// アプリ内かな漢字変換の ON/OFF（MTKanaIME から）
+  func setInAppKana(_ on: Bool) {
+    guard inAppKana != on else { return }
+    inAppKana = on
+    if !on { isComposing = false }
   }
 
   func setComposing(_ composing: Bool) {
