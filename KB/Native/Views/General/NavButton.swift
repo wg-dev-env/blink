@@ -43,7 +43,10 @@ struct NavButton<Details: View>: View {
       // MoshTerm: push 先は親 VC の外観を継がないため、外観モードを明示的に引き継ぐ
       vc.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
       self.nav.navController.pushViewController(vc, animated: true)
-      }, label: { EmptyView() })
+      // MoshTerm: EmptyView ラベルはヒット領域がサイズ 0 になり、List の行タップ連動が
+      // 効かない環境では行を押しても反応しない。行全体を明示的なタップ領域にする
+      }, label: { Color.clear.contentShape(Rectangle()) })
+      .buttonStyle(.plain)
   }
 }
 struct StoryBoardNavButton: View {
@@ -59,6 +62,8 @@ struct StoryBoardNavButton: View {
       // MoshTerm: 外観モードを引き継ぐ（上の NavButton と同じ）
       vc.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
       self.nav.navController.pushViewController(vc, animated: true)
-      }, label: { EmptyView() })
+      // MoshTerm: 上の NavButton と同じ理由で行全体をタップ領域にする
+      }, label: { Color.clear.contentShape(Rectangle()) })
+      .buttonStyle(.plain)
   }
 }
