@@ -126,6 +126,16 @@ class KBWebView: KBWebViewBase {
     return result
   }
   
+  /// キー入力の確認に出す補足。かな漢字変換の設定と、切り替えに使ったかを添える
+  private static func kanaProbeNote(_ key: UIKey, consumed: Bool) -> String {
+    var parts = ["かな漢字変換=\(MTKanaIME.shared.engine.label)"]
+    if key.keyCode == .keyboardSpacebar, key.modifierFlags.contains(.control) {
+      parts.append("iOS に日本語キーボード=\(MTKanaIME.shared.systemHasJapaneseKeyboard ? "有" : "無")")
+    }
+    parts.append(consumed ? "切り替えに使った" : "切り替えには使っていない")
+    return parts.joined(separator: " ／ ")
+  }
+
   override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
     // S24: JIS 外付けキーボードのかな（Lang1）/英数（Lang2）キーでアプリ内 IME を切り替える。
     // 変換（International2）もかな ON として扱う。
@@ -155,6 +165,9 @@ class KBWebView: KBWebViewBase {
           consumedByKanaIME = MTKanaIME.shared.hardwareToggleKey()
         }
       }
+      // 打鍵が届いているかの記録（診断 › キー入力の確認。既定 OFF）
+      MTKeyProbe.shared.note(key, note: Self.kanaProbeNote(key, consumed: consumedByKanaIME))
+
       if consumedByKanaIME { return }
     }
     for press in presses {
