@@ -148,8 +148,12 @@ class KBWebView: KBWebViewBase {
         consumedByKanaIME = MTKanaIME.shared.hardwareKanaKey(kana: false)
       } else if key.keyCode == .keyboardSpacebar,
                 key.modifierFlags.contains(.control) {
-        // Ctrl+Space。端末向けの NUL に化けない構成でも切り替えられるよう UIKit 側でも受ける
-        consumedByKanaIME = MTKanaIME.shared.hardwareToggleKey()
+        // 端末向けの NUL に化けない構成でも切り替えられるよう UIKit 側でも受ける。
+        // Ctrl+Shift+Space は常に受ける（iPadOS は使わない）。Ctrl+Space は、iOS に
+        // 日本語キーボードが入っていると入力ソース切替に使われるので譲る
+        if key.modifierFlags.contains(.shift) || !MTKanaIME.shared.systemHasJapaneseKeyboard {
+          consumedByKanaIME = MTKanaIME.shared.hardwareToggleKey()
+        }
       }
       if consumedByKanaIME { return }
     }
