@@ -28,15 +28,17 @@ final class MTInputModeCenter: ObservableObject {
   static let shared = MTInputModeCenter()
 
   enum Mode {
-    case alnum      // 英数
-    case kana       // かな
-    case composing  // かな・変換中
+    case alnum         // 英数
+    case kana          // かな（アプリ内 IME = azooKey）
+    case composing     // かな・変換中（アプリ内 IME）
+    case systemKana    // かな（iOS の日本語 IME）。azooKey には打鍵が届かない
 
     var label: String {
       switch self {
       case .alnum: return "英数"
       case .kana: return "かな"
       case .composing: return "かな · 変換中"
+      case .systemKana: return "かな · iOS"
       }
     }
   }
@@ -54,8 +56,10 @@ final class MTInputModeCenter: ObservableObject {
     if inAppKana {
       return isComposing ? .composing : .kana
     }
+    // iOS の入力ソースが日本語。azooKey を選んでいても打鍵は Apple IME が先に取るため
+    // こちらには届かない。「かな」と出すだけでは azooKey が動いていると誤解するので区別する
     if isJapanese {
-      return isComposing ? .composing : .kana
+      return isComposing ? .composing : .systemKana
     }
     return .alnum
   }
@@ -89,11 +93,14 @@ struct MTInputModePill: View {
   var body: some View {
     let mode = center.mode
     let isKana = mode != .alnum
+    // azooKey を選んでいるのに iOS の日本語 IME が打鍵を取っている状態は、
+    // 動いていないことが分かるよう別の色で出す
+    let standsIn = mode == .systemKana && MTKanaIME.shared.engine == .azooKey
 
     HStack(spacing: 6) {
       ZStack {
         Circle()
-          .fill(isKana ? theme.accent.color : theme.text.color)
+          .fill(standsIn ? theme.warn.color : (isKana ? theme.accent.color : theme.text.color))
         Text(isKana ? "あ" : "A")
           .font(MTFont.ui(13, .medium))
           .foregroundColor(theme.bg.color)
