@@ -30,8 +30,12 @@ import KanaKanjiConverterModuleWithDefaultDictionary
 /// 横取りしてかな漢字変換する。未確定文字列は端末に書かず候補バーにだけ表示し、
 /// 確定文字列のみ端末へ書く（hterm の composition 経路のバグ群を踏まない。12 §I-1〜I-8）。
 ///
-/// 利用前提: iOS 側のハードウェアキーボード入力モードは ABC（英語）だけにする。
-/// 日本語（Apple IME）を残したままだと、Apple IME が先に打鍵を取るため二重変換になる。
+/// 利用前提: 打鍵中の iOS の入力ソースは ABC（英語）であること。日本語（Apple IME）が
+/// アクティブだと Apple IME が先に打鍵を取るため、こちらには届かない。
+/// キーボード一覧に日本語を入れたままでも構わない（他アプリの日本語入力のため）。
+/// ただしそのときは Ctrl+Space が iPadOS の入力ソース切替に使われるので、
+/// 切り替えは Ctrl+Shift+Space か入力モードピルのタップで行う
+/// （`systemHasJapaneseKeyboard` を見て Ctrl+Space を譲る）。
 final class MTKanaIME: ObservableObject {
   static let shared = MTKanaIME()
 
