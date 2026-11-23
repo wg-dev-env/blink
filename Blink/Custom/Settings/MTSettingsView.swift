@@ -103,7 +103,7 @@ struct MTSettingsView: View {
       } header: {
         Text("かな漢字変換")
       } footer: {
-        Text("iOS … システムのキーボード（日本語 IME）に任せます。\nazooKey … アプリ内蔵の azooKey で変換します。外付けキーボードでは iOS 側のキーボードを「英語（ABC）」だけにしてください。Ctrl+Space または かな/英数キーで英数とかなを切り替え、Space で変換・Enter で確定します。")
+        Text("iOS … システムのキーボード（日本語 IME）に任せます。\nazooKey … アプリ内蔵の azooKey で変換します。打つときは iOS の入力ソースを「英語（ABC）」にしてください（日本語をキーボード一覧に入れたままで構いません）。英数とかなの切り替えは Ctrl+Shift+Space、または右下の入力モードピルのタップ。キーボード一覧に日本語が無いときは Ctrl+Space や かな/英数キーでも切り替わります。Space で変換・Enter で確定します。")
       }
 
       // 4.5 tmux（S17）
