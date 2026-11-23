@@ -138,15 +138,20 @@ class KBWebView: KBWebViewBase {
         print("[S23-kana] pressesBegan keyCode=\(key.keyCode.rawValue) chars=\(key.characters.unicodeScalars.map { String(format: "U+%04X", $0.value) }.joined(separator: ","))")
       }
       #endif
+      // 切り替えに使ったキーはここで飲み込む。super へ流すと WebView 側の入力経路に
+      // 渡り、文字としても端末に届く（JIS キーボードを ABC レイアウトで使うと、
+      // かなキーが別の文字として解釈されて「,また,」のように混ざる）
+      var consumedByKanaIME = false
       if key.keyCode == .keyboardLANG1 || key.keyCode == .keyboardInternational2 {
-        MTKanaIME.shared.hardwareKanaKey(kana: true)
+        consumedByKanaIME = MTKanaIME.shared.hardwareKanaKey(kana: true)
       } else if key.keyCode == .keyboardLANG2 || key.keyCode == .keyboardInternational5 {
-        MTKanaIME.shared.hardwareKanaKey(kana: false)
+        consumedByKanaIME = MTKanaIME.shared.hardwareKanaKey(kana: false)
       } else if key.keyCode == .keyboardSpacebar,
                 key.modifierFlags.contains(.control) {
         // Ctrl+Space。端末向けの NUL に化けない構成でも切り替えられるよう UIKit 側でも受ける
-        MTKanaIME.shared.hardwareToggleKey()
+        consumedByKanaIME = MTKanaIME.shared.hardwareToggleKey()
       }
+      if consumedByKanaIME { return }
     }
     for press in presses {
       if let key = press.key, key.keyCode == .keyboardLeftGUI || key.keyCode == .keyboardRightGUI,
