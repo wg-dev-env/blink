@@ -159,19 +159,25 @@ final class MTKanaIME: ObservableObject {
     MTInputModeCenter.shared.setInAppKana(false)
   }
 
-  /// JIS 外付けキーボードのかな（Lang1）/英数（Lang2）キー（KBWebView.pressesBegan から）
-  func hardwareKanaKey(kana: Bool) {
-    guard engine == .azooKey else { return }
+  /// JIS 外付けキーボードのかな（Lang1）/英数（Lang2）キー（KBWebView.pressesBegan から）。
+  /// 切り替えに使ったことを返す。呼び元はこれが true のときキーを飲み込む
+  /// （super へ流すと、ABC レイアウトでは JIS のかなキーが文字として端末に届く）
+  @discardableResult
+  func hardwareKanaKey(kana: Bool) -> Bool {
+    guard engine == .azooKey else { return false }
     lastHardwareToggle = ProcessInfo.processInfo.systemUptime
     kana ? activate() : deactivate()
+    return true
   }
 
   /// Ctrl+Space（KBWebView.pressesBegan から）。
   /// 端末向けの NUL（^@）に化けない構成でも切り替えられるよう、UIKit 側でも受ける
-  func hardwareToggleKey() {
-    guard engine == .azooKey else { return }
+  @discardableResult
+  func hardwareToggleKey() -> Bool {
+    guard engine == .azooKey else { return false }
     lastHardwareToggle = ProcessInfo.processInfo.systemUptime
     toggle()
+    return true
   }
 
   // MARK: - 打鍵の裁き（SmarterTermInput.onOut から。メインスレッド）
