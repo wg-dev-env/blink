@@ -646,6 +646,8 @@ Please go to your subscriptions and cancel one of them!
   // アプリ内かな漢字変換の候補バー（S24）。表示専用
   private var _mtKanaCancellable: AnyCancellable? = nil
   private var _mtKanaHost: UIViewController? = nil
+  /// 入力モードピル（常設・タッチを受ける）
+  private var _mtPillHost: UIViewController? = nil
   private var _mtSidebarHost: UIViewController? = nil
   private var _mtSidebarLeading: NSLayoutConstraint? = nil
   private var _mtSidebarVisible = false
@@ -691,6 +693,24 @@ Please go to your subscriptions and cancel one of them!
     ])
     vc.didMove(toParent: self)
     return v
+  }
+
+  /// 入力モードピルを右下に置く。タッチを受ける唯一の常設オーバーレイなので、
+  /// 上端・左端を張らず、ピルの内容サイズ分だけを覆う。
+  /// 下端はキーボード上端に合わせる（`_overlay` と同じ基準）
+  private func _mtSetupInputModePill() {
+    let host = UIHostingController(rootView: MTInputModePill())
+    addChild(host)
+    let v: UIView = host.view
+    v.backgroundColor = .clear
+    v.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(v)
+    NSLayoutConstraint.activate([
+      v.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+      v.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -8),
+    ])
+    host.didMove(toParent: self)
+    _mtPillHost = host
   }
 
   private func _setupMTTabBar() {
@@ -740,6 +760,13 @@ Please go to your subscriptions and cancel one of them!
     // 状態バナー・トースト（表示専用、常にタッチを通す）
     let statusHost = UIHostingController(rootView: MTStatusOverlayView())
     _mtAddOverlay(statusHost, into: _overlay, bottom: _overlay.bottomAnchor)
+
+    // 入力モードピル（06 §5.2、ターミナル右下）。
+    // タップでかな漢字変換を切り替えるのでタッチを受ける必要がある。
+    // `_overlay` は常にタッチを通すコンテナ（isUserInteractionEnabled = false）で、
+    // 子に何を設定しても届かない。ここだけは view に直接足し、上下左右を張らずに
+    // ピルの大きさ分だけを覆う（全画面を覆うと打鍵もタブ切り替えも奪う）
+    _mtSetupInputModePill()
 
     // 回線状態の監視を開始（圏外・回線切替をセッション状態へ変換）
     MTConnectivityMonitor.shared.startIfNeeded()

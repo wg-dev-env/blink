@@ -21,6 +21,7 @@
 
 import Combine
 import Foundation
+import UIKit
 import KanaKanjiConverterModuleWithDefaultDictionary
 
 /// アプリ内かな漢字変換（S24、13 §6）。
@@ -98,6 +99,15 @@ final class MTKanaIME: ObservableObject {
   var engine: Engine {
     Engine(rawValue: UserDefaults.standard.string(forKey: Self.engineDefaultsKey) ?? "")
       ?? .system
+  }
+
+  /// iOS のキーボード一覧に日本語が入っているか（アクティブかどうかではなく、入っているか）。
+  /// 入っていると Ctrl+Space は iPadOS が入力ソース切替に使うため、押すと
+  /// 「入力ソースが日本語に変わる」と「azooKey が ON になる」が同時に起きて二重変換になる。
+  /// そのときは Ctrl+Space を iPadOS に譲り、切替は Ctrl+Shift+Space とピルのタップで行う。
+  /// メインスレッドから呼ぶ（pressesBegan / onOut はいずれもメインスレッド）
+  var systemHasJapaneseKeyboard: Bool {
+    UITextInputMode.activeInputModes.contains { ($0.primaryLanguage ?? "").hasPrefix("ja") }
   }
 
   // MARK: - 変換エンジン
@@ -186,7 +196,10 @@ final class MTKanaIME: ObservableObject {
     // 切替キー: Ctrl+Space は端末では NUL（^@）として届く。
     // 同じ打鍵を pressesBegan でも受けているときは、そちらで切替済みなので飲み込むだけ
     if engine == .azooKey && data == "\u{00}" {
-      if ProcessInfo.processInfo.systemUptime - lastHardwareToggle > 0.5 {
+      // 日本語キーボードが入っているときの Ctrl+Space は iPadOS のものなので切り替えない。
+      // 端末へ NUL を書かないのは従来どおり（余計な文字を出さない）
+      if ProcessInfo.processInfo.systemUptime - lastHardwareToggle > 0.5,
+         !systemHasJapaneseKeyboard {
         toggle()
       }
       return .swallow

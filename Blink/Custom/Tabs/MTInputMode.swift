@@ -110,7 +110,20 @@ struct MTInputModePill: View {
     .padding(.vertical, 5)
     .background(Capsule().fill(theme.raised.color.opacity(0.92)))
     .overlay(Capsule().stroke(theme.line.color, lineWidth: 1))
+    .contentShape(Capsule())
+    // かな漢字変換に azooKey を選んでいるときは、タップでも ON/OFF できる。
+    // 入力ソースが 2 つ以上あると Ctrl+Space は iPadOS が入力ソース切替に使うため、
+    // キーボードから切り替えられない構成があり、その逃げ道にする
+    .onTapGesture {
+      guard MTKanaIME.shared.engine == .azooKey else { return }
+      MTKanaIME.shared.toggle()
+    }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(Text("入力モード: \(mode.label)"))
+    // ラベルだけでは「azooKey が ON」と「iOS 側が日本語」を区別できないため値で補う
+    .accessibilityValue(Text(center.inAppKana ? "アプリ内かな漢字変換 オン" : "アプリ内かな漢字変換 オフ"))
+    .accessibilityAddTraits(MTKanaIME.shared.engine == .azooKey ? .isButton : [])
+    .accessibilityHint(MTKanaIME.shared.engine == .azooKey
+                       ? Text("タップでかな漢字変換を切り替えます") : Text(""))
   }
 }
