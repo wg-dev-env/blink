@@ -55,6 +55,15 @@ final class MTKanaIME: ObservableObject {
   }
   static let engineDefaultsKey = "MTKanaIMEEngine"
 
+  /// かな ON のときに全角へ置き換える記号（Apple の日本語 IME に合わせる）。
+  /// azooKey の変換表（defaultRoman2Kana）には記号が 1 件も無いため、アプリ側で用意する。
+  private static let fullWidthSymbols: [String: String] = [
+    ".": "。", ",": "、", "!": "！", "?": "？",
+    "[": "「", "]": "」", "/": "・",
+  ]
+  /// 長音符。"-" の打鍵をこれに置き換えて未確定文字列へ渡す
+  private static let prolongedSoundMark = "ー"
+
   // MARK: - UI へ公開する状態（候補バー・ピルが観測する）
 
   @Published private(set) var active = false
@@ -203,6 +212,11 @@ final class MTKanaIME: ObservableObject {
           feedRomaji(data)
           return committed.isEmpty ? .swallow : .output(committed)
         }
+        if let symbol = Self.fullWidthSymbols[data] {
+          // 選択中の候補を確定してから全角記号を出す
+          let committed = commitSelectedText()
+          return .output(committed + symbol)
+        }
         // それ以外（Ctrl 系・矢印など）: 選択中の候補を確定し、キー自体は端末へ通す
         let committed = commitSelectedText()
         return .output(committed + data)
@@ -232,6 +246,10 @@ final class MTKanaIME: ObservableObject {
           feedRomaji(data)
           return .swallow
         }
+        if let symbol = Self.fullWidthSymbols[data] {
+          feedSymbol(symbol)
+          return .swallow
+        }
         // 制御キー（Ctrl-C 等）・エスケープシーケンス・その他の文字:
         // 未確定は保持したまま素通しする（^C を絶対に飲み込まない。12 §E-6 の教訓）
         return .passthrough
@@ -242,6 +260,10 @@ final class MTKanaIME: ObservableObject {
     if isRomajiInput(data) {
       feedRomaji(data)
       return .swallow
+    }
+    if let symbol = Self.fullWidthSymbols[data] {
+      // 未確定が無いので変換を挟まず、全角記号をそのまま端末へ
+      return .output(symbol)
     }
     return .passthrough
   }
@@ -257,20 +279,39 @@ final class MTKanaIME: ObservableObject {
   }
 
   private func feedRomaji(_ data: String) {
-    composingText.insertAtCursorPosition(data, inputStyle: .roman2kana)
+    // azooKey のローマ字表に "-" は無く、そのまま渡すと未確定文字列にリテラルの "-" が残る
+    // （実測: ki-bo-do -> 「き-ぼ-ど」-> 候補「機-簿-度」）。長音符に置き換えて渡す
+    if data == "-" {
+      composingText.insertAtCursorPosition(Self.prolongedSoundMark, inputStyle: .direct)
+    } else {
+      composingText.insertAtCursorPosition(data, inputStyle: .roman2kana)
+    }
     composing = composingText.convertTarget
     MTInputModeCenter.shared.setComposing(true)
+  }
+
+  /// 全角記号を未確定文字列へ入れる。
+  /// 入れる前に末尾の未解決 "n" を「ん」にする（実測: 解決せずに入れると
+  /// 「もうてn。」のままになり変換できない）
+  private func feedSymbol(_ symbol: String) {
+    resolvePendingN()
+    composingText.insertAtCursorPosition(symbol, inputStyle: .direct)
+    composing = composingText.convertTarget
+    MTInputModeCenter.shared.setComposing(true)
+  }
+
+  /// 末尾の未解決 "n" を「ん」として確定させる（kanjihenkan -> かんじへんかん）
+  private func resolvePendingN() {
+    guard composingText.convertTarget.hasSuffix("n") else { return }
+    composingText.insertAtCursorPosition("n", inputStyle: .roman2kana)
+    composing = composingText.convertTarget
   }
 
   /// 候補バーに出す最大数（mainResults は予測含め数百件返るため切る）
   private static let maxCandidates = 9
 
   private func startConversion() {
-    // 末尾の未解決 "n" は「ん」として確定してから変換する（kanjihenkan → かんじへんかん）
-    if composingText.convertTarget.hasSuffix("n") {
-      composingText.insertAtCursorPosition("n", inputStyle: .roman2kana)
-      composing = composingText.convertTarget
-    }
+    resolvePendingN()
     let result = ensureConverter().requestCandidates(composingText, options: options)
     lastResults = Array(result.mainResults.prefix(Self.maxCandidates))
     candidates = lastResults.map(\.text)
