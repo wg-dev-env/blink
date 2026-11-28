@@ -84,10 +84,17 @@ final class MTSFTPModel: ObservableObject {
   }
 
   func reload() async {
+    // 取得中に別のディレクトリへ移ると、遅れて返ってきた応答が今の一覧を
+    // 上書きしてしまう。`path` と `entries` が食い違うと、送信先の表示と
+    // 実際の送り先がずれるため、要求時のパスと照合してから反映する
+    let requested = path
     loading = true; errorText = nil; noticeText = nil
     do {
-      entries = try await session.list(path)
+      let listed = try await session.list(requested)
+      guard requested == path else { return }  // 追い越された。古い応答は捨てる
+      entries = listed
     } catch {
+      guard requested == path else { return }
       errorText = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
     }
     loading = false
@@ -237,6 +244,9 @@ struct MTSFTPBrowserView: View {
       }
     }
     .task { await model.start() }
+    // 「閉じる」ボタンだけでなく、下スワイプで閉じたときも接続を畳む
+    // （pageSheet は下スワイプが標準の閉じ方で、以前は繋ぎっぱなしになっていた）
+    .onDisappear { Task { await model.close() } }
     .fileImporter(isPresented: $importing, allowedContentTypes: [.item]) { result in
       if case .success(let url) = result {
         pending = model.pendingUpload(for: url)
