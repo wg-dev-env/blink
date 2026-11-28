@@ -756,7 +756,7 @@ Please go to your subscriptions and cancel one of them!
     }
 
     // 状態バナー・トースト（表示専用、常にタッチを通す）
-    let statusHost = UIHostingController(rootView: MTStatusOverlayView())
+    let statusHost = UIHostingController(rootView: MTStatusOverlayView(model: host.model))
     _mtAddOverlay(statusHost, into: _overlay, bottom: _overlay.bottomAnchor)
 
     // 入力モードピル（06 §5.2、ターミナル右下）。
@@ -835,12 +835,12 @@ Please go to your subscriptions and cancel one of them!
     }
     // 回線が切れた・戻った・復元した瞬間も撮る
     _mtStateCancellable = MTSessionStateCenter.shared.$states
-      .removeDuplicates { old, new in
-        guard let key = MTSessionStateCenter.shared.currentKey else { return true }
+      .removeDuplicates { [weak self] old, new in
+        guard let key = self?._currentKey else { return true }
         return old[key] == new[key]
       }
       .sink { [weak self] states in
-        guard let self, let key = MTSessionStateCenter.shared.currentKey,
+        guard let self, let key = self._currentKey,
               let state = states[key] else { return }
         let reason: String
         switch state {
@@ -927,9 +927,10 @@ Please go to your subscriptions and cancel one of them!
   /// 圏外ドラフトのカード（07 #02）を遅延生成する
   private func _mtActivateDraftOverlay(_ active: Bool) {
     if active && _mtDraftHost == nil {
-      let host = UIHostingController(rootView: MTDraftOverlayView(onSend: { [weak self] lines in
-        self?._mtSendDraftLines(lines)
-      }))
+      guard let model = _mtTabBar?.model else { return }
+      let host = UIHostingController(rootView: MTDraftOverlayView(
+        onSend: { [weak self] lines in self?._mtSendDraftLines(lines) },
+        model: model))
       _mtAddOverlay(host, into: view, bottom: view.keyboardLayoutGuide.topAnchor)
       _mtDraftHost = host
     }
@@ -973,12 +974,14 @@ Please go to your subscriptions and cancel one of them!
   /// 接続終了の案内（exit 後に固まって見える問題への対応）を遅延生成する
   private func _mtActivateEndOverlay(_ active: Bool) {
     if active && _mtEndHost == nil {
+      guard let model = _mtTabBar?.model else { return }
       let host = UIHostingController(rootView: MTSessionEndView(
         onReconnect: { [weak self] command in
           self?._newShellAction(command: command, animated: false)
         },
         onNewConnection: { [weak self] in self?._mtShowConnectSheet() },
-        onCloseTab: { [weak self] in self?._closeCurrentSpace() }
+        onCloseTab: { [weak self] in self?._closeCurrentSpace() },
+        model: model
       ))
       _mtAddOverlay(host, into: view, bottom: view.bottomAnchor)
       _mtEndHost = host

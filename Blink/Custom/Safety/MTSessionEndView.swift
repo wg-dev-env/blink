@@ -59,14 +59,19 @@ struct MTSessionEndView: View {
   let onNewConnection: () -> Void
   let onCloseTab: () -> Void
 
+  /// このウィンドウのタブ状態。表示中のセッションは、プロセス共有の
+  /// MTSessionStateCenter.currentKey ではなくウィンドウごとのモデルから取る
+  /// （2 画面開くと後から操作した側で上書きされ、別ウィンドウが他方の
+  /// セッションの状態を映してしまうため）
+  @ObservedObject var model: MTTabBarModel
+
   @ObservedObject private var center = MTSessionEndCenter.shared
-  @ObservedObject private var stateCenter = MTSessionStateCenter.shared
   @ObservedObject private var themeStore = MTThemeStore.shared
 
   private var theme: MTTheme { themeStore.currentTheme }
 
   var body: some View {
-    if let key = stateCenter.currentKey, let ended = center.ended(for: key) {
+    if let key = model.currentKey, let ended = center.ended(for: key) {
       VStack(spacing: 16) {
         VStack(spacing: 6) {
           Image(systemName: "powerplug")
