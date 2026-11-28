@@ -162,3 +162,27 @@ final class MTSessionStateCenter: ObservableObject {
   /// iPad / Mac のサイドバー（06 §7）表示中の左インセット
   @objc static var sidebarLeftInset: CGFloat = 0
 }
+
+// MARK: - セッション 1 つ分の後始末
+
+/// タブを閉じる・削除する・シーンごと捨てるときに、MoshTerm 側がセッション単位で
+/// 持っている状態をまとめて捨てる。
+///
+/// 以前はカレントを閉じる経路（`_removeCurrentSpace`）と非カレントを閉じる経路
+/// （`_mtCloseSession`）で消すストアが食い違い、非カレント閉じでは画面履歴
+/// （最大 48 枚）やコマンドブロック（最大 50 件）が残り続けていた。
+/// 消し忘れが出ないよう、後始末はこの 1 か所に集約する。
+enum MTSessionPurge {
+  static func purge(_ key: UUID) {
+    MTSessionStateCenter.shared.clear(for: key)
+    MTHostContext.shared.clear(for: key)
+    MTTmuxSession.shared.clear(for: key)
+    MTInputGuard.clear(for: key)          // 打鍵バッファと圏外ドラフト
+    MTShieldCenter.shared.clear(for: key)
+    MTSessionEndCenter.shared.clear(for: key)
+    MTScreenHistory.shared.clear(for: key)
+    MTCommandBlockStore.shared.clear(for: key)
+    MTSessionsStore.shared.setTitle(nil, for: key)
+    MTSessionsStore.shared.unhide(key)    // 非表示のまま消すと一覧に幽霊が残る
+  }
+}
