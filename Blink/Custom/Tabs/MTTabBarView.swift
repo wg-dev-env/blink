@@ -325,7 +325,7 @@ final class MTTabBarHost: UIViewController {
                      onSFTP: onSFTP, onDisconnect: onDisconnect, onCommandLibrary: onCommandLibrary,
                      onShortcuts: onShortcuts,
                      showSettings: showSettings, onToggleSidebar: onToggleSidebar)
-        MTLifelineView()
+        MTLifelineView(model: model)
           .frame(height: 20)
       }
     }

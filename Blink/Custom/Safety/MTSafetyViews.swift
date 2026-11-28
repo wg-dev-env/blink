@@ -247,13 +247,18 @@ struct MTDraftCardView: View {
 struct MTDraftOverlayView: View {
   let onSend: ([String]) -> Void
 
+  /// このウィンドウのタブ状態。表示中のセッションは、プロセス共有の
+  /// MTSessionStateCenter.currentKey ではなくウィンドウごとのモデルから取る
+  /// （2 画面開くと後から操作した側で上書きされ、別ウィンドウが他方の
+  /// セッションの状態を映してしまうため）
+  @ObservedObject var model: MTTabBarModel
+
   @ObservedObject private var store = MTDraftStore.shared
-  @ObservedObject private var stateCenter = MTSessionStateCenter.shared
 
   var body: some View {
     VStack {
       Spacer()
-      if let key = stateCenter.currentKey, store.count(for: key) > 0 {
+      if let key = model.currentKey, store.count(for: key) > 0 {
         MTDraftCardView(sessionKey: key, onSend: onSend)
           .padding(.horizontal, 12)
           .padding(.bottom, 12)

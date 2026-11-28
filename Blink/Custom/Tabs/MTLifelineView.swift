@@ -26,6 +26,11 @@ import SwiftUI
 
 /// タブバー直下の 2pt 横線。セッションの連続性を時系列で表す。線は途切れない。
 struct MTLifelineView: View {
+  /// このウィンドウのタブ状態。表示中のセッションは、プロセス共有の
+  /// MTSessionStateCenter.currentKey ではなくウィンドウごとのモデルから取る
+  /// （2 画面開くと後から操作した側で上書きされ、別ウィンドウが他方の
+  /// セッションの状態を映してしまうため）
+  @ObservedObject var model: MTTabBarModel
   @ObservedObject private var center = MTSessionStateCenter.shared
   @ObservedObject private var themeStore = MTThemeStore.shared
 
@@ -36,7 +41,7 @@ struct MTLifelineView: View {
   private var theme: MTTheme { themeStore.currentTheme }
 
   var body: some View {
-    let key = center.currentKey
+    let key = model.currentKey
     let state = key.map { center.state(for: $0) } ?? .connected
     let timeline = key.map { center.timeline(for: $0) }
 
@@ -192,6 +197,11 @@ struct MTLifelineView: View {
 /// ターミナルに重ねる表示専用オーバーレイ。
 /// 0 秒: バッジ・ライフライン（別ビュー）→ 3 秒: バナー → 復帰時: トースト 2.5 秒。
 struct MTStatusOverlayView: View {
+  /// このウィンドウのタブ状態。表示中のセッションは、プロセス共有の
+  /// MTSessionStateCenter.currentKey ではなくウィンドウごとのモデルから取る
+  /// （2 画面開くと後から操作した側で上書きされ、別ウィンドウが他方の
+  /// セッションの状態を映してしまうため）
+  @ObservedObject var model: MTTabBarModel
   @ObservedObject private var center = MTSessionStateCenter.shared
   @ObservedObject private var themeStore = MTThemeStore.shared
 
@@ -203,7 +213,7 @@ struct MTStatusOverlayView: View {
   private var theme: MTTheme { themeStore.currentTheme }
 
   private var currentState: MTSessionState {
-    center.currentKey.map { center.state(for: $0) } ?? .connected
+    model.currentKey.map { center.state(for: $0) } ?? .connected
   }
 
   var body: some View {
@@ -238,7 +248,7 @@ struct MTStatusOverlayView: View {
   }
 
   private var taskToken: String {
-    "\(center.currentKey?.uuidString ?? "-")/\(currentState.label)"
+    "\(model.currentKey?.uuidString ?? "-")/\(currentState.label)"
   }
 
   private func handleTransition(from old: MTSessionState, to new: MTSessionState) {
