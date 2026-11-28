@@ -71,13 +71,31 @@ final class MTHostContext: ObservableObject {
     MTSafety.environment(forAlias: alias(for: key))
   }
 
+  /// 値を取るオプション。この次の 1 語はホスト名ではない。
+  /// 取りこぼすと `ssh -p 2222 prod` の "2222" をホスト名と誤認し、
+  /// BKHosts が引けずに本番ガード（額縁・長押し確認・覗き見防止・tmux 追跡）が
+  /// 無言で全部外れる
+  private static let optionsTakingValue: Set<String> = [
+    "-b", "-c", "-D", "-E", "-e", "-F", "-I", "-i", "-J", "-L", "-l", "-m",
+    "-O", "-o", "-p", "-Q", "-R", "-S", "-W", "-w",
+    "--ssh", "--server", "--port", "--predict", "--bind-server", "--local", "--remote",
+  ]
+
   /// 接続コマンド（"mosh macmini" / "ssh macmini -p 22" 等）から alias を取り出す
   static func parseAlias(fromCommand command: String) -> String? {
     let words = command.split(separator: " ").map(String.init)
     guard words.count >= 2, ["mosh", "ssh", "ssh2", "mosh1"].contains(words[0]) else { return nil }
     // オプションを読み飛ばして最初の非オプション語を alias とみなす
-    for word in words.dropFirst() where !word.hasPrefix("-") {
-      return word
+    var skipNext = false
+    for word in words.dropFirst() {
+      if skipNext {
+        skipNext = false
+        continue
+      }
+      guard word.hasPrefix("-") else { return word }
+      // `--opt=value` と `-p2222` は 1 語で完結するので、次の語は読み飛ばさない
+      guard !word.contains("=") else { continue }
+      if optionsTakingValue.contains(word) { skipNext = true }
     }
     return nil
   }

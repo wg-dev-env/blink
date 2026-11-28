@@ -75,8 +75,26 @@ final class MTTofuHostKeyValidator: NIOSSHClientServerAuthenticationDelegate, @u
   /// 直近の検証失敗が「鍵の不一致」だったか。Citadel が検証エラーを別の型に包んで
   /// 伝えることがあり、呼び出し側で MTSFTPError.hostKeyChanged を取り出せるとは
   /// 限らないため、UI の「鍵を忘れて再試行」導線の表示判定に使う。
-  /// （接続は UI から 1 本ずつ張る前提。検証のたびに立て直す）
-  private(set) static var lastFailureWasKeyMismatch = false
+  ///
+  /// 書き込みは NIO の EventLoop スレッド、読み出しは MainActor と actor から来るため
+  /// ロックで守る。接続は UI から 1 本ずつ張る前提（同時に 2 本張ると後勝ちになる）。
+  private static let flagLock = NSLock()
+  private static var _lastFailureWasKeyMismatch = false
+
+  private static var lastFailureWasKeyMismatch: Bool {
+    get { flagLock.lock(); defer { flagLock.unlock() }; return _lastFailureWasKeyMismatch }
+    set { flagLock.lock(); _lastFailureWasKeyMismatch = newValue; flagLock.unlock() }
+  }
+
+  /// 接続を始める前に呼ぶ。以前の判定を必ず捨てる。
+  ///
+  /// 鍵の検証に辿り着かない失敗（名前解決・タイムアウト・認証）では
+  /// `validateHostKey` が呼ばれないため、ここで消さないと前回の「鍵が変わった」が
+  /// 残り、無関係なエラーで「以前の鍵を忘れて再接続」を出してしまう。
+  /// この導線は押すと安全性が下がるので、誤って出さない
+  static func beginAttempt() {
+    lastFailureWasKeyMismatch = false
+  }
 
   init(hostID: String, hostName: String, port: Int) {
     self.storageKey = Self.storageKey(hostID: hostID)
@@ -100,7 +118,6 @@ final class MTTofuHostKeyValidator: NIOSSHClientServerAuthenticationDelegate, @u
   }
 
   func validateHostKey(hostKey: NIOSSHPublicKey, validationCompletePromise: EventLoopPromise<Void>) {
-    Self.lastFailureWasKeyMismatch = false
     var buffer = ByteBufferAllocator().buffer(capacity: 256)
     _ = hostKey.write(to: &buffer)
     let bytes = Data(buffer.readableBytesView)
@@ -192,6 +209,7 @@ actor MTSFTPSession {
     let user = (host.user?.isEmpty == false ? host.user : nil) ?? NSUserName()
 
     let auth = try Self.authMethod(for: host, user: user)
+    MTTofuHostKeyValidator.beginAttempt()
     let validator = SSHHostKeyValidator.custom(
       MTTofuHostKeyValidator(hostID: alias, hostName: hostName, port: port))
 

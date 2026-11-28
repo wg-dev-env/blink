@@ -185,6 +185,7 @@ actor MTTmuxLister {
     let user = (host.user?.isEmpty == false ? host.user : nil) ?? NSUserName()
     let auth = try authMethod(for: host, user: user)
     // ホスト鍵は SFTP と同じ検証（known_hosts 照合つき TOFU。MTSFTPClient.swift で定義）
+    MTTofuHostKeyValidator.beginAttempt()
     let validator = SSHHostKeyValidator.custom(
       MTTofuHostKeyValidator(hostID: alias, hostName: hostName, port: port))
     return try await SSHClient.connect(
