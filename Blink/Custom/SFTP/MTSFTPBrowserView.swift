@@ -219,7 +219,7 @@ struct MTSFTPBrowserView: View {
         .overlay {
           if model.loading { ProgressView() }
           else if model.entries.isEmpty, model.errorText == nil {
-            ContentUnavailableView("からっぽです", systemImage: "folder")
+            ContentUnavailableView("ファイルはありません", systemImage: "folder")
           }
         }
         .navigationTitle(model.path == "." ? model.alias : model.path)

@@ -130,7 +130,7 @@ struct MTSettingsView: View {
       } header: {
         Text("同期と通知")
       } footer: {
-        Text("iCloud・通知のエンタイトルメント復活後に有効になります（フェーズ C4）。")
+        Text("iCloud と通知を使えるようにしてから有効になります。")
       }
 
       // 6. セキュリティ

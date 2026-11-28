@@ -1170,7 +1170,11 @@ Please go to your subscriptions and cancel one of them!
       }
     )
     let vc = UIHostingController(rootView: view)
+    // 他のシートと揃える。キーボードを下げないと一覧の下半分が隠れ、
+    // 外観も端末のテーマに追従しない
+    vc.overrideUserInterfaceStyle = MTThemeStore.shared.overrideInterfaceStyle ?? .unspecified
     vc.modalPresentationStyle = .pageSheet
+    _mtDismissKeyboardForSheet()
     present(vc, animated: true)
   }
 
@@ -1259,7 +1263,7 @@ Please go to your subscriptions and cancel one of them!
     let number = (_viewportsKeys.firstIndex(of: key).map { $0 + 1 }).map { "\($0) 番 · " } ?? ""
     let alert = UIAlertController(
       title: "\(number)名前を変更",
-      message: "空にすると、接続先のホスト名（ローカルは shell）に戻ります",
+      message: "空にすると、接続先のホスト名（ローカルは端末の名前）に戻ります",
       preferredStyle: .alert)
     alert.addTextField { field in
       field.text = current
@@ -1618,11 +1622,11 @@ Please go to your subscriptions and cancel one of them!
     
     if term.termView.rows == 0 && term.termView.cols == 0 {
       hud.label.numberOfLines = 1
-      hud.label.text = title ?? "blink"
+      hud.label.text = title ?? "MoshTerm"
     } else {
       let geometry = "\(term.termView.cols)×\(term.termView.rows)"
       hud.label.numberOfLines = 2
-      hud.label.text = "\(title ?? "blink")\n\(geometry)"
+      hud.label.text = "\(title ?? "MoshTerm")\n\(geometry)"
       
       sceneTitle += " | " + geometry
     }

@@ -246,7 +246,7 @@ struct MTTmuxPickerView: View {
         .frame(width: 20, alignment: .trailing)
       VStack(alignment: .leading, spacing: 2) {
         Text(session.name).foregroundColor(.primary)
-        Text("\(session.windows) window").font(MTFont.ui(12, relativeTo: .caption)).foregroundColor(.secondary)
+        Text("\(session.windows) ウィンドウ").font(MTFont.ui(12, relativeTo: .caption)).foregroundColor(.secondary)
       }
       Spacer()
       if selecting {

@@ -54,7 +54,7 @@ struct MTSidebarView: View {
     VStack(alignment: .leading, spacing: 0) {
       // ヘッダ: アプリ名と設定への入口
       HStack {
-        Text("Iroha")
+        Text("MoshTerm")
           .font(MTFont.ui(15, .bold))
           .foregroundColor(theme.text.color)
         Spacer()
