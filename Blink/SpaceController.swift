@@ -494,14 +494,7 @@ Please go to your subscriptions and cancel one of them!
     }
     currentTerm()?.delegate = nil
     SessionRegistry.shared.remove(forKey: currentKey)
-    MTSessionStateCenter.shared.clear(for: currentKey)
-    MTHostContext.shared.clear(for: currentKey)
-    MTTmuxSession.shared.clear(for: currentKey)
-    MTInputGuard.clear(for: currentKey)
-    MTShieldCenter.shared.clear(for: currentKey)
-    MTSessionEndCenter.shared.clear(for: currentKey)
-    MTScreenHistory.shared.clear(for: currentKey)
-    MTCommandBlockStore.shared.clear(for: currentKey)
+    MTSessionPurge.purge(currentKey)
     _viewportsKeys.remove(at: idx)
     if _viewportsKeys.isEmpty {
       _newShellAction(animated: false)
@@ -1254,8 +1247,9 @@ Please go to your subscriptions and cancel one of them!
   /// セッション名の手動変更（タブ長押し →「名前を変更」）。シェルの自動タイトルより優先される。
   private func _mtRenameSession(_ key: UUID) {
     let store = MTSessionsStore.shared
-    let term: TermController = SessionRegistry.shared[key]
-    let current = store.title(for: key) ?? (term.title ?? "")
+    // 名前を読むだけなので、生成しない取得を使う（subscript は無ければ実体化する）
+    let term: TermController? = SessionRegistry.shared.sessionFromIndexWith(key: key)
+    let current = store.title(for: key) ?? (term?.title ?? "")
 
     let number = (_viewportsKeys.firstIndex(of: key).map { $0 + 1 }).map { "\($0) 番 · " } ?? ""
     let alert = UIAlertController(
@@ -1282,15 +1276,13 @@ Please go to your subscriptions and cancel one of them!
       _closeCurrentSpace()
       return
     }
-    let term: TermController = SessionRegistry.shared[key]
-    term.delegate = nil
-    term.terminate()
+    // subscript は「無ければ生成する」ため、閉じるためだけに TermController +
+    // TermView + WKWebView を実体化してしまう。未表示のタブを閉じるときは生成しない
+    let term: TermController? = SessionRegistry.shared.sessionFromIndexWith(key: key)
+    term?.delegate = nil
+    term?.terminate()
     SessionRegistry.shared.remove(forKey: key)
-    // _removeCurrentSpace と同じ後始末を揃える（非カレント閉じで取り残しが出ないように）
-    MTSessionStateCenter.shared.clear(for: key)
-    MTHostContext.shared.clear(for: key)
-    MTTmuxSession.shared.clear(for: key)
-    MTSessionsStore.shared.setTitle(nil, for: key)
+    MTSessionPurge.purge(key)
     if let idx = _viewportsKeys.firstIndex(of: key) {
       _viewportsKeys.remove(at: idx)
     }
@@ -1344,7 +1336,7 @@ Please go to your subscriptions and cancel one of them!
   private func _mtDeleteSessionWithConfirm(_ key: UUID) {
     let name = MTSessionsStore.shared.title(for: key)
       ?? MTHostContext.shared.alias(for: key)
-      ?? (SessionRegistry.shared[key] as TermController).title
+      ?? (SessionRegistry.shared.sessionFromIndexWith(key: key) as TermController?)?.title
       ?? "このセッション"
     let alert = UIAlertController(
       title: "セッションを削除",
@@ -1679,7 +1671,10 @@ extension SpaceController: UIStateRestorable {
         return
       }
       
-      uiState.keys.forEach { registry.remove(forKey: $0) }
+      uiState.keys.forEach {
+        registry.remove(forKey: $0)
+        MTSessionPurge.purge($0)
+      }
     }
   }
 }
