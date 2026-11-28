@@ -70,6 +70,33 @@ enum MTSSHError: LocalizedError {
   }
 }
 
+/// 競走する 2 つの処理のうち、先に決まった方だけが継続を再開するための入れ物。
+/// 継続の二重再開はクラッシュになるため、ロックで 1 度きりを保証する。
+private final class MTFirstWinsBox<T: Sendable>: @unchecked Sendable {
+  private let lock = NSLock()
+  private var cont: CheckedContinuation<T, Error>?
+
+  func install(_ continuation: CheckedContinuation<T, Error>) {
+    lock.lock()
+    cont = continuation
+    lock.unlock()
+  }
+
+  /// 先に呼んだ側だけが `true` を返す（2 回目以降は何もしない）
+  @discardableResult
+  func finish(_ result: Result<T, Error>) -> Bool {
+    lock.lock()
+    guard let continuation = cont else {
+      lock.unlock()
+      return false
+    }
+    cont = nil
+    lock.unlock()
+    continuation.resume(with: result)
+    return true
+  }
+}
+
 /// サーバーの tmux セッション一覧を取得する（制御用の使い捨て Citadel 接続）。
 actor MTTmuxLister {
   let alias: String
@@ -104,8 +131,11 @@ actor MTTmuxLister {
     // タイムアウト（withTimeout の cancelAll）が接続中に発生していたら、
     // 張れてしまった接続をすぐ畳んで終わる（コマンドを実行しない）
     try Task.checkCancellation()
-    // `#{...}` は tmux のフォーマット。名前にタブ・改行は入らない前提で name<TAB>windows
-    let cmd = "tmux ls -F '#{session_name}\t#{session_windows}' 2>/dev/null"
+    // `#{...}` は tmux のフォーマット。名前にタブ・改行は入らない前提で name<TAB>windows。
+    // セッションが 1 つも無いと tmux ls は終了コード 1 を返し、Citadel が throw して
+    // 「取れなかった」扱いになってしまう。`|| true` で 0 に正規化し、空の出力＝0 件として
+    // 扱う（MTTmuxKiller も同じ理由で終了コードを揃えている）
+    let cmd = "tmux ls -F '#{session_name}\t#{session_windows}' 2>/dev/null || true"
     let buffer = try await client.executeCommand(cmd)
     let text = buffer.getString(at: buffer.readerIndex, length: buffer.readableBytes) ?? ""
     var result: [MTTmuxSessionInfo] = []
@@ -119,23 +149,31 @@ actor MTTmuxLister {
   }
 
   /// 処理とタイマーを競走させ、先に終わった方を採る。
-  /// Citadel の接続自体はキャンセルに応じないことがあるが、待っている側は必ず
-  /// `timeout` 秒で解放される（取り残したタスクはバックグラウンドで畳まれる）。
+  ///
+  /// タスクグループは使えない。`withThrowingTaskGroup` は本体を抜けるときに
+  /// 残りの子タスクの完了を待つ仕様のため、Citadel の接続のようにキャンセルへ
+  /// 応じない処理があると `cancelAll()` を呼んでも `seconds` では返らず、
+  /// OS の TCP タイムアウト（60〜75 秒）まで呼び出し側が固まる。
+  /// 非構造化 Task を 2 本競走させ、先に決まった方だけが継続を再開する。
   private static func withTimeout<T: Sendable>(
     _ seconds: Double,
     operation: @escaping @Sendable () async throws -> T
   ) async throws -> T {
-    try await withThrowingTaskGroup(of: T.self) { group in
-      group.addTask { try await operation() }
-      group.addTask {
-        try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
-        throw MTTmuxListTimeout()
+    let box = MTFirstWinsBox<T>()
+    return try await withCheckedThrowingContinuation { cont in
+      box.install(cont)
+      let work = Task {
+        do { box.finish(.success(try await operation())) }
+        catch { box.finish(.failure(error)) }
       }
-      guard let first = try await group.next() else {
-        throw MTTmuxListTimeout()
+      Task {
+        try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+        // 時間切れ側が勝ったときだけ、取り残した処理にキャンセルを伝える。
+        // 応じるかどうかに関わらず、待っている側はここで解放される
+        if box.finish(.failure(MTTmuxListTimeout())) {
+          work.cancel()
+        }
       }
-      group.cancelAll()
-      return first
     }
   }
 
