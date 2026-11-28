@@ -286,12 +286,17 @@ class SpaceController: UIViewController {
 
     if _viewportsKeys.isEmpty {
       _newShellAction(animated: false)
-    } else if let key = _currentKey {
+    } else {
+      // 復元した _currentKey がタブ一覧に無いことがある（保存と復元の食い違い）。
+      // そのまま進むと子 VC が入らず、空白のまま切替もできない画面になるので先頭へ倒す
+      let key = _currentKey.flatMap { _viewportsKeys.contains($0) ? $0 : nil } ?? _viewportsKeys[0]
+      _currentKey = key
       let term: TermController = SessionRegistry.shared[key]
       term.delegate = self
       // term.layoutProvider = self
       term.bgColor = view.backgroundColor ?? .black
       _viewportsController.setViewControllers([term], direction: .forward, animated: false)
+      _mtTabBarUpdate()
     }
         
     self.view.addSubview(_bottomTapAreaView)
@@ -2371,10 +2376,15 @@ extension SpaceController {
     let direction: UIPageViewController.NavigationDirection = currentIdx < idx ? .forward : .reverse
 
     _presentViewport(term, direction: direction, animated: animated) { [weak self] _ in
+      guard let self else { return }
+      // アニメーションの最中にこのタブが閉じられていることがある。消えたキーを
+      // _currentKey に書くと firstIndex(of:) が常に nil になり、以後タブ切替も
+      // タブを閉じる操作も効かなくなる（復帰手段がアプリ再起動しかない）
+      guard self._viewportsKeys.contains(term.meta.key) else { return }
       term.resumeIfNeeded()
-      self?._currentKey = term.meta.key
-      self?._displayHUD()
-      self?._refocusCurrentTermSoon()
+      self._currentKey = term.meta.key
+      self._displayHUD()
+      self._refocusCurrentTermSoon()
     }
   }
 
