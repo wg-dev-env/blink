@@ -31,8 +31,15 @@ struct MTDangerRingView: View {
 
   @State private var progress: CGFloat = 0
   @State private var timer: Timer? = nil
+  /// 押している最中かどうか。`@GestureState` は着信・アプリ切替などで
+  /// ジェスチャが中断されたときも SwiftUI が必ず初期値へ戻すため、
+  /// `onEnded` が来ない場合でも押下が残らない（タイマーの取り残し防止）
+  @GestureState private var pressing = false
+  @Environment(\.scenePhase) private var scenePhase
 
   private let duration: TimeInterval = 1.0
+  /// リングの直径。当たり判定（指が外へ出たら中止）にも使う
+  private static let ringSize: CGFloat = 72
   private var theme: MTTheme { themeStore.currentTheme }
 
   var body: some View {
@@ -85,15 +92,32 @@ struct MTDangerRingView: View {
               .font(.system(size: 22, weight: .semibold))
               .foregroundColor(theme.bad.color)
           }
-          .frame(width: 72, height: 72)
+          .frame(width: Self.ringSize, height: Self.ringSize)
           .contentShape(Circle())
           .gesture(
             DragGesture(minimumDistance: 0)
-              .onChanged { _ in start() }
-              .onEnded { _ in stop() }
+              // 指が円の外へ出たら押していない扱いにする（滑らせて中止できる）
+              .updating($pressing) { value, state, _ in
+                state = Self.isInsideRing(value.location)
+              }
           )
+          .onChange(of: pressing) { _, now in
+            if now { start() } else { stop() }
+          }
+          // 背面に回ったら進行を止める（戻ってきたときに勝手に送らない）
+          .onChange(of: scenePhase) { _, phase in
+            if phase != .active { stop() }
+          }
+          .accessibilityElement()
+          .accessibilityAddTraits(.isButton)
           .accessibilityLabel(Text("長押しで送信"))
           .accessibilityHint(Text(pending.line))
+          // VoiceOver では長押しのなぞりができないため、名前付きの操作を用意する。
+          // 既定の操作（ダブルタップ）には割り当てない（誤送信を避ける）
+          .accessibilityAction(named: Text("送信")) {
+            stop()
+            MTDangerGuard.shared.confirm()
+          }
 
           Button("送らない") { cancel() }
             .font(MTFont.ui(14, .medium))
@@ -118,6 +142,12 @@ struct MTDangerRingView: View {
         MTDangerGuard.shared.confirm()
       }
     }
+  }
+
+  /// 指がリングの円の内側にあるか（座標はリング自身のローカル）
+  private static func isInsideRing(_ point: CGPoint) -> Bool {
+    let r = ringSize / 2
+    return hypot(point.x - r, point.y - r) <= r
   }
 
   private func stop() {
