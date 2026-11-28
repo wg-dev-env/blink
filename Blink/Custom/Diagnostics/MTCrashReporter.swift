@@ -199,7 +199,13 @@ private var _mtPreviousExceptionHandler: (@convention(c) (NSException) -> Void)?
 
   // MARK: - 未捕捉例外
 
+  /// 例外ハンドラを入れたか。2 回入れると `_mtPreviousExceptionHandler` が
+  /// 自分自身を指し、例外のたびに無限再帰する（記録も残らない）
+  private static var exceptionHandlerInstalled = false
+
   private static func installExceptionHandler() {
+    guard !exceptionHandlerInstalled else { return }
+    exceptionHandlerInstalled = true
     _mtPreviousExceptionHandler = NSGetUncaughtExceptionHandler()
     NSSetUncaughtExceptionHandler { exception in
       // プロセスが死ぬ直前なので、キューに逃がさずその場で書き切る

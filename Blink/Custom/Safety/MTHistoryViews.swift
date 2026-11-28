@@ -226,10 +226,10 @@ struct MTCommandBlocksView: View {
 
   /// シェル統合の最小スニペット（OSC 133 のマークを出す）
   static let zshSnippet = """
-  # Iroha Terminal: コマンドブロック用のシェル統合
+  # MoshTerm: コマンドブロック用のシェル統合
   precmd()  { printf "\\033]133;A\\007" }
   preexec() { printf "\\033]133;C\\007" }
-  _iroha_d(){ printf "\\033]133;D;%s\\007" "$?" }
-  precmd_functions+=(_iroha_d)
+  _moshterm_d(){ printf "\\033]133;D;%s\\007" "$?" }
+  precmd_functions+=(_moshterm_d)
   """
 }
